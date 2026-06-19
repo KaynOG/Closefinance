@@ -105,7 +105,7 @@ function PerfilPage() {
             {age !== null && <p>Idade: <span className="text-foreground">{age} anos</span></p>}
             <p>Pontos: <span className="text-foreground">{missions.totalPoints}</span></p>
           </div>
-          <button onClick={() => { api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
+          <button onClick={async () => { await api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
             <LogOut className="size-4" /> Sair da conta
           </button>
         </GlassCard>

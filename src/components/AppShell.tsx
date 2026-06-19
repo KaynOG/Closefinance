@@ -22,19 +22,23 @@ const nav = [
 export function AppShell({ children }: { children?: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const [, api, user] = useStore();
+  const [state, api, user] = useStore();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); installGlobalClickSounds(); }, []);
   useEffect(() => {
-    if (mounted && !user && pathname !== "/auth") {
+    if (mounted && !state.loading && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
     }
-  }, [mounted, user, pathname, navigate]);
+  }, [mounted, state.loading, user, pathname, navigate]);
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground font-mono">
+        {state.loading ? "Carregando…" : null}
+      </div>
+    );
   }
 
   return (
