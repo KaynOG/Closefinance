@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as GanhosRouteImport } from './routes/ganhos'
 import { Route as EducacaoRouteImport } from './routes/educacao'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TransacoesRoute = TransacoesRouteImport.update({
   id: '/transacoes',
   path: '/transacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GastosRoute = GastosRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/perfil'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/perfil'
     | '/transacoes'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/perfil'
     | '/transacoes'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   EducacaoRoute: typeof EducacaoRoute
   GanhosRoute: typeof GanhosRoute
   GastosRoute: typeof GastosRoute
+  PerfilRoute: typeof PerfilRoute
   TransacoesRoute: typeof TransacoesRoute
 }
 
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/transacoes'
       fullPath: '/transacoes'
       preLoaderRoute: typeof TransacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gastos': {
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   EducacaoRoute: EducacaoRoute,
   GanhosRoute: GanhosRoute,
   GastosRoute: GastosRoute,
+  PerfilRoute: PerfilRoute,
   TransacoesRoute: TransacoesRoute,
 }
 export const routeTree = rootRouteImport
