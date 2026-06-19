@@ -3,9 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
-import { useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX } from "lucide-react";
 import { BackupContent } from "./backup";
+import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
