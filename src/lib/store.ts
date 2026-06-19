@@ -237,6 +237,24 @@ export function useStore() {
       memory = { ...memory, users: memory.users.map(u => u.id === memory.currentUserId ? { ...u, ...patch } : u) };
       persist();
     },
+    changePassword: (currentPassword: string, newPassword: string) => {
+      const u = memory.users.find(x => x.id === memory.currentUserId);
+      if (!u) return { ok: false as const, error: "Você precisa estar logado." };
+      if (u.passwordHash !== hash(currentPassword)) return { ok: false as const, error: "Senha atual incorreta." };
+      if (newPassword.length < 6) return { ok: false as const, error: "A nova senha deve ter pelo menos 6 caracteres." };
+      memory = { ...memory, users: memory.users.map(x => x.id === u.id ? { ...x, passwordHash: hash(newPassword) } : x) };
+      persist();
+      return { ok: true as const };
+    },
+    requestPasswordReset: (email: string) => {
+      const u = memory.users.find(x => x.email === email.trim().toLowerCase());
+      if (!u) return { ok: false as const, error: "Não encontramos nenhuma conta com este e-mail." };
+      // Token local (sem backend). Em produção isto vira um link enviado por e-mail real.
+      const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const link = `${typeof window !== "undefined" ? window.location.origin : ""}/auth?reset=${token}&email=${encodeURIComponent(u.email)}`;
+      try { localStorage.setItem(`closefinance:reset:${token}`, JSON.stringify({ userId: u.id, exp: Date.now() + 30 * 60 * 1000 })); } catch { /* noop */ }
+      return { ok: true as const, link, email: u.email };
+    },
     toggleMission: (missionId: string) => {
       const today = new Date().toISOString().slice(0, 10);
       const base: MissionState = memory.missions.date === today
