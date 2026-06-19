@@ -1,0 +1,197 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
+import { useStore, formatBRL, isSameMonth, type Essential } from "@/lib/store";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, TrendingDown } from "lucide-react";
+import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+
+export const Route = createFileRoute("/gastos")({
+  head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
+  component: GastosPage,
+});
+
+const ORANGE = "#FF6B1A";
+const ORANGE_DEEP = "#C2410C";
+
+function GastosPage() {
+  const [{ transactions, categories, cards }, api] = useStore();
+  const today = new Date();
+  const expenseCats = categories.filter(c => c.kind !== "income");
+
+  const [form, setForm] = useState({
+    amount: "", description: "", date: today.toISOString().slice(0, 10),
+    categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential, cardId: "", tag: "",
+  });
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const amt = parseFloat(form.amount.replace(",", "."));
+    if (!amt || amt <= 0) return;
+    api.addTransaction({
+      type: "expense", amount: amt, description: form.description.trim(), date: form.date,
+      categoryId: form.categoryId || undefined, essential: form.essential, cardId: form.cardId || undefined, tag: form.tag.trim() || undefined,
+    });
+    setForm({ ...form, amount: "", description: "", tag: "" });
+  }
+
+  const expenses = transactions.filter(t => t.type === "expense").sort((a, b) => b.date.localeCompare(a.date));
+  const monthExp = expenses.filter(t => isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+  const essential = expenses.filter(t => isSameMonth(t.date, today) && t.essential === "essential").reduce((s, t) => s + t.amount, 0);
+
+  const series = useMemo(() => {
+    const out = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      out.push({ month: d.toLocaleDateString("pt-BR", { month: "short" }), valor: expenses.filter(t => isSameMonth(t.date, d)).reduce((s, t) => s + t.amount, 0) });
+    }
+    return out;
+  }, [expenses]);
+
+  const byCat = useMemo(() => {
+    return expenseCats.map(c => ({ name: c.name, valor: expenses.filter(t => isSameMonth(t.date, today) && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0), color: c.color })).filter(c => c.valor > 0).sort((a, b) => b.valor - a.valor);
+  }, [expenses, expenseCats]);
+
+  return (
+    <AppShell>
+      <header className="mb-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Saídas</p>
+        <h1 className="text-3xl lg:text-4xl font-bold">Gastos <TrendingDown className="inline size-7" style={{ color: ORANGE }} /></h1>
+      </header>
+
+      <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <Stat label="Gasto este mês" value={formatBRL(monthExp)} accent="crimson" sub={`${expenses.filter(t => isSameMonth(t.date, today)).length} lançamentos`} />
+        <Stat label="Essenciais" value={formatBRL(essential)} accent="teal" sub={monthExp ? `${Math.round((essential / monthExp) * 100)}% do total` : "—"} />
+        <Stat label="Não essenciais" value={formatBRL(monthExp - essential)} accent="yellow" sub="onde dá pra cortar" />
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <GlassCard className="lg:col-span-2">
+          <SectionTitle title="Evolução dos gastos" subtitle="últimos 12 meses" />
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={series} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={ORANGE} stopOpacity={0.7} />
+                    <stop offset="100%" stopColor={ORANGE} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} />
+                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
+                <Area type="monotone" dataKey="valor" stroke={ORANGE} fill="url(#gOrange)" strokeWidth={2.5} animationDuration={900} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </GlassCard>
+
+        <GlassCard>
+          <SectionTitle title="Top categorias" subtitle="mês atual" />
+          <div className="h-72">
+            {byCat.length === 0 ? <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byCat} layout="vertical" margin={{ left: 10, right: 10 }}>
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" fontSize={11} width={90} />
+                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
+                  <Bar dataKey="valor" radius={[0, 8, 8, 0]} animationDuration={800}>
+                    {byCat.map((c, i) => <Cell key={i} fill={c.color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </GlassCard>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
+        <GlassCard>
+          <SectionTitle title="Novo gasto" />
+          <form onSubmit={submit} className="space-y-3">
+            <Field label="Valor (R$)"><input required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0,00" inputMode="decimal" className={inputCls} /></Field>
+            <Field label="Descrição"><input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Mercado, conta de luz..." className={inputCls} /></Field>
+            <Field label="Data"><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} /></Field>
+            <Field label="Categoria">
+              <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+                <option value="">Sem categoria</option>
+                {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Classificação">
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setForm({ ...form, essential: "essential" })}
+                  className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.essential === "essential" ? "bg-[#006F77]/20 border-[#006F77]" : "border-border hover:bg-white/5"}`}>Essencial</button>
+                <button type="button" onClick={() => setForm({ ...form, essential: "non_essential" })}
+                  className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.essential === "non_essential" ? "bg-[#820432]/20 border-[#820432]" : "border-border hover:bg-white/5"}`}>Não essencial</button>
+              </div>
+            </Field>
+            {cards.length > 0 && (
+              <Field label="Cartão (opcional)">
+                <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                  <option value="">À vista</option>
+                  {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </Field>
+            )}
+            <Field label="Etiqueta (parâmetro livre)">
+              <input value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} placeholder="Ex: viagem-japão, presente" className={inputCls} />
+            </Field>
+            <button type="submit" className="w-full rounded-xl font-semibold py-3 text-white transition active:scale-[0.98]" style={{ background: ORANGE }}>
+              <Plus className="size-4 inline mr-1.5" /> Adicionar gasto
+            </button>
+          </form>
+        </GlassCard>
+
+        <GlassCard>
+          <SectionTitle title="Planilha de gastos" subtitle={`${expenses.length} lançamentos`} />
+          {expenses.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum gasto ainda.</p> : (
+            <div className="overflow-x-auto -mx-3">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/10">
+                    <th className="py-2 px-3">Data</th>
+                    <th className="py-2 px-3">Descrição</th>
+                    <th className="py-2 px-3">Categoria</th>
+                    <th className="py-2 px-3">Tipo</th>
+                    <th className="py-2 px-3">Etiqueta</th>
+                    <th className="py-2 px-3 text-right">Valor</th>
+                    <th className="py-2 px-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map(t => {
+                    const cat = categories.find(c => c.id === t.categoryId);
+                    return (
+                      <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                        <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
+                        <td className="py-2.5 px-3">{t.description || "—"}</td>
+                        <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
+                        <td className="py-2.5 px-3"><span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${t.essential === "essential" ? "bg-[#006F77]/20 text-[#22C3CC]" : "bg-[#820432]/30 text-[#FF8FA3]"}`}>{t.essential === "essential" ? "essencial" : "não ess."}</span></td>
+                        <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                        <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
+                        <td className="py-2.5 px-3"><button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </GlassCard>
+      </section>
+    </AppShell>
+  );
+}
+
+const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">{label}</span>
+      <div className="mt-1.5">{children}</div>
+    </label>
+  );
+}
