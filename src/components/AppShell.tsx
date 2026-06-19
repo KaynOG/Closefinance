@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Sparkles, Menu, X, LogOut, User as UserIcon, DatabaseBackup,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -13,9 +13,9 @@ const nav = [
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/categorias", label: "Categorias", icon: Tags },
-  { to: "/backup", label: "Backup", icon: DatabaseBackup },
+  { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
-  { to: "/design-system", label: "Design System", icon: Sparkles },
+  { to: "/perfil", label: "Perfil", icon: UserIcon },
 ] as const;
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
