@@ -14,7 +14,253 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      banks: {
+        Row: {
+          account_balance: number
+          color: string
+          created_at: string
+          id: string
+          name: string
+          note: string | null
+          saved_amount: number
+          user_id: string
+        }
+        Insert: {
+          account_balance?: number
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          note?: string | null
+          saved_amount?: number
+          user_id: string
+        }
+        Update: {
+          account_balance?: number
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          note?: string | null
+          saved_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cards: {
+        Row: {
+          closing_day: number
+          color: string
+          created_at: string
+          due_day: number
+          id: string
+          limit_amount: number
+          name: string
+          user_id: string
+        }
+        Insert: {
+          closing_day?: number
+          color?: string
+          created_at?: string
+          due_day?: number
+          id?: string
+          limit_amount?: number
+          name: string
+          user_id: string
+        }
+        Update: {
+          closing_day?: number
+          color?: string
+          created_at?: string
+          due_day?: number
+          id?: string
+          limit_amount?: number
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string | null
+          id: string
+          kind: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mission_history: {
+        Row: {
+          day: string
+          id: string
+          mission_id: string
+          occurred_at: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          id?: string
+          mission_id: string
+          occurred_at?: string
+          points?: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          id?: string
+          mission_id?: string
+          occurred_at?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar: string | null
+          birthdate: string | null
+          created_at: string
+          email: string | null
+          gender: string | null
+          id: string
+          job: string | null
+          name: string
+          sound_enabled: boolean
+          total_points: number
+          updated_at: string
+          yearly_goal: number | null
+        }
+        Insert: {
+          avatar?: string | null
+          birthdate?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id: string
+          job?: string | null
+          name?: string
+          sound_enabled?: boolean
+          total_points?: number
+          updated_at?: string
+          yearly_goal?: number | null
+        }
+        Update: {
+          avatar?: string | null
+          birthdate?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          job?: string | null
+          name?: string
+          sound_enabled?: boolean
+          total_points?: number
+          updated_at?: string
+          yearly_goal?: number | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          bank_id: string | null
+          card_id: string | null
+          category_id: string | null
+          created_at: string
+          date: string
+          description: string
+          essential: string | null
+          id: string
+          installment_group_id: string | null
+          installment_no: number | null
+          installment_total: number | null
+          payment_method: string | null
+          tag: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bank_id?: string | null
+          card_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          date: string
+          description?: string
+          essential?: string | null
+          id?: string
+          installment_group_id?: string | null
+          installment_no?: number | null
+          installment_total?: number | null
+          payment_method?: string | null
+          tag?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_id?: string | null
+          card_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          essential?: string | null
+          id?: string
+          installment_group_id?: string | null
+          installment_no?: number | null
+          installment_total?: number | null
+          payment_method?: string | null
+          tag?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_bank_id_fkey"
+            columns: ["bank_id"]
+            isOneToOne: false
+            referencedRelation: "banks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
