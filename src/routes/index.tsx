@@ -118,12 +118,14 @@ function DashboardPage() {
         </h1>
       </header>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
         <Stat label="Despesas do mês" value={formatBRL(month.expense)} accent="crimson" sub={`${formatBRL(month.essential)} essenciais`} />
         <Stat label="Saldo previsto" value={formatBRL(month.balance)} accent={month.balance >= 0 ? "success" : "danger"} sub="Receitas − Despesas" />
-        <Stat label="Cartões disponível" value={formatBRL(totalAvailable)} accent="violet" sub={`de ${formatBRL(totalLimit)}`} />
+        <Stat label="Cartão · disponível" value={formatBRL(totalAvailable)} accent="violet" sub={`de ${formatBRL(totalLimit)}`} />
+        <Stat label="Cartão · gasto no mês" value={formatBRL(totalUsed)} accent="crimson" sub={`${Math.round(totalCardPct)}% do limite`} />
       </section>
+
 
       {/* Missions + Tip + Goal */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -198,7 +200,20 @@ function DashboardPage() {
         </GlassCard>
 
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Fluxo dos últimos 6 meses" subtitle="ganhos em ciano · gastos em laranja" />
+          <SectionTitle
+            title={`Fluxo dos últimos ${periodMonths} meses`}
+            subtitle="ganhos em ciano · gastos em laranja"
+            action={
+              <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+                {([3, 6, 12] as const).map(n => (
+                  <button key={n} onClick={() => setPeriodMonths(n)}
+                    className={`px-3 py-1.5 transition ${periodMonths === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                    {n === 12 ? "1 ano" : `${n} m`}
+                  </button>
+                ))}
+              </div>
+            } />
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
