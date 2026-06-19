@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
   PieChart, Pie, Cell, Legend, CartesianGrid,
 } from "recharts";
 import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,6 +42,7 @@ const DAILY_TIPS = [
 function DashboardPage() {
   const [{ transactions, categories, cards, missions }, api, user] = useStore();
   const today = new Date();
+  const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, today));
@@ -51,6 +53,7 @@ function DashboardPage() {
     return { tx, income, expense, essential, nonEssential, balance: income - expense };
   }, [transactions]);
 
+  // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(() => cards.map((c) => {
     const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
     return { ...c, used, available: Math.max(0, c.limit - used), pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0 };
@@ -59,6 +62,7 @@ function DashboardPage() {
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
   const totalUsed = cardUsage.reduce((s, c) => s + c.used, 0);
   const totalAvailable = Math.max(0, totalLimit - totalUsed);
+  const totalCardPct = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
 
   const health = useMemo(() => {
     if (month.income === 0 && month.expense === 0) return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const };
@@ -75,17 +79,18 @@ function DashboardPage() {
 
   const series = useMemo(() => {
     const out = [];
-    for (let i = 5; i >= 0; i--) {
+    for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter(t => isSameMonth(t.date, d));
       out.push({
-        month: d.toLocaleDateString("pt-BR", { month: "short" }),
+        month: d.toLocaleDateString("pt-BR", { month: "short", year: periodMonths > 6 ? "2-digit" : undefined }),
         receitas: tx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
         despesas: tx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0),
       });
     }
     return out;
-  }, [transactions]);
+  }, [transactions, periodMonths]);
+
 
   const byCat = useMemo(() => categories.map(c => ({
     name: c.name,
@@ -113,12 +118,14 @@ function DashboardPage() {
         </h1>
       </header>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
         <Stat label="Despesas do mês" value={formatBRL(month.expense)} accent="crimson" sub={`${formatBRL(month.essential)} essenciais`} />
         <Stat label="Saldo previsto" value={formatBRL(month.balance)} accent={month.balance >= 0 ? "success" : "danger"} sub="Receitas − Despesas" />
-        <Stat label="Cartões disponível" value={formatBRL(totalAvailable)} accent="violet" sub={`de ${formatBRL(totalLimit)}`} />
+        <Stat label="Cartão · disponível" value={formatBRL(totalAvailable)} accent="violet" sub={`de ${formatBRL(totalLimit)}`} />
+        <Stat label="Cartão · gasto no mês" value={formatBRL(totalUsed)} accent="crimson" sub={`${Math.round(totalCardPct)}% do limite`} />
       </section>
+
 
       {/* Missions + Tip + Goal */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -193,7 +200,20 @@ function DashboardPage() {
         </GlassCard>
 
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Fluxo dos últimos 6 meses" subtitle="ganhos em ciano · gastos em laranja" />
+          <SectionTitle
+            title={`Fluxo dos últimos ${periodMonths} meses`}
+            subtitle="ganhos em ciano · gastos em laranja"
+            action={
+              <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+                {([3, 6, 12] as const).map(n => (
+                  <button key={n} onClick={() => setPeriodMonths(n)}
+                    className={`px-3 py-1.5 transition ${periodMonths === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                    {n === 12 ? "1 ano" : `${n} m`}
+                  </button>
+                ))}
+              </div>
+            } />
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

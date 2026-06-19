@@ -32,6 +32,8 @@ export interface Card {
   color: string;
 }
 
+export type Gender = "male" | "female" | "other";
+
 export interface User {
   id: string;
   name: string;
@@ -41,8 +43,10 @@ export interface User {
   job?: string;
   yearlyGoal?: number;
   avatar?: string; // data URL
+  gender?: Gender;
   createdAt: string;
 }
+
 
 export interface PointEntry {
   date: string; // ISO datetime
@@ -239,20 +243,28 @@ export function useStore() {
         ? memory.missions
         : { date: today, completed: [], totalPoints: memory.missions.totalPoints, history: memory.missions.history };
       const isDone = base.completed.includes(missionId);
-      const delta = isDone ? -10 : 10;
-      const completed = isDone ? base.completed.filter(x => x !== missionId) : [...base.completed, missionId];
-      const entry: PointEntry = { date: new Date().toISOString(), missionId, points: delta };
-      memory = {
-        ...memory,
-        missions: {
-          date: today,
-          completed,
-          totalPoints: Math.max(0, base.totalPoints + delta),
-          history: [entry, ...base.history].slice(0, 500),
-        },
-      };
+      // Anti-duplicação: já houve pontuação positiva desta missão hoje? Não pontuar de novo.
+      const alreadyAwardedToday = base.history.some(
+        h => h.missionId === missionId && h.points > 0 && h.date.slice(0, 10) === today,
+      );
+      let completed = base.completed;
+      let totalPoints = base.totalPoints;
+      let history = base.history;
+      if (!isDone) {
+        completed = [...base.completed, missionId];
+        if (!alreadyAwardedToday) {
+          const now = new Date().toISOString();
+          history = [{ date: now, missionId, points: 10 }, ...base.history].slice(0, 500);
+          totalPoints = base.totalPoints + 10;
+        }
+      } else {
+        // desmarcar não devolve pontos já contados (evita farm)
+        completed = base.completed.filter(x => x !== missionId);
+      }
+      memory = { ...memory, missions: { date: today, completed, totalPoints: Math.max(0, totalPoints), history } };
       persist();
     },
+
     reset: () => { memory = DEFAULT_STATE; persist(); },
   };
 

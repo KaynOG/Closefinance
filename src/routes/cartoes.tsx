@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { GlassCard, SectionTitle } from "@/components/ui-kit";
+import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
-import { useState } from "react";
-import { Plus, Trash2, CreditCard as CC } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse } from "lucide-react";
 
 export const Route = createFileRoute("/cartoes")({
   head: () => ({ meta: [{ title: "Cartões — CloseFinance" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
@@ -11,6 +11,14 @@ export const Route = createFileRoute("/cartoes")({
 });
 
 const PALETTE = ["#540BD3", "#FFCC00", "#006F77", "#820432", "#2BD9A1", "#FF4D6D", "#B388FF"];
+
+type Tone = "success" | "ok" | "warn" | "danger";
+function statusFromPct(pct: number): { label: string; tone: Tone; color: string; note: string } {
+  if (pct >= 90) return { label: "Crítico", tone: "danger", color: "#FF4D6D", note: "Gasto excessivo — perigo de estouro do limite." };
+  if (pct >= 70) return { label: "Alerta", tone: "warn", color: "#FF6B1A", note: "Uso elevado — considere segurar gastos não essenciais." };
+  if (pct >= 40) return { label: "Saudável", tone: "ok", color: "#FFCC00", note: "Uso moderado — está no controle, atenção ao fim do mês." };
+  return { label: "Excelente", tone: "success", color: "#2BD9A1", note: "Uso baixo do limite — ótima saúde de crédito." };
+}
 
 function CardsPage() {
   const [{ cards, transactions }, api] = useStore();
@@ -33,12 +41,55 @@ function CardsPage() {
     setForm({ name: "", limit: "", closingDay: "1", dueDay: "10", color: PALETTE[0] });
   }
 
+  const overview = useMemo(() => {
+    const enriched = cards.map((c) => {
+      const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+      const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
+      return { ...c, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
+    });
+    const totalLimit = enriched.reduce((s, c) => s + c.limit, 0);
+    const totalUsed = enriched.reduce((s, c) => s + c.used, 0);
+    const totalAvail = Math.max(0, totalLimit - totalUsed);
+    const totalPct = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
+    const status = statusFromPct(totalPct);
+    return { enriched, totalLimit, totalUsed, totalAvail, totalPct, status };
+  }, [cards, transactions]);
+
   return (
     <AppShell>
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Crédito</p>
         <h1 className="text-3xl font-bold">Cartões e limites</h1>
       </header>
+
+      {/* Overview / dashboard dos cartões */}
+      {cards.length > 0 && (
+        <>
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <Stat label="Limite total" value={formatBRL(overview.totalLimit)} accent="violet" sub={`${cards.length} ${cards.length === 1 ? "cartão" : "cartões"}`} />
+            <Stat label="Usado no mês" value={formatBRL(overview.totalUsed)} accent="crimson" sub={`${Math.round(overview.totalPct)}% do limite`} />
+            <Stat label="Disponível" value={formatBRL(overview.totalAvail)} accent="success" sub="restante neste ciclo" />
+            <Stat label="Status de crédito" value={overview.status.label} accent={overview.status.tone === "success" ? "success" : overview.status.tone === "ok" ? "yellow" : overview.status.tone === "warn" ? "crimson" : "danger"} sub="quanto + perto do teto, pior" />
+          </section>
+
+          <GlassCard className="mb-6">
+            <SectionTitle title="Saúde geral dos cartões" subtitle="visão consolidada · uso vs. limite" />
+            <div className="flex items-center justify-between text-xs font-mono mb-2">
+              <span className="text-muted-foreground">0%</span>
+              <span style={{ color: overview.status.color }}>{Math.round(overview.totalPct)}% usado</span>
+              <span className="text-muted-foreground">100%</span>
+            </div>
+            <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full transition-all duration-700"
+                style={{ width: `${overview.totalPct}%`, background: `linear-gradient(90deg, #2BD9A1, #FFCC00 55%, #FF6B1A 80%, #FF4D6D 100%)` }} />
+            </div>
+            <div className="mt-4 flex items-start gap-2 text-sm rounded-2xl p-3 border" style={{ borderColor: overview.status.color + "55", background: overview.status.color + "12" }}>
+              <HeartPulse className="size-4 mt-0.5 shrink-0" style={{ color: overview.status.color }} />
+              <p><span className="font-semibold" style={{ color: overview.status.color }}>{overview.status.label}.</span> {overview.status.note}</p>
+            </div>
+          </GlassCard>
+        </>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
         <GlassCard>
@@ -72,18 +123,14 @@ function CardsPage() {
               <p className="text-sm text-muted-foreground">Você ainda não tem cartões. Cadastre seu primeiro ao lado.</p>
             </GlassCard>
           )}
-          {cards.map((c) => {
-            const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
-            const available = Math.max(0, c.limit - used);
-            const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
-            // Fatura = gastos no ciclo que fecha neste mês (entre fechamento do mês passado e fechamento deste mês).
-            // Esse valor é também o "limite a ser liberado" quando a fatura for paga.
+          {overview.enriched.map((c) => {
             const thisClose = new Date(today.getFullYear(), today.getMonth(), c.closingDay);
             const lastClose = new Date(today.getFullYear(), today.getMonth() - 1, c.closingDay);
             const fatura = transactions
               .filter(t => t.cardId === c.id && t.type === "expense")
               .filter(t => { const d = new Date(t.date + "T00:00:00"); return d > lastClose && d <= thisClose; })
               .reduce((s, t) => s + t.amount, 0);
+            const StatusIcon = c.status.tone === "danger" ? ShieldAlert : c.status.tone === "warn" ? AlertTriangle : c.status.tone === "ok" ? TrendingUp : CheckCircle2;
             return (
               <div key={c.id} className="relative rounded-3xl p-6 overflow-hidden glass-strong">
                 <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(135deg, ${c.color}66, transparent 60%)` }} />
@@ -98,11 +145,11 @@ function CardsPage() {
                   <p className="mt-6 font-mono text-xs text-muted-foreground">Limite total</p>
                   <p className="text-2xl font-bold">{formatBRL(c.limit)}</p>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${c.color}, #FFCC00)` }} />
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, ${c.status.color})` }} />
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(used)}</p></div>
-                    <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(available)}</p></div>
+                    <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(c.used)} <span className="text-muted-foreground">({Math.round(c.pct)}%)</span></p></div>
+                    <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(c.available)}</p></div>
                   </div>
                   <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     <div>
@@ -114,6 +161,13 @@ function CardsPage() {
                       <p className="text-sm" style={{ color: "#2BD9A1" }}>{formatBRL(fatura)}</p>
                     </div>
                     <p className="col-span-2 text-[10px] text-muted-foreground leading-snug">Vence dia {c.dueDay} · pagar a fatura libera esse limite no cartão.</p>
+                  </div>
+                  <div className="mt-3 rounded-2xl p-3 border flex items-start gap-2 text-xs" style={{ borderColor: c.status.color + "55", background: c.status.color + "12" }}>
+                    <StatusIcon className="size-4 mt-0.5 shrink-0" style={{ color: c.status.color }} />
+                    <div>
+                      <p className="font-semibold" style={{ color: c.status.color }}>{c.status.label}</p>
+                      <p className="text-muted-foreground mt-0.5 leading-snug">{c.status.note}</p>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between mt-4 text-[11px] font-mono text-muted-foreground">
                     <span>Fecha dia {c.closingDay} · Vence dia {c.dueDay}</span>
