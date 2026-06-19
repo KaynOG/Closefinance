@@ -28,105 +28,12 @@ interface Preview {
 type TabKey = "transactions" | "categories" | "cards";
 
 function BackupPage() {
-  const [{ transactions, categories, cards }, api] = useStore();
-  const [mode, setMode] = useState<"merge" | "replace">("merge");
-  const [toast, setToast] = useState<Toast>(null);
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [tab, setTab] = useState<TabKey>("transactions");
-  const fileInput = useRef<HTMLInputElement>(null);
-
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-
-  const catMap = useMemo(() => {
-    const m = new Map<string, Category>();
-    categories.forEach(c => m.set(c.id, c));
-    preview?.categories.forEach(c => { if (!m.has(c.id)) m.set(c.id, c); });
-    return m;
-  }, [categories, preview]);
-
-  const cardMap = useMemo(() => {
-    const m = new Map<string, Card>();
-    cards.forEach(c => m.set(c.id, c));
-    preview?.cards.forEach(c => { if (!m.has(c.id)) m.set(c.id, c); });
-    return m;
-  }, [cards, preview]);
-
-  function handleExport() {
-    const json = api.exportData("user");
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-    a.href = url; a.download = `closefinance-backup-${stamp}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    setToast({ kind: "ok", msg: "Backup exportado com sucesso." });
-  }
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const raw = await f.text();
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed?.app !== "CloseFinance") {
-        setToast({ kind: "err", msg: "Arquivo não reconhecido. Use um backup .json gerado pelo CloseFinance." });
-        setPreview(null);
-        return;
-      }
-      const d = parsed.data ?? {};
-      const txIds = new Set(transactions.map(x => x.id));
-      const catIds = new Set(categories.map(x => x.id));
-      const cardIds = new Set(cards.map(x => x.id));
-
-      const incomingTx: Transaction[] = Array.isArray(d.transactions) ? d.transactions : [];
-      const incomingCats: Category[] = Array.isArray(d.categories) ? d.categories : [];
-      const incomingCards: Card[] = Array.isArray(d.cards) ? d.cards : [];
-
-      setPreview({
-        raw,
-        fileName: f.name,
-        exportedAt: parsed.exportedAt,
-        transactions: incomingTx.map(t => ({ ...t, _status: txIds.has(t.id) ? "duplicate" : "new" })),
-        categories: incomingCats.map(c => ({ ...c, _status: catIds.has(c.id) ? "duplicate" : "new" })),
-        cards: incomingCards.map(c => ({ ...c, _status: cardIds.has(c.id) ? "duplicate" : "new" })),
-      });
-      setTab("transactions");
-      setToast(null);
-    } catch {
-      setToast({ kind: "err", msg: "JSON inválido." });
-      setPreview(null);
-    } finally {
-      if (fileInput.current) fileInput.current.value = "";
-    }
-  }
-
-  function confirmImport() {
-    if (!preview) return;
-    if (mode === "replace" && !confirm("Substituir TODOS os seus dados pelos do arquivo? Isso não pode ser desfeito.")) return;
-    const r = api.importData(preview.raw, mode);
-    if (r.ok) {
-      setToast({ kind: "ok", msg: `Importação concluída: ${r.counts.transactions} transações, ${r.counts.categories} categorias, ${r.counts.cards} cartões.` });
-      setPreview(null);
-    } else {
-      setToast({ kind: "err", msg: r.error });
-    }
-  }
-
-  const counts = preview
-    ? {
-        transactions: preview.transactions.length,
-        categories: preview.categories.length,
-        cards: preview.cards.length,
-        newTx: preview.transactions.filter(t => t._status === "new").length,
-        newCat: preview.categories.filter(c => c._status === "new").length,
-        newCard: preview.cards.filter(c => c._status === "new").length,
-      }
-    : null;
-
   return (
     <AppShell>
+      <header className="mb-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Backup e restauração</p>
+        <h1 className="text-3xl lg:text-4xl font-bold">Seus dados, <span className="text-gradient">portáteis</span>.</h1>
+      </header>
       <BackupBody />
     </AppShell>
   );
