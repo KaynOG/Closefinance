@@ -58,7 +58,7 @@ function DashboardPage() {
     score -= cardUsageRatio * 25;
     score = Math.round(Math.max(0, Math.min(100, score)));
     const label = score >= 75 ? "Excelente" : score >= 55 ? "Saudável" : score >= 35 ? "Atenção" : "Crítico";
-    const tone = score >= 75 ? "success" : score >= 55 ? "teal" : score >= 35 ? "yellow" : "danger";
+    const tone: "success" | "teal" | "yellow" | "danger" = score >= 75 ? "success" : score >= 55 ? "teal" : score >= 35 ? "yellow" : "danger";
     return { score, label, tone };
   }, [month, totalLimit, totalUsed]);
 
