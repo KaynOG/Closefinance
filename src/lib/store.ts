@@ -141,6 +141,62 @@ export function useStore() {
     updateCard: (i: string, p: Partial<Card>) => { memory = { ...memory, cards: memory.cards.map(x => x.id === i ? { ...x, ...p } : x) }; persist(); },
     removeCard: (i: string) => { memory = { ...memory, cards: memory.cards.filter(x => x.id !== i) }; persist(); },
 
+    exportData: (scope: "user" | "all" = "user") => {
+      const uid = memory.currentUserId;
+      const payload = {
+        app: "CloseFinance",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        scope,
+        data: scope === "all" ? memory : {
+          transactions: memory.transactions,
+          categories: memory.categories,
+          cards: memory.cards,
+          user: memory.users.find(u => u.id === uid) ?? null,
+          missions: memory.missions,
+        },
+      };
+      return JSON.stringify(payload, null, 2);
+    },
+    importData: (json: string, mode: "merge" | "replace" = "merge") => {
+      try {
+        const parsed = JSON.parse(json);
+        if (!parsed || parsed.app !== "CloseFinance" || !parsed.data) {
+          return { ok: false as const, error: "Arquivo inválido — não é um backup CloseFinance." };
+        }
+        const d = parsed.data;
+        const incomingTx: Transaction[] = Array.isArray(d.transactions) ? d.transactions : [];
+        const incomingCats: Category[] = Array.isArray(d.categories) ? d.categories : [];
+        const incomingCards: Card[] = Array.isArray(d.cards) ? d.cards : [];
+
+        if (mode === "replace") {
+          memory = {
+            ...memory,
+            transactions: incomingTx,
+            categories: incomingCats.length ? incomingCats : memory.categories,
+            cards: incomingCards,
+          };
+        } else {
+          const txIds = new Set(memory.transactions.map(x => x.id));
+          const catIds = new Set(memory.categories.map(x => x.id));
+          const cardIds = new Set(memory.cards.map(x => x.id));
+          memory = {
+            ...memory,
+            transactions: [...memory.transactions, ...incomingTx.filter(x => x.id && !txIds.has(x.id))],
+            categories: [...memory.categories, ...incomingCats.filter(x => x.id && !catIds.has(x.id))],
+            cards: [...memory.cards, ...incomingCards.filter(x => x.id && !cardIds.has(x.id))],
+          };
+        }
+        persist();
+        return {
+          ok: true as const,
+          counts: { transactions: incomingTx.length, categories: incomingCats.length, cards: incomingCards.length },
+        };
+      } catch (e) {
+        return { ok: false as const, error: "JSON inválido ou corrompido." };
+      }
+    },
+
     signup: (data: { name: string; email: string; password: string; birthdate?: string; job?: string; yearlyGoal?: number }) => {
       const email = data.email.trim().toLowerCase();
       if (memory.users.some(u => u.email === email)) return { ok: false as const, error: "E-mail já cadastrado." };
