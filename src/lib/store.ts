@@ -84,7 +84,7 @@ const DEFAULT_STATE: AppState = {
   cards: [],
   users: [],
   currentUserId: null,
-  missions: { date: new Date().toISOString().slice(0, 10), completed: [] },
+  missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
 };
 
 function load(): AppState {
