@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -13,6 +13,7 @@ const nav = [
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
+  { to: "/bancos", label: "Bancos", icon: Landmark },
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },

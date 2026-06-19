@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as GastosRouteImport } from './routes/gastos'
@@ -26,6 +27,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TransacoesRoute = TransacoesRouteImport.update({
   id: '/transacoes',
   path: '/transacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   GastosRoute: typeof GastosRoute
   MissoesRoute: typeof MissoesRoute
   PerfilRoute: typeof PerfilRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TransacoesRoute: typeof TransacoesRoute
 }
 
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/transacoes'
       fullPath: '/transacoes'
       preLoaderRoute: typeof TransacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   GastosRoute: GastosRoute,
   MissoesRoute: MissoesRoute,
   PerfilRoute: PerfilRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TransacoesRoute: TransacoesRoute,
 }
 export const routeTree = rootRouteImport
