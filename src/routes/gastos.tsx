@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, type Essential } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, TrendingDown } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TxEditModal } from "@/components/TxEditModal";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
@@ -15,24 +16,33 @@ const ORANGE = "#FF6B1A";
 const ORANGE_DEEP = "#C2410C";
 
 function GastosPage() {
-  const [{ transactions, categories, cards }, api] = useStore();
+  const [{ transactions, categories, cards, banks }, api] = useStore();
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const [form, setForm] = useState({
     amount: "", description: "", date: today.toISOString().slice(0, 10),
-    categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential, cardId: "", tag: "",
+    categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential,
+    paymentMethod: "debit" as PaymentMethod, cardId: "", bankId: "", tag: "",
+    installments: "1",
   });
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
-    api.addTransaction({
+    const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
+    await api.addTransaction({
       type: "expense", amount: amt, description: form.description.trim(), date: form.date,
-      categoryId: form.categoryId || undefined, essential: form.essential, cardId: form.cardId || undefined, tag: form.tag.trim() || undefined,
+      categoryId: form.categoryId || undefined, essential: form.essential,
+      paymentMethod: form.paymentMethod,
+      cardId: form.paymentMethod === "credit" ? form.cardId || undefined : undefined,
+      bankId: (form.paymentMethod === "debit" || form.paymentMethod === "pix") ? form.bankId || undefined : undefined,
+      tag: form.tag.trim() || undefined,
+      installmentTotal: inst > 1 ? inst : undefined,
     });
-    setForm({ ...form, amount: "", description: "", tag: "" });
+    setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
   const expenses = transactions.filter(t => t.type === "expense").sort((a, b) => b.date.localeCompare(a.date));
