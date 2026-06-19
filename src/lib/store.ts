@@ -109,7 +109,7 @@ function ensureInit() {
     // reset missions if day changed
     const today = new Date().toISOString().slice(0, 10);
     if (memory.missions.date !== today) {
-      memory = { ...memory, missions: { date: today, completed: [] } };
+      memory = { ...memory, missions: { ...memory.missions, date: today, completed: [] } };
     }
     initialized = true;
   }
