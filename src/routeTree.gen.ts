@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
 import { Route as EducacaoRouteImport } from './routes/educacao'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CartoesRouteImport } from './routes/cartoes'
 import { Route as CalendarioRouteImport } from './routes/calendario'
@@ -24,6 +25,11 @@ const TransacoesRoute = TransacoesRouteImport.update({
 const EducacaoRoute = EducacaoRouteImport.update({
   id: '/educacao',
   path: '/educacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriasRoute = CategoriasRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
+  '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
+  '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
+  '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/cartoes'
     | '/categorias'
+    | '/design-system'
     | '/educacao'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/cartoes'
     | '/categorias'
+    | '/design-system'
     | '/educacao'
     | '/transacoes'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/cartoes'
     | '/categorias'
+    | '/design-system'
     | '/educacao'
     | '/transacoes'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   CalendarioRoute: typeof CalendarioRoute
   CartoesRoute: typeof CartoesRoute
   CategoriasRoute: typeof CategoriasRoute
+  DesignSystemRoute: typeof DesignSystemRoute
   EducacaoRoute: typeof EducacaoRoute
   TransacoesRoute: typeof TransacoesRoute
 }
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/educacao'
       fullPath: '/educacao'
       preLoaderRoute: typeof EducacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categorias': {
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarioRoute: CalendarioRoute,
   CartoesRoute: CartoesRoute,
   CategoriasRoute: CategoriasRoute,
+  DesignSystemRoute: DesignSystemRoute,
   EducacaoRoute: EducacaoRoute,
   TransacoesRoute: TransacoesRoute,
 }
