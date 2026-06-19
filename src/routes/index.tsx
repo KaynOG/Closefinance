@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
-  PieChart, Pie, Cell, Legend, CartesianGrid,
+  PieChart, Pie, Cell, Legend, CartesianGrid, BarChart, Bar as RBar,
 } from "recharts";
-import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle } from "lucide-react";
+import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle, BarChart3 } from "lucide-react";
 
 
 export const Route = createFileRoute("/")({
@@ -43,6 +44,9 @@ function DashboardPage() {
   const [{ transactions, categories, cards, missions }, api, user] = useStore();
   const today = new Date();
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
+  const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const greeting = useMemo(() => pickGreeting(user?.name), [user?.name]);
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, today));
@@ -114,8 +118,9 @@ function DashboardPage() {
           {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
         </p>
         <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-          Olá, <span className="text-gradient">{user?.name.split(" ")[0]}</span>. Bora fechar o mês no azul?
+          <span className="text-gradient">{greeting}</span>
         </h1>
+        <p className="mt-2 font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado.</p>
       </header>
 
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
