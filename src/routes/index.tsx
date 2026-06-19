@@ -102,6 +102,45 @@ function DashboardPage() {
     color: c.color,
   })).filter(c => c.value > 0), [categories, month.tx]);
 
+  // Gastos por categoria nos últimos N meses (filtrável)
+  const expenseCats = useMemo(() => categories.filter(c => c.kind !== "income"), [categories]);
+  const activeCats = useMemo(() => {
+    if (selectedCats.length > 0) return expenseCats.filter(c => selectedCats.includes(c.id));
+    // default: top 5 categorias com mais gasto no período
+    const totals = expenseCats.map(c => ({
+      c, total: transactions.filter(t => {
+        if (t.type !== "expense" || t.categoryId !== c.id) return false;
+        const d = new Date(t.date + "T00:00:00");
+        const limit = new Date(today.getFullYear(), today.getMonth() - (catPeriod - 1), 1);
+        return d >= limit;
+      }).reduce((s, t) => s + t.amount, 0),
+    }));
+    return totals.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5).map(x => x.c);
+  }, [expenseCats, transactions, catPeriod, selectedCats]);
+
+  const catSeries = useMemo(() => {
+    const out: Array<Record<string, string | number>> = [];
+    for (let i = catPeriod - 1; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const row: Record<string, string | number> = {
+        month: d.toLocaleDateString("pt-BR", { month: "short", year: catPeriod > 6 ? "2-digit" : undefined }),
+      };
+      for (const c of activeCats) {
+        row[c.name] = transactions
+          .filter(t => t.type === "expense" && t.categoryId === c.id && isSameMonth(t.date, d))
+          .reduce((s, t) => s + t.amount, 0);
+      }
+      out.push(row);
+    }
+    return out;
+  }, [catPeriod, activeCats, transactions]);
+
+  const catTotals = useMemo(() => activeCats.map(c => ({
+    ...c,
+    total: catSeries.reduce((s, row) => s + (Number(row[c.name]) || 0), 0),
+  })), [activeCats, catSeries]);
+  const catGrandTotal = catTotals.reduce((s, c) => s + c.total, 0);
+
   // Annual goal
   const goal = user?.yearlyGoal ?? 0;
   const yearSaved = useMemo(() => transactions.filter(t => new Date(t.date).getFullYear() === today.getFullYear())
