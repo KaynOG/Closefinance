@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
+import { installGlobalClickSounds } from "@/lib/sound";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,7 +26,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); installGlobalClickSounds(); }, []);
   useEffect(() => {
     if (mounted && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
@@ -120,7 +121,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       {!compact ? (
         <div>
           <p className="font-display font-bold leading-none text-lg">CloseFinance</p>
-          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">close your numbers</p>
+          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">Bolso fechado, financeiro guardado</p>
         </div>
       ) : (
         <p className="font-display font-bold text-lg">CloseFinance</p>
