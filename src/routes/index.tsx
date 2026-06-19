@@ -123,7 +123,7 @@ function DashboardPage() {
       {/* Missions + Tip + Goal */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Missões de hoje" subtitle="pequenos passos, grande controle" />
+          <SectionTitle title="Missões de hoje" subtitle={`${missions.totalPoints} pts acumulados · +10 por missão`} action={<Link to="/missoes" className="text-xs font-mono text-secondary hover:underline">ver tudo →</Link>} />
           <ul className="space-y-2">
             {DAILY_MISSIONS.map((m) => {
               const done = missions.completed.includes(m.id);
@@ -132,8 +132,11 @@ function DashboardPage() {
                   <button onClick={() => api.toggleMission(m.id)}
                     className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}>
                     {done ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
-                    <div className="min-w-0">
-                      <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                        <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">+10 pts</span>
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
                     </div>
                   </button>
