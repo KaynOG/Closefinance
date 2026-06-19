@@ -144,13 +144,26 @@ function AuthPage() {
   );
 }
 
-function IconField({ icon, ...props }: { icon: React.ReactNode } & React.InputHTMLAttributes<HTMLInputElement> & { onChange: (v: string) => void; value: string }) {
-  const { onChange, ...rest } = props as any;
+type IconFieldProps = {
+  icon: React.ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+};
+function IconField({ icon, value, onChange, placeholder, type, inputMode }: IconFieldProps) {
   return (
     <label className="relative block">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</span>
-      <input {...rest} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl bg-white/5 border border-border pl-10 pr-3 py-3 text-sm font-mono outline-none focus:border-primary focus:bg-white/10 transition" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        type={type}
+        inputMode={inputMode}
+        className="w-full rounded-xl bg-white/5 border border-border pl-10 pr-3 py-3 text-sm font-mono outline-none focus:border-primary focus:bg-white/10 transition"
+      />
     </label>
   );
 }
