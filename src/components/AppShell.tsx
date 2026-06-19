@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
+import { installGlobalClickSounds } from "@/lib/sound";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,7 +26,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); installGlobalClickSounds(); }, []);
   useEffect(() => {
     if (mounted && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
@@ -63,7 +64,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
             </div>
-            <button onClick={(e) => { e.preventDefault(); api.logout(); navigate({ to: "/auth" }); }} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground" aria-label="Sair">
+            <button onClick={(e) => { e.preventDefault(); api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground" aria-label="Sair">
               <LogOut className="size-4" />
             </button>
           </Link>
@@ -97,7 +98,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                 );
               })}
             </nav>
-            <button onClick={() => { api.logout(); navigate({ to: "/auth" }); }} className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm hover:bg-white/5">
+            <button onClick={() => { api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm hover:bg-white/5">
               <LogOut className="size-4" /> Sair
             </button>
           </div>
@@ -120,7 +121,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       {!compact ? (
         <div>
           <p className="font-display font-bold leading-none text-lg">CloseFinance</p>
-          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">close your numbers</p>
+          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">Bolso fechado, financeiro guardado</p>
         </div>
       ) : (
         <p className="font-display font-bold text-lg">CloseFinance</p>

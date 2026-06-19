@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
-  PieChart, Pie, Cell, Legend, CartesianGrid,
+  PieChart, Pie, Cell, Legend, CartesianGrid, BarChart, Bar as RBar,
 } from "recharts";
-import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle } from "lucide-react";
+import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle, BarChart3 } from "lucide-react";
 
 
 export const Route = createFileRoute("/")({
@@ -43,6 +44,9 @@ function DashboardPage() {
   const [{ transactions, categories, cards, missions }, api, user] = useStore();
   const today = new Date();
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
+  const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const greeting = useMemo(() => pickGreeting(user?.name), [user?.name]);
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, today));
@@ -98,6 +102,45 @@ function DashboardPage() {
     color: c.color,
   })).filter(c => c.value > 0), [categories, month.tx]);
 
+  // Gastos por categoria nos últimos N meses (filtrável)
+  const expenseCats = useMemo(() => categories.filter(c => c.kind !== "income"), [categories]);
+  const activeCats = useMemo(() => {
+    if (selectedCats.length > 0) return expenseCats.filter(c => selectedCats.includes(c.id));
+    // default: top 5 categorias com mais gasto no período
+    const totals = expenseCats.map(c => ({
+      c, total: transactions.filter(t => {
+        if (t.type !== "expense" || t.categoryId !== c.id) return false;
+        const d = new Date(t.date + "T00:00:00");
+        const limit = new Date(today.getFullYear(), today.getMonth() - (catPeriod - 1), 1);
+        return d >= limit;
+      }).reduce((s, t) => s + t.amount, 0),
+    }));
+    return totals.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5).map(x => x.c);
+  }, [expenseCats, transactions, catPeriod, selectedCats]);
+
+  const catSeries = useMemo(() => {
+    const out: Array<Record<string, string | number>> = [];
+    for (let i = catPeriod - 1; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const row: Record<string, string | number> = {
+        month: d.toLocaleDateString("pt-BR", { month: "short", year: catPeriod > 6 ? "2-digit" : undefined }),
+      };
+      for (const c of activeCats) {
+        row[c.name] = transactions
+          .filter(t => t.type === "expense" && t.categoryId === c.id && isSameMonth(t.date, d))
+          .reduce((s, t) => s + t.amount, 0);
+      }
+      out.push(row);
+    }
+    return out;
+  }, [catPeriod, activeCats, transactions]);
+
+  const catTotals = useMemo(() => activeCats.map(c => ({
+    ...c,
+    total: catSeries.reduce((s, row) => s + (Number(row[c.name]) || 0), 0),
+  })), [activeCats, catSeries]);
+  const catGrandTotal = catTotals.reduce((s, c) => s + c.total, 0);
+
   // Annual goal
   const goal = user?.yearlyGoal ?? 0;
   const yearSaved = useMemo(() => transactions.filter(t => new Date(t.date).getFullYear() === today.getFullYear())
@@ -114,8 +157,9 @@ function DashboardPage() {
           {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
         </p>
         <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-          Olá, <span className="text-gradient">{user?.name.split(" ")[0]}</span>. Bora fechar o mês no azul?
+          <span className="text-gradient">{greeting}</span>
         </h1>
+        <p className="mt-2 font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado.</p>
       </header>
 
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -268,6 +312,103 @@ function DashboardPage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mb-8">
+        <GlassCard>
+          <SectionTitle
+            title="Gastos por categoria · histórico"
+            subtitle={selectedCats.length > 0 ? `${activeCats.length} categoria(s) selecionada(s)` : "top 5 categorias do período"}
+            action={
+              <div className="flex items-center gap-2">
+                <BarChart3 className="size-4 text-secondary" />
+                <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+                  {([3, 6, 12] as const).map(n => (
+                    <button key={n} onClick={() => setCatPeriod(n)}
+                      className={`px-3 py-1.5 transition ${catPeriod === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                      {n === 12 ? "1 ano" : `${n} meses`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+
+          {expenseCats.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Cadastre categorias de gasto em <Link to="/categorias" className="text-secondary underline">Categorias</Link>.</p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {expenseCats.map(c => {
+                  const active = selectedCats.includes(c.id);
+                  return (
+                    <button key={c.id} onClick={() => setSelectedCats(s => active ? s.filter(x => x !== c.id) : [...s, c.id])}
+                      className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono transition ${active ? "border-transparent text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}
+                      style={active ? { background: c.color + "33", borderColor: c.color } : undefined}>
+                      <span className="size-2 rounded-full" style={{ background: c.color }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+                {selectedCats.length > 0 && (
+                  <button onClick={() => setSelectedCats([])} className="text-[11px] font-mono text-muted-foreground hover:text-foreground underline ml-1">limpar</button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+                <div className="h-72">
+                  {activeCats.length === 0 ? (
+                    <div className="h-full grid place-items-center text-sm text-muted-foreground">Sem gastos no período.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={catSeries} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
+                        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                        <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
+                        <Legend wrapperStyle={{ fontSize: 11, color: "#fff" }} formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>} />
+                        {activeCats.map(c => (
+                          <RBar key={c.id} dataKey={c.name} stackId="a" fill={c.color} radius={[6, 6, 0, 0]} animationDuration={700} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-border overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-white/5">
+                      <tr className="text-left">
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Categoria</th>
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground text-right">Total</th>
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground text-right">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catTotals.length === 0 && (
+                        <tr><td colSpan={3} className="px-3 py-4 text-center text-xs text-muted-foreground">Sem dados</td></tr>
+                      )}
+                      {catTotals.map(c => (
+                        <tr key={c.id} className="border-t border-border">
+                          <td className="px-3 py-2"><span className="inline-flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ background: c.color }} />{c.name}</span></td>
+                          <td className="px-3 py-2 text-right font-mono">{formatBRL(c.total)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-muted-foreground">{catGrandTotal > 0 ? Math.round((c.total / catGrandTotal) * 100) : 0}%</td>
+                        </tr>
+                      ))}
+                      {catTotals.length > 0 && (
+                        <tr className="border-t border-border bg-white/5">
+                          <td className="px-3 py-2 font-semibold">Total</td>
+                          <td className="px-3 py-2 text-right font-mono font-semibold">{formatBRL(catGrandTotal)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-muted-foreground">100%</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </GlassCard>
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">

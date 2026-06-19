@@ -3,9 +3,10 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
-import { useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX } from "lucide-react";
 import { BackupContent } from "./backup";
+import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -104,7 +105,7 @@ function PerfilPage() {
             {age !== null && <p>Idade: <span className="text-foreground">{age} anos</span></p>}
             <p>Pontos: <span className="text-foreground">{missions.totalPoints}</span></p>
           </div>
-          <button onClick={() => { api.logout(); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
+          <button onClick={() => { api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
             <LogOut className="size-4" /> Sair da conta
           </button>
         </GlassCard>
@@ -147,6 +148,10 @@ function PerfilPage() {
         </GlassCard>
       </section>
 
+      <section className="mb-6">
+        <SecurityPanel />
+      </section>
+
       <section>
         <div className="flex items-center gap-2 mb-4">
           <DatabaseBackup className="size-5 text-secondary" />
@@ -155,6 +160,84 @@ function PerfilPage() {
         <BackupContent />
       </section>
     </AppShell>
+  );
+}
+
+function SecurityPanel() {
+  const [, api, user] = useStore();
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [resetMsg, setResetMsg] = useState<{ link: string; email: string } | null>(null);
+  const [sound, setSound] = useState(true);
+  useEffect(() => { setSound(isSoundEnabled()); }, []);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    if (pw.next !== pw.confirm) { setMsg({ type: "err", text: "A confirmação não bate com a nova senha." }); return; }
+    const r = api.changePassword(pw.current, pw.next);
+    if (!r.ok) { setMsg({ type: "err", text: r.error }); return; }
+    setMsg({ type: "ok", text: "Senha alterada com sucesso." });
+    setPw({ current: "", next: "", confirm: "" });
+  }
+
+  function sendResetEmail() {
+    if (!user) return;
+    const r = api.requestPasswordReset(user.email);
+    if (r.ok) setResetMsg({ link: r.link, email: r.email });
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <GlassCard>
+        <SectionTitle title="Alterar senha" subtitle="mantenha sua conta segura" />
+        <form onSubmit={submit} className="space-y-3">
+          <Field label="Senha atual" icon={<Lock className="size-4" />}>
+            <input type="password" value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} className={input} />
+          </Field>
+          <Field label="Nova senha" icon={<Lock className="size-4" />}>
+            <input type="password" value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} className={input} />
+          </Field>
+          <Field label="Confirmar nova senha" icon={<Lock className="size-4" />}>
+            <input type="password" value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} className={input} />
+          </Field>
+          {msg && (
+            <p className={`text-sm font-mono ${msg.type === "ok" ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{msg.text}</p>
+          )}
+          <button type="submit" data-sound="success" className="rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm flex items-center gap-2 glow-violet">
+            <Save className="size-4" /> Salvar nova senha
+          </button>
+        </form>
+      </GlassCard>
+
+      <GlassCard>
+        <SectionTitle title="Recuperação por e-mail" subtitle="enviamos um link de redefinição" />
+        <p className="text-sm text-muted-foreground">
+          Se você esquecer sua senha, podemos enviar um link de redefinição para <span className="text-foreground font-mono">{user?.email}</span>.
+        </p>
+        <button onClick={sendResetEmail} className="mt-4 rounded-xl border border-secondary/40 text-secondary px-4 py-2 text-sm flex items-center gap-2 hover:bg-secondary/10">
+          <KeyRound className="size-4" /> Enviar link de redefinição
+        </button>
+        {resetMsg && (
+          <div className="mt-4 rounded-xl border border-[#2BD9A1]/30 bg-[#2BD9A1]/10 p-3 text-xs font-mono space-y-2">
+            <p className="text-[#7DF2C5]">Instruções enviadas para <strong>{resetMsg.email}</strong>.</p>
+            <p className="text-muted-foreground">Link (válido por 30 min):</p>
+            <a href={resetMsg.link} className="block break-all text-secondary underline">{resetMsg.link}</a>
+            <p className="text-[10px] text-muted-foreground">Em produção, este link é entregue diretamente no e-mail. Ative o serviço de e-mail (Lovable Cloud) para envio automático.</p>
+          </div>
+        )}
+
+        <div className="mt-6 pt-5 border-t border-border">
+          <SectionTitle title="Sons da interface" subtitle="cliques e confirmações" />
+          <button onClick={() => { const v = !sound; setSound(v); setSoundEnabled(v); if (v) playTone("success"); }}
+            data-no-sound
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${sound ? "border-secondary/50 bg-secondary/10 text-secondary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+            {sound ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+            {sound ? "Sons ativados" : "Sons desativados"}
+          </button>
+        </div>
+      </GlassCard>
+    </div>
   );
 }
 
