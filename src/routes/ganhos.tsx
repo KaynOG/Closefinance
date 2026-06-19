@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, TrendingUp } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
@@ -79,9 +79,9 @@ function GanhosPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
+                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
                 <Area type="monotone" dataKey="valor" stroke={CYAN} fill="url(#gCyan)" strokeWidth={2.5} animationDuration={900} />
               </AreaChart>
             </ResponsiveContainer>
@@ -95,10 +95,10 @@ function GanhosPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={byCat} layout="vertical" margin={{ left: 10, right: 10 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" fontSize={11} width={90} />
-                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
+                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" fontSize={11} width={90} tick={{ fill: "rgba(255,255,255,0.75)" }} />
+                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
                   <Bar dataKey="valor" radius={[0, 8, 8, 0]} animationDuration={800}>
-                    {byCat.map((c, i) => <rect key={i} fill={c.color} />)}
+                    {byCat.map((c, i) => <Cell key={i} fill={c.color} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

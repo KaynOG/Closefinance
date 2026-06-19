@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Sparkles, Menu, X, LogOut, User as UserIcon, DatabaseBackup,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -13,9 +13,9 @@ const nav = [
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/categorias", label: "Categorias", icon: Tags },
-  { to: "/backup", label: "Backup", icon: DatabaseBackup },
+  { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
-  { to: "/design-system", label: "Design System", icon: Sparkles },
+  { to: "/perfil", label: "Perfil", icon: UserIcon },
 ] as const;
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
@@ -55,18 +55,18 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           })}
         </nav>
         <div className="mt-auto space-y-2">
-          <div className="rounded-2xl p-3 glass flex items-center gap-3">
-            <div className="size-9 rounded-full bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold">
-              {user.name.charAt(0).toUpperCase()}
+          <Link to="/perfil" className="rounded-2xl p-3 glass flex items-center gap-3 hover:bg-white/5 transition">
+            <div className="size-9 rounded-full bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold overflow-hidden">
+              {user.avatar ? <img src={user.avatar} alt={user.name} className="size-full object-cover" /> : user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
             </div>
-            <button onClick={() => { api.logout(); navigate({ to: "/auth" }); }} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground" aria-label="Sair">
+            <button onClick={(e) => { e.preventDefault(); api.logout(); navigate({ to: "/auth" }); }} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground" aria-label="Sair">
               <LogOut className="size-4" />
             </button>
-          </div>
+          </Link>
         </div>
       </aside>
 

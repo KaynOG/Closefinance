@@ -123,7 +123,7 @@ function DashboardPage() {
       {/* Missions + Tip + Goal */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Missões de hoje" subtitle="pequenos passos, grande controle" />
+          <SectionTitle title="Missões de hoje" subtitle={`${missions.totalPoints} pts acumulados · +10 por missão`} action={<Link to="/missoes" className="text-xs font-mono text-secondary hover:underline">ver tudo →</Link>} />
           <ul className="space-y-2">
             {DAILY_MISSIONS.map((m) => {
               const done = missions.completed.includes(m.id);
@@ -132,8 +132,11 @@ function DashboardPage() {
                   <button onClick={() => api.toggleMission(m.id)}
                     className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}>
                     {done ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
-                    <div className="min-w-0">
-                      <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                        <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">+10 pts</span>
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
                     </div>
                   </button>
@@ -205,9 +208,9 @@ function DashboardPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
+                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
                 <Area type="monotone" dataKey="receitas" name="Ganhos" stroke={CYAN} fill="url(#dCyan)" strokeWidth={2.5} animationDuration={900} />
                 <Area type="monotone" dataKey="despesas" name="Gastos" stroke={ORANGE} fill="url(#dOrange)" strokeWidth={2.5} animationDuration={900} />
               </AreaChart>
@@ -259,8 +262,8 @@ function DashboardPage() {
                   <Pie data={byCat} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={2} animationDuration={700}>
                     {byCat.map((entry, i) => (<Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: "#fff" }} formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             )}

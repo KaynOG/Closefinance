@@ -40,12 +40,21 @@ export interface User {
   birthdate?: string;
   job?: string;
   yearlyGoal?: number;
+  avatar?: string; // data URL
   createdAt: string;
 }
 
+export interface PointEntry {
+  date: string; // ISO datetime
+  missionId: string;
+  points: number; // +10 earn, -10 undo
+}
+
 export interface MissionState {
-  date: string; // yyyy-mm-dd
-  completed: string[]; // mission ids
+  date: string; // today yyyy-mm-dd
+  completed: string[];
+  totalPoints: number;
+  history: PointEntry[];
 }
 
 export interface AppState {
@@ -75,7 +84,7 @@ const DEFAULT_STATE: AppState = {
   cards: [],
   users: [],
   currentUserId: null,
-  missions: { date: new Date().toISOString().slice(0, 10), completed: [] },
+  missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
 };
 
 function load(): AppState {
@@ -84,7 +93,9 @@ function load(): AppState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw) as AppState;
-    return { ...DEFAULT_STATE, ...parsed };
+    const merged = { ...DEFAULT_STATE, ...parsed };
+    merged.missions = { ...DEFAULT_STATE.missions, ...(parsed.missions ?? {}) };
+    return merged;
   } catch {
     return DEFAULT_STATE;
   }
@@ -100,7 +111,7 @@ function ensureInit() {
     // reset missions if day changed
     const today = new Date().toISOString().slice(0, 10);
     if (memory.missions.date !== today) {
-      memory = { ...memory, missions: { date: today, completed: [] } };
+      memory = { ...memory, missions: { ...memory.missions, date: today, completed: [] } };
     }
     initialized = true;
   }
@@ -224,9 +235,22 @@ export function useStore() {
     },
     toggleMission: (missionId: string) => {
       const today = new Date().toISOString().slice(0, 10);
-      const m = memory.missions.date === today ? memory.missions : { date: today, completed: [] };
-      const completed = m.completed.includes(missionId) ? m.completed.filter(x => x !== missionId) : [...m.completed, missionId];
-      memory = { ...memory, missions: { date: today, completed } };
+      const base: MissionState = memory.missions.date === today
+        ? memory.missions
+        : { date: today, completed: [], totalPoints: memory.missions.totalPoints, history: memory.missions.history };
+      const isDone = base.completed.includes(missionId);
+      const delta = isDone ? -10 : 10;
+      const completed = isDone ? base.completed.filter(x => x !== missionId) : [...base.completed, missionId];
+      const entry: PointEntry = { date: new Date().toISOString(), missionId, points: delta };
+      memory = {
+        ...memory,
+        missions: {
+          date: today,
+          completed,
+          totalPoints: Math.max(0, base.totalPoints + delta),
+          history: [entry, ...base.history].slice(0, 500),
+        },
+      };
       persist();
     },
     reset: () => { memory = DEFAULT_STATE; persist(); },

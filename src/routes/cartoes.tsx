@@ -76,6 +76,14 @@ function CardsPage() {
             const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
             const available = Math.max(0, c.limit - used);
             const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
+            // Fatura = gastos no ciclo que fecha neste mês (entre fechamento do mês passado e fechamento deste mês).
+            // Esse valor é também o "limite a ser liberado" quando a fatura for paga.
+            const thisClose = new Date(today.getFullYear(), today.getMonth(), c.closingDay);
+            const lastClose = new Date(today.getFullYear(), today.getMonth() - 1, c.closingDay);
+            const fatura = transactions
+              .filter(t => t.cardId === c.id && t.type === "expense")
+              .filter(t => { const d = new Date(t.date + "T00:00:00"); return d > lastClose && d <= thisClose; })
+              .reduce((s, t) => s + t.amount, 0);
             return (
               <div key={c.id} className="relative rounded-3xl p-6 overflow-hidden glass-strong">
                 <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(135deg, ${c.color}66, transparent 60%)` }} />
@@ -93,8 +101,19 @@ function CardsPage() {
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${c.color}, #FFCC00)` }} />
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div><p className="text-muted-foreground">Usado</p><p className="text-foreground text-sm">{formatBRL(used)}</p></div>
+                    <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(used)}</p></div>
                     <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(available)}</p></div>
+                  </div>
+                  <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div>
+                      <p className="text-muted-foreground">Fatura do mês</p>
+                      <p className="text-sm" style={{ color: "#FF8FA3" }}>{formatBRL(fatura)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Limite a liberar</p>
+                      <p className="text-sm" style={{ color: "#2BD9A1" }}>{formatBRL(fatura)}</p>
+                    </div>
+                    <p className="col-span-2 text-[10px] text-muted-foreground leading-snug">Vence dia {c.dueDay} · pagar a fatura libera esse limite no cartão.</p>
                   </div>
                   <div className="flex items-center justify-between mt-4 text-[11px] font-mono text-muted-foreground">
                     <span>Fecha dia {c.closingDay} · Vence dia {c.dueDay}</span>
