@@ -259,8 +259,8 @@ function DashboardPage() {
                   <Pie data={byCat} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={2} animationDuration={700}>
                     {byCat.map((entry, i) => (<Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: "#fff" }} formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             )}
