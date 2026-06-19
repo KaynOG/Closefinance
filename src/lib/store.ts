@@ -233,9 +233,22 @@ export function useStore() {
     },
     toggleMission: (missionId: string) => {
       const today = new Date().toISOString().slice(0, 10);
-      const m = memory.missions.date === today ? memory.missions : { date: today, completed: [] };
-      const completed = m.completed.includes(missionId) ? m.completed.filter(x => x !== missionId) : [...m.completed, missionId];
-      memory = { ...memory, missions: { date: today, completed } };
+      const base: MissionState = memory.missions.date === today
+        ? memory.missions
+        : { date: today, completed: [], totalPoints: memory.missions.totalPoints, history: memory.missions.history };
+      const isDone = base.completed.includes(missionId);
+      const delta = isDone ? -10 : 10;
+      const completed = isDone ? base.completed.filter(x => x !== missionId) : [...base.completed, missionId];
+      const entry: PointEntry = { date: new Date().toISOString(), missionId, points: delta };
+      memory = {
+        ...memory,
+        missions: {
+          date: today,
+          completed,
+          totalPoints: Math.max(0, base.totalPoints + delta),
+          history: [entry, ...base.history].slice(0, 500),
+        },
+      };
       persist();
     },
     reset: () => { memory = DEFAULT_STATE; persist(); },
