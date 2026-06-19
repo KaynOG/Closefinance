@@ -314,6 +314,103 @@ function DashboardPage() {
         )}
       </section>
 
+      <section className="mb-8">
+        <GlassCard>
+          <SectionTitle
+            title="Gastos por categoria · histórico"
+            subtitle={selectedCats.length > 0 ? `${activeCats.length} categoria(s) selecionada(s)` : "top 5 categorias do período"}
+            action={
+              <div className="flex items-center gap-2">
+                <BarChart3 className="size-4 text-secondary" />
+                <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+                  {([3, 6, 12] as const).map(n => (
+                    <button key={n} onClick={() => setCatPeriod(n)}
+                      className={`px-3 py-1.5 transition ${catPeriod === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                      {n === 12 ? "1 ano" : `${n} meses`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+
+          {expenseCats.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Cadastre categorias de gasto em <Link to="/categorias" className="text-secondary underline">Categorias</Link>.</p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {expenseCats.map(c => {
+                  const active = selectedCats.includes(c.id);
+                  return (
+                    <button key={c.id} onClick={() => setSelectedCats(s => active ? s.filter(x => x !== c.id) : [...s, c.id])}
+                      className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono transition ${active ? "border-transparent text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}
+                      style={active ? { background: c.color + "33", borderColor: c.color } : undefined}>
+                      <span className="size-2 rounded-full" style={{ background: c.color }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+                {selectedCats.length > 0 && (
+                  <button onClick={() => setSelectedCats([])} className="text-[11px] font-mono text-muted-foreground hover:text-foreground underline ml-1">limpar</button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+                <div className="h-72">
+                  {activeCats.length === 0 ? (
+                    <div className="h-full grid place-items-center text-sm text-muted-foreground">Sem gastos no período.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={catSeries} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
+                        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                        <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
+                        <Legend wrapperStyle={{ fontSize: 11, color: "#fff" }} formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>} />
+                        {activeCats.map(c => (
+                          <RBar key={c.id} dataKey={c.name} stackId="a" fill={c.color} radius={[6, 6, 0, 0]} animationDuration={700} />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-border overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-white/5">
+                      <tr className="text-left">
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Categoria</th>
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground text-right">Total</th>
+                        <th className="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground text-right">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catTotals.length === 0 && (
+                        <tr><td colSpan={3} className="px-3 py-4 text-center text-xs text-muted-foreground">Sem dados</td></tr>
+                      )}
+                      {catTotals.map(c => (
+                        <tr key={c.id} className="border-t border-border">
+                          <td className="px-3 py-2"><span className="inline-flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ background: c.color }} />{c.name}</span></td>
+                          <td className="px-3 py-2 text-right font-mono">{formatBRL(c.total)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-muted-foreground">{catGrandTotal > 0 ? Math.round((c.total / catGrandTotal) * 100) : 0}%</td>
+                        </tr>
+                      ))}
+                      {catTotals.length > 0 && (
+                        <tr className="border-t border-border bg-white/5">
+                          <td className="px-3 py-2 font-semibold">Total</td>
+                          <td className="px-3 py-2 text-right font-mono font-semibold">{formatBRL(catGrandTotal)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-muted-foreground">100%</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </GlassCard>
+      </section>
+
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
         <GlassCard>
           <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
