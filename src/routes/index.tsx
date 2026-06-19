@@ -821,5 +821,4 @@ function HealthRing({
       </svg>
     </div>
   );
-  #lovable-badge {   display: none !important; }
 }
