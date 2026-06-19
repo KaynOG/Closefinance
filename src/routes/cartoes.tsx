@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Plus, Trash2, CreditCard as CC } from "lucide-react";
 
 export const Route = createFileRoute("/cartoes")({
-  head: () => ({ meta: [{ title: "Cartões — Finlux" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
+  head: () => ({ meta: [{ title: "Cartões — CloseFinance" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
   component: CardsPage,
 });
 
