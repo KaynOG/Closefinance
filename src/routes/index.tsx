@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
   PieChart, Pie, Cell, Legend, CartesianGrid,
 } from "recharts";
 import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,6 +42,7 @@ const DAILY_TIPS = [
 function DashboardPage() {
   const [{ transactions, categories, cards, missions }, api, user] = useStore();
   const today = new Date();
+  const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, today));
@@ -51,6 +53,7 @@ function DashboardPage() {
     return { tx, income, expense, essential, nonEssential, balance: income - expense };
   }, [transactions]);
 
+  // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(() => cards.map((c) => {
     const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
     return { ...c, used, available: Math.max(0, c.limit - used), pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0 };
@@ -59,6 +62,7 @@ function DashboardPage() {
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
   const totalUsed = cardUsage.reduce((s, c) => s + c.used, 0);
   const totalAvailable = Math.max(0, totalLimit - totalUsed);
+  const totalCardPct = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
 
   const health = useMemo(() => {
     if (month.income === 0 && month.expense === 0) return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const };
@@ -75,17 +79,18 @@ function DashboardPage() {
 
   const series = useMemo(() => {
     const out = [];
-    for (let i = 5; i >= 0; i--) {
+    for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter(t => isSameMonth(t.date, d));
       out.push({
-        month: d.toLocaleDateString("pt-BR", { month: "short" }),
+        month: d.toLocaleDateString("pt-BR", { month: "short", year: periodMonths > 6 ? "2-digit" : undefined }),
         receitas: tx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
         despesas: tx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0),
       });
     }
     return out;
-  }, [transactions]);
+  }, [transactions, periodMonths]);
+
 
   const byCat = useMemo(() => categories.map(c => ({
     name: c.name,
