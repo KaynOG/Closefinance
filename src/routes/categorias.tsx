@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Plus, Trash2, Tag } from "lucide-react";
 
 export const Route = createFileRoute("/categorias")({
-  head: () => ({ meta: [{ title: "Categorias — Finlux" }, { name: "description", content: "Crie e personalize categorias de gastos." }] }),
+  head: () => ({ meta: [{ title: "Categorias — CloseFinance" }, { name: "description", content: "Crie e personalize categorias de gastos." }] }),
   component: CategoriesPage,
 });
 

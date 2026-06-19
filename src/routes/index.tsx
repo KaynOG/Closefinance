@@ -1,26 +1,45 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
 import { useMemo } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, Legend, CartesianGrid,
 } from "recharts";
-import { TrendingUp, TrendingDown, HeartPulse, CreditCard } from "lucide-react";
+import { TrendingUp, TrendingDown, HeartPulse, CreditCard, Target, Lightbulb, CheckCircle2, Circle } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Finlux" },
-      { name: "description", content: "Visão geral da sua saúde financeira, gastos, ganhos e limites de cartão." },
+      { title: "Dashboard — CloseFinance" },
+      { name: "description", content: "Sua saúde financeira em tempo real: gastos, ganhos, cartões e missões diárias." },
     ],
   }),
   component: DashboardPage,
 });
 
+const CYAN = "#22C3CC";
+const ORANGE = "#FF6B1A";
+
+const DAILY_MISSIONS = [
+  { id: "m1", title: "Registre um gasto de hoje", desc: "Mantenha a planilha viva." },
+  { id: "m2", title: "Classifique como essencial ou não", desc: "Crie consciência de prioridades." },
+  { id: "m3", title: "Veja seu saldo do mês", desc: "Olhar é o primeiro passo do controle." },
+  { id: "m4", title: "Anote uma meta da semana", desc: "Pequenas metas, grandes resultados." },
+];
+
+const DAILY_TIPS = [
+  "Pague-se primeiro: separe 10% da renda assim que ela cair.",
+  "Antes de comprar, aguarde 24h. O desejo passa, a economia fica.",
+  "Use o cartão como meio de pagamento, nunca como extensão da renda.",
+  "Acompanhe pequenos gastos — eles somam mais do que parecem.",
+  "Defina um teto mensal para lazer e respeite como uma conta fixa.",
+  "Reserva de emergência primeiro, investimentos depois.",
+];
+
 function DashboardPage() {
-  const [{ transactions, categories, cards }] = useStore();
+  const [{ transactions, categories, cards, missions }, api, user] = useStore();
   const today = new Date();
 
   const month = useMemo(() => {
@@ -32,28 +51,20 @@ function DashboardPage() {
     return { tx, income, expense, essential, nonEssential, balance: income - expense };
   }, [transactions]);
 
-  // Card usage
-  const cardUsage = useMemo(() => {
-    return cards.map((c) => {
-      const used = transactions
-        .filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today))
-        .reduce((s, t) => s + t.amount, 0);
-      return { ...c, used, available: Math.max(0, c.limit - used), pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0 };
-    });
-  }, [cards, transactions]);
+  const cardUsage = useMemo(() => cards.map((c) => {
+    const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+    return { ...c, used, available: Math.max(0, c.limit - used), pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0 };
+  }), [cards, transactions]);
 
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
   const totalUsed = cardUsage.reduce((s, c) => s + c.used, 0);
   const totalAvailable = Math.max(0, totalLimit - totalUsed);
 
-  // Health score 0-100
   const health = useMemo(() => {
     if (month.income === 0 && month.expense === 0) return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const };
     const savingsRate = month.income > 0 ? (month.balance / month.income) : -1;
     const essentialRatio = month.expense > 0 ? month.essential / month.expense : 1;
-    let score = 50;
-    score += savingsRate * 50; // saving > 0 boosts
-    score += (essentialRatio - 0.5) * 20;
+    let score = 50 + savingsRate * 50 + (essentialRatio - 0.5) * 20;
     const cardUsageRatio = totalLimit > 0 ? totalUsed / totalLimit : 0;
     score -= cardUsageRatio * 25;
     score = Math.round(Math.max(0, Math.min(100, score)));
@@ -62,9 +73,8 @@ function DashboardPage() {
     return { score, label, tone };
   }, [month, totalLimit, totalUsed]);
 
-  // Last 6 months series
   const series = useMemo(() => {
-    const out: { month: string; receitas: number; despesas: number }[] = [];
+    const out = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter(t => isSameMonth(t.date, d));
@@ -77,14 +87,20 @@ function DashboardPage() {
     return out;
   }, [transactions]);
 
-  // Spending per category
-  const byCat = useMemo(() => {
-    return categories.map(c => ({
-      name: c.name,
-      value: month.tx.filter(t => t.type === "expense" && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0),
-      color: c.color,
-    })).filter(c => c.value > 0);
-  }, [categories, month.tx]);
+  const byCat = useMemo(() => categories.map(c => ({
+    name: c.name,
+    value: month.tx.filter(t => t.type === "expense" && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0),
+    color: c.color,
+  })).filter(c => c.value > 0), [categories, month.tx]);
+
+  // Annual goal
+  const goal = user?.yearlyGoal ?? 0;
+  const yearSaved = useMemo(() => transactions.filter(t => new Date(t.date).getFullYear() === today.getFullYear())
+    .reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0), [transactions]);
+  const goalPct = goal > 0 ? Math.max(0, Math.min(100, (yearSaved / goal) * 100)) : 0;
+
+  // tip of the day
+  const tip = DAILY_TIPS[new Date().getDate() % DAILY_TIPS.length];
 
   return (
     <AppShell>
@@ -93,19 +109,72 @@ function DashboardPage() {
           {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
         </p>
         <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-          Olá, vamos cuidar do seu <span className="text-gradient">dinheiro</span>.
+          Olá, <span className="text-gradient">{user?.name.split(" ")[0]}</span>. Bora fechar o mês no azul?
         </h1>
       </header>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="success" sub="Entradas confirmadas" />
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
         <Stat label="Despesas do mês" value={formatBRL(month.expense)} accent="crimson" sub={`${formatBRL(month.essential)} essenciais`} />
-        <Stat label="Saldo previsto" value={formatBRL(month.balance)} accent={month.balance >= 0 ? "teal" : "danger"} sub="Receitas − Despesas" />
+        <Stat label="Saldo previsto" value={formatBRL(month.balance)} accent={month.balance >= 0 ? "success" : "danger"} sub="Receitas − Despesas" />
         <Stat label="Cartões disponível" value={formatBRL(totalAvailable)} accent="violet" sub={`de ${formatBRL(totalLimit)}`} />
       </section>
 
+      {/* Missions + Tip + Goal */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <GlassCard className="lg:col-span-2">
+          <SectionTitle title="Missões de hoje" subtitle="pequenos passos, grande controle" />
+          <ul className="space-y-2">
+            {DAILY_MISSIONS.map((m) => {
+              const done = missions.completed.includes(m.id);
+              return (
+                <li key={m.id}>
+                  <button onClick={() => api.toggleMission(m.id)}
+                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}>
+                    {done ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
+                    <div className="min-w-0">
+                      <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-full transition-all duration-700" style={{ width: `${(missions.completed.length / DAILY_MISSIONS.length) * 100}%`, background: "linear-gradient(90deg, #540BD3, #FFCC00)" }} />
+          </div>
+        </GlassCard>
+
+        <div className="space-y-4">
+          <GlassCard>
+            <div className="flex items-center gap-2 mb-2">
+              <Lightbulb className="size-4 text-secondary" />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Dica do dia</p>
+            </div>
+            <p className="text-sm leading-relaxed">{tip}</p>
+          </GlassCard>
+          <GlassCard>
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="size-4 text-secondary" />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Meta anual</p>
+            </div>
+            {goal > 0 ? (
+              <>
+                <p className="text-xl font-bold">{formatBRL(yearSaved)} <span className="font-mono text-xs text-muted-foreground">/ {formatBRL(goal)}</span></p>
+                <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-full transition-all duration-700" style={{ width: `${goalPct}%`, background: "var(--gradient-primary)" }} />
+                </div>
+                <p className="mt-2 text-xs font-mono text-muted-foreground">{Math.round(goalPct)}% concluído</p>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">Cadastre sua meta no seu perfil para ver o progresso aqui.</p>
+            )}
+          </GlassCard>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        {/* Health */}
         <GlassCard className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <HeartPulse className="size-5 text-secondary" />
@@ -115,69 +184,62 @@ function DashboardPage() {
           <p className="text-center mt-4 font-display text-lg font-semibold">{health.label}</p>
           <ul className="mt-5 space-y-2 text-sm">
             <li className="flex justify-between font-mono"><span className="text-muted-foreground">Taxa de poupança</span><span>{month.income > 0 ? `${Math.round((month.balance / month.income) * 100)}%` : "—"}</span></li>
-            <li className="flex justify-between font-mono"><span className="text-muted-foreground">Essenciais vs. total</span><span>{month.expense > 0 ? `${Math.round((month.essential / month.expense) * 100)}%` : "—"}</span></li>
+            <li className="flex justify-between font-mono"><span className="text-muted-foreground">Essenciais</span><span>{month.expense > 0 ? `${Math.round((month.essential / month.expense) * 100)}%` : "—"}</span></li>
             <li className="flex justify-between font-mono"><span className="text-muted-foreground">Uso de cartão</span><span>{totalLimit > 0 ? `${Math.round((totalUsed / totalLimit) * 100)}%` : "—"}</span></li>
           </ul>
         </GlassCard>
 
-        {/* Trend */}
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Fluxo dos últimos 6 meses" subtitle="receitas vs. despesas" />
+          <SectionTitle title="Fluxo dos últimos 6 meses" subtitle="ganhos em ciano · gastos em laranja" />
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="gIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2BD9A1" stopOpacity={0.6}/>
-                    <stop offset="100%" stopColor="#2BD9A1" stopOpacity={0}/>
+                  <linearGradient id="dCyan" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CYAN} stopOpacity={0.7}/>
+                    <stop offset="100%" stopColor={CYAN} stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="gExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#540BD3" stopOpacity={0.7}/>
-                    <stop offset="100%" stopColor="#540BD3" stopOpacity={0}/>
+                  <linearGradient id="dOrange" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={ORANGE} stopOpacity={0.7}/>
+                    <stop offset="100%" stopColor={ORANGE} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} />
                 <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} />
                 <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12 }} formatter={(v: number) => formatBRL(v)} />
-                <Area type="monotone" dataKey="receitas" stroke="#2BD9A1" fill="url(#gIncome)" strokeWidth={2} animationDuration={800} />
-                <Area type="monotone" dataKey="despesas" stroke="#540BD3" fill="url(#gExpense)" strokeWidth={2} animationDuration={800} />
+                <Area type="monotone" dataKey="receitas" name="Ganhos" stroke={CYAN} fill="url(#dCyan)" strokeWidth={2.5} animationDuration={900} />
+                <Area type="monotone" dataKey="despesas" name="Gastos" stroke={ORANGE} fill="url(#dOrange)" strokeWidth={2.5} animationDuration={900} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </GlassCard>
       </section>
 
-      {/* Cards dashboard */}
       <section className="mb-8">
         <SectionTitle title="Limite dos cartões" subtitle="usado e disponível por cartão neste mês" />
         {cards.length === 0 ? (
-          <GlassCard><p className="text-sm text-muted-foreground">Cadastre seus cartões em <a className="text-secondary underline" href="/cartoes">Cartões</a> para ver o uso aqui.</p></GlassCard>
+          <GlassCard><p className="text-sm text-muted-foreground">Cadastre seus cartões em <Link to="/cartoes" className="text-secondary underline">Cartões</Link>.</p></GlassCard>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {cardUsage.map((c) => (
-              <div key={c.id} className="glass rounded-3xl p-5 relative overflow-hidden">
+              <div key={c.id} className="glass rounded-3xl p-5 relative overflow-hidden hover:translate-y-[-2px] transition-transform duration-300">
                 <div className="absolute inset-0 opacity-20" style={{ background: `radial-gradient(400px 200px at 100% 0%, ${c.color}, transparent 60%)` }} />
                 <div className="relative">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-full" style={{ background: c.color }} />
-                      <p className="font-semibold">{c.name}</p>
-                    </div>
+                    <div className="flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ background: c.color }} /><p className="font-semibold">{c.name}</p></div>
                     <CreditCard className="size-4 text-muted-foreground" />
                   </div>
                   <p className="mt-4 font-mono text-xs text-muted-foreground">Usado</p>
                   <p className="text-2xl font-bold">{formatBRL(c.used)}</p>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, #FFCC00)` }} />
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, #FFCC00)` }} />
                   </div>
                   <div className="mt-3 flex justify-between text-xs font-mono">
                     <span className="text-muted-foreground">Disponível</span>
                     <span>{formatBRL(c.available)} / {formatBRL(c.limit)}</span>
                   </div>
-                  <p className="mt-2 text-[11px] font-mono text-muted-foreground">
-                    Libera dia {c.dueDay} · fechamento dia {c.closingDay}
-                  </p>
+                  <p className="mt-2 text-[11px] font-mono text-muted-foreground">Libera dia {c.dueDay} · fechamento dia {c.closingDay}</p>
                 </div>
               </div>
             ))}
@@ -185,7 +247,6 @@ function DashboardPage() {
         )}
       </section>
 
-      {/* Categories pie + Essential split */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
         <GlassCard>
           <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
@@ -212,8 +273,8 @@ function DashboardPage() {
             <Bar label="Essenciais" value={month.essential} total={month.expense || 1} color="#006F77" icon={<TrendingDown className="size-4" />} />
             <Bar label="Não essenciais" value={month.nonEssential} total={month.expense || 1} color="#820432" icon={<TrendingUp className="size-4" />} />
             <div className="rounded-2xl bg-white/5 p-4 mt-4 border border-border">
-              <p className="font-mono text-xs text-muted-foreground">Dica</p>
-              <p className="text-sm mt-1">Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do total ajuda a aumentar sua poupança e melhora a saúde financeira.</p>
+              <p className="font-mono text-xs text-muted-foreground">Insight</p>
+              <p className="text-sm mt-1">Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do total ajuda a poupar mais e melhora sua saúde financeira.</p>
             </div>
           </div>
         </GlassCard>
@@ -241,20 +302,13 @@ function HealthRing({ score, tone }: { score: number; tone: "violet" | "yellow" 
   const radius = 60;
   const c = 2 * Math.PI * radius;
   const offset = c - (score / 100) * c;
-  const colorMap: Record<string, string> = {
-    violet: "#540BD3", yellow: "#FFCC00", teal: "#006F77", crimson: "#820432",
-    success: "#2BD9A1", danger: "#FF4D6D",
-  };
+  const colorMap: Record<string, string> = { violet: "#540BD3", yellow: "#FFCC00", teal: "#006F77", crimson: "#820432", success: "#2BD9A1", danger: "#FF4D6D" };
   return (
     <div className="flex justify-center">
       <svg width="160" height="160" viewBox="0 0 160 160" className="-rotate-90">
         <circle cx="80" cy="80" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="none" />
-        <circle cx="80" cy="80" r={radius} stroke={colorMap[tone]} strokeWidth="12" fill="none"
-          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 900ms ease" }} />
-        <text x="80" y="86" textAnchor="middle" className="fill-foreground" style={{ transform: "rotate(90deg)", transformOrigin: "80px 80px", fontFamily: "Poppins", fontWeight: 700, fontSize: 32 }}>
-          {score}
-        </text>
+        <circle cx="80" cy="80" r={radius} stroke={colorMap[tone]} strokeWidth="12" fill="none" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset 900ms ease" }} />
+        <text x="80" y="86" textAnchor="middle" className="fill-foreground" style={{ transform: "rotate(90deg)", transformOrigin: "80px 80px", fontFamily: "Poppins", fontWeight: 700, fontSize: 32 }}>{score}</text>
       </svg>
     </div>
   );

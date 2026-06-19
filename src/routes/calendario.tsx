@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/calendario")({
-  head: () => ({ meta: [{ title: "Calendário — Finlux" }, { name: "description", content: "Calendário de entradas, vencimentos e gastos." }] }),
+  head: () => ({ meta: [{ title: "Calendário — CloseFinance" }, { name: "description", content: "Calendário de entradas, vencimentos e gastos." }] }),
   component: CalendarPage,
 });
 

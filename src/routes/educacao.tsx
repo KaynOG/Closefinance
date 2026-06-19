@@ -4,7 +4,7 @@ import { GlassCard } from "@/components/ui-kit";
 import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/educacao")({
-  head: () => ({ meta: [{ title: "Educação financeira — Finlux" }, { name: "description", content: "Conceitos e práticas para evoluir suas finanças." }] }),
+  head: () => ({ meta: [{ title: "Educação financeira — CloseFinance" }, { name: "description", content: "Conceitos e práticas para evoluir suas finanças." }] }),
   component: EduPage,
 });
 

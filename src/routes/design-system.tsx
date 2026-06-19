@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/design-system")({
-  head: () => ({ meta: [{ title: "Design System — Finlux" }, { name: "description", content: "Tokens, tipografia, componentes e diretrizes para reproduzir no Figma." }] }),
+  head: () => ({ meta: [{ title: "Design System — CloseFinance" }, { name: "description", content: "Tokens, tipografia, componentes e diretrizes para reproduzir no Figma." }] }),
   component: DSPage,
 });
 
@@ -19,7 +19,7 @@ const COLORS = [
 ];
 
 const TYPOGRAPHY = [
-  { name: "Display / H1", font: "Poppins", weight: 700, size: "36–48px", line: 1.1, sample: "Finlux" },
+  { name: "Display / H1", font: "Poppins", weight: 700, size: "36–48px", line: 1.1, sample: "CloseFinance" },
   { name: "Display / H2", font: "Poppins", weight: 700, size: "24–32px", line: 1.15, sample: "Saúde financeira" },
   { name: "Heading / H3", font: "Poppins", weight: 600, size: "18–20px", line: 1.2, sample: "Limite dos cartões" },
   { name: "Body", font: "Poppins", weight: 400, size: "14–16px", line: 1.5, sample: "Texto corrido com clareza e leveza." },
@@ -43,7 +43,7 @@ function DSPage() {
     <AppShell>
       <header className="mb-8">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Documentação</p>
-        <h1 className="text-3xl lg:text-4xl font-bold">Design System <span className="text-gradient">Finlux</span></h1>
+        <h1 className="text-3xl lg:text-4xl font-bold">Design System <span className="text-gradient">CloseFinance</span></h1>
         <p className="text-muted-foreground mt-3 max-w-2xl">
           Referência completa de cores, tipografia, espaçamento, raios e componentes — pronta para ser recriada no Figma como estilos e variáveis.
         </p>
@@ -190,8 +190,8 @@ function DSPage() {
       <GlassCard>
         <SectionTitle title="Como reproduzir no Figma" subtitle="passo a passo de variáveis e estilos" />
         <ol className="space-y-3 text-sm list-decimal pl-5 marker:text-secondary marker:font-bold">
-          <li>Crie uma <strong>Color Collection</strong> chamada <code className="font-mono text-secondary">Finlux/Brand</code> e adicione cada cor da tabela acima como variável (use os mesmos nomes de token).</li>
-          <li>Crie uma coleção <code className="font-mono text-secondary">Finlux/Theme</code> com modos <em>Dark</em> (padrão) e <em>Light</em>; mapeie <code className="font-mono">background</code>, <code className="font-mono">foreground</code>, <code className="font-mono">card</code>, <code className="font-mono">muted</code>.</li>
+          <li>Crie uma <strong>Color Collection</strong> chamada <code className="font-mono text-secondary">CloseFinance/Brand</code> e adicione cada cor da tabela acima como variável (use os mesmos nomes de token).</li>
+          <li>Crie uma coleção <code className="font-mono text-secondary">CloseFinance/Theme</code> com modos <em>Dark</em> (padrão) e <em>Light</em>; mapeie <code className="font-mono">background</code>, <code className="font-mono">foreground</code>, <code className="font-mono">card</code>, <code className="font-mono">muted</code>.</li>
           <li>Adicione as fontes <strong>Poppins</strong> (300/400/500/600/700) e <strong>JetBrains Mono</strong> (400/500/600) ao arquivo.</li>
           <li>Crie <strong>Text Styles</strong> espelhando a tabela de tipografia (Display H1/H2, Heading H3, Body, Mono Caption, Mono Data).</li>
           <li>Crie <strong>Effect Styles</strong>: <code className="font-mono">Glow / Violet</code> (sombra externa #540BD3 70% opac., y=20, blur=60, spread=-20) e <code className="font-mono">Glow / Yellow</code> equivalente.</li>

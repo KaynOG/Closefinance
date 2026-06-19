@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 
 export const Route = createFileRoute("/transacoes")({
-  head: () => ({ meta: [{ title: "Transações — Finlux" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
+  head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
   component: TxPage,
 });
 

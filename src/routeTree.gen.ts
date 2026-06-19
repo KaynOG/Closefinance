@@ -10,16 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
+import { Route as GastosRouteImport } from './routes/gastos'
+import { Route as GanhosRouteImport } from './routes/ganhos'
 import { Route as EducacaoRouteImport } from './routes/educacao'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CartoesRouteImport } from './routes/cartoes'
 import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TransacoesRoute = TransacoesRouteImport.update({
   id: '/transacoes',
   path: '/transacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GastosRoute = GastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GanhosRoute = GanhosRouteImport.update({
+  id: '/ganhos',
+  path: '/ganhos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EducacaoRoute = EducacaoRouteImport.update({
@@ -47,6 +60,11 @@ const CalendarioRoute = CalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,69 +73,90 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
+  '/ganhos': typeof GanhosRoute
+  '/gastos': typeof GastosRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
+  '/ganhos': typeof GanhosRoute
+  '/gastos': typeof GastosRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
   '/educacao': typeof EducacaoRoute
+  '/ganhos': typeof GanhosRoute
+  '/gastos': typeof GastosRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
     | '/design-system'
     | '/educacao'
+    | '/ganhos'
+    | '/gastos'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
     | '/design-system'
     | '/educacao'
+    | '/ganhos'
+    | '/gastos'
     | '/transacoes'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
     | '/design-system'
     | '/educacao'
+    | '/ganhos'
+    | '/gastos'
     | '/transacoes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   CalendarioRoute: typeof CalendarioRoute
   CartoesRoute: typeof CartoesRoute
   CategoriasRoute: typeof CategoriasRoute
   DesignSystemRoute: typeof DesignSystemRoute
   EducacaoRoute: typeof EducacaoRoute
+  GanhosRoute: typeof GanhosRoute
+  GastosRoute: typeof GastosRoute
   TransacoesRoute: typeof TransacoesRoute
 }
 
@@ -128,6 +167,20 @@ declare module '@tanstack/react-router' {
       path: '/transacoes'
       fullPath: '/transacoes'
       preLoaderRoute: typeof TransacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gastos': {
+      id: '/gastos'
+      path: '/gastos'
+      fullPath: '/gastos'
+      preLoaderRoute: typeof GastosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ganhos': {
+      id: '/ganhos'
+      path: '/ganhos'
+      fullPath: '/ganhos'
+      preLoaderRoute: typeof GanhosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/educacao': {
@@ -165,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -177,11 +237,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   CalendarioRoute: CalendarioRoute,
   CartoesRoute: CartoesRoute,
   CategoriasRoute: CategoriasRoute,
   DesignSystemRoute: DesignSystemRoute,
   EducacaoRoute: EducacaoRoute,
+  GanhosRoute: GanhosRoute,
+  GastosRoute: GastosRoute,
   TransacoesRoute: TransacoesRoute,
 }
 export const routeTree = rootRouteImport
