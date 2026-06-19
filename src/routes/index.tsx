@@ -476,4 +476,6 @@ function HealthRing({ score, tone }: { score: number; tone: "violet" | "yellow" 
       </svg>
     </div>
   );
+   #lovable-badge {
+    display: none !important;
 }
