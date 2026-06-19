@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as GanhosRouteImport } from './routes/ganhos'
 import { Route as EducacaoRouteImport } from './routes/educacao'
@@ -30,6 +31,11 @@ const TransacoesRoute = TransacoesRouteImport.update({
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissoesRoute = MissoesRouteImport.update({
+  id: '/missoes',
+  path: '/missoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GastosRoute = GastosRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
   '/gastos': typeof GastosRoute
+  '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
   '/transacoes': typeof TransacoesRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/missoes'
     | '/perfil'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/missoes'
     | '/perfil'
     | '/transacoes'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/educacao'
     | '/ganhos'
     | '/gastos'
+    | '/missoes'
     | '/perfil'
     | '/transacoes'
   fileRoutesById: FileRoutesById
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   EducacaoRoute: typeof EducacaoRoute
   GanhosRoute: typeof GanhosRoute
   GastosRoute: typeof GastosRoute
+  MissoesRoute: typeof MissoesRoute
   PerfilRoute: typeof PerfilRoute
   TransacoesRoute: typeof TransacoesRoute
 }
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missoes': {
+      id: '/missoes'
+      path: '/missoes'
+      fullPath: '/missoes'
+      preLoaderRoute: typeof MissoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gastos': {
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   EducacaoRoute: EducacaoRoute,
   GanhosRoute: GanhosRoute,
   GastosRoute: GastosRoute,
+  MissoesRoute: MissoesRoute,
   PerfilRoute: PerfilRoute,
   TransacoesRoute: TransacoesRoute,
 }
