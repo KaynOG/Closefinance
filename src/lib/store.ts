@@ -257,7 +257,7 @@ export function useStore() {
       if (p.essential !== undefined) patch.essential = p.essential || null;
       if (p.paymentMethod !== undefined) patch.payment_method = p.paymentMethod || null;
       if (p.tag !== undefined) patch.tag = p.tag || null;
-      const { error } = await supabase.from("transactions").update(patch).eq("id", i);
+      const { error } = await supabase.from("transactions").update(patch as never).eq("id", i);
       if (error) { console.error(error); return; }
       set({ transactions: memory.transactions.map(x => x.id === i ? { ...x, ...p } : x) });
     },
@@ -288,7 +288,7 @@ export function useStore() {
       if (p.color !== undefined) patch.color = p.color;
       if (p.icon !== undefined) patch.icon = p.icon || null;
       if (p.kind !== undefined) patch.kind = p.kind;
-      const { error } = await supabase.from("categories").update(patch).eq("id", i);
+      const { error } = await supabase.from("categories").update(patch as never).eq("id", i);
       if (error) return console.error(error);
       set({ categories: memory.categories.map(x => x.id === i ? { ...x, ...p } : x) });
     },
@@ -312,7 +312,7 @@ export function useStore() {
       if (p.closingDay !== undefined) patch.closing_day = p.closingDay;
       if (p.dueDay !== undefined) patch.due_day = p.dueDay;
       if (p.color !== undefined) patch.color = p.color;
-      const { error } = await supabase.from("cards").update(patch).eq("id", i);
+      const { error } = await supabase.from("cards").update(patch as never).eq("id", i);
       if (error) return console.error(error);
       set({ cards: memory.cards.map(x => x.id === i ? { ...x, ...p } : x) });
     },
@@ -336,7 +336,7 @@ export function useStore() {
       if (p.accountBalance !== undefined) patch.account_balance = p.accountBalance;
       if (p.savedAmount !== undefined) patch.saved_amount = p.savedAmount;
       if (p.note !== undefined) patch.note = p.note || null;
-      const { error } = await supabase.from("banks").update(patch).eq("id", i);
+      const { error } = await supabase.from("banks").update(patch as never).eq("id", i);
       if (error) return console.error(error);
       set({ banks: memory.banks.map(x => x.id === i ? { ...x, ...p } : x) });
     },
@@ -383,7 +383,7 @@ export function useStore() {
       if (patch.yearlyGoal !== undefined) p.yearly_goal = patch.yearlyGoal ?? null;
       if (patch.avatar !== undefined) p.avatar = patch.avatar || null;
       if (patch.gender !== undefined) p.gender = patch.gender;
-      const { error } = await supabase.from("profiles").update(p).eq("id", uid);
+      const { error } = await supabase.from("profiles").update(p as never).eq("id", uid);
       if (error) return console.error(error);
       set({ users: memory.users.map(u => u.id === uid ? { ...u, ...patch } : u) });
     },
