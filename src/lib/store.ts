@@ -93,7 +93,9 @@ function load(): AppState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw) as AppState;
-    return { ...DEFAULT_STATE, ...parsed };
+    const merged = { ...DEFAULT_STATE, ...parsed };
+    merged.missions = { ...DEFAULT_STATE.missions, ...(parsed.missions ?? {}) };
+    return merged;
   } catch {
     return DEFAULT_STATE;
   }
