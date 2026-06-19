@@ -40,12 +40,21 @@ export interface User {
   birthdate?: string;
   job?: string;
   yearlyGoal?: number;
+  avatar?: string; // data URL
   createdAt: string;
 }
 
+export interface PointEntry {
+  date: string; // ISO datetime
+  missionId: string;
+  points: number; // +10 earn, -10 undo
+}
+
 export interface MissionState {
-  date: string; // yyyy-mm-dd
-  completed: string[]; // mission ids
+  date: string; // today yyyy-mm-dd
+  completed: string[];
+  totalPoints: number;
+  history: PointEntry[];
 }
 
 export interface AppState {
