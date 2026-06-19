@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, type Essential } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, TrendingDown } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TxEditModal } from "@/components/TxEditModal";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
@@ -15,24 +16,33 @@ const ORANGE = "#FF6B1A";
 const ORANGE_DEEP = "#C2410C";
 
 function GastosPage() {
-  const [{ transactions, categories, cards }, api] = useStore();
+  const [{ transactions, categories, cards, banks }, api] = useStore();
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const [form, setForm] = useState({
     amount: "", description: "", date: today.toISOString().slice(0, 10),
-    categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential, cardId: "", tag: "",
+    categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential,
+    paymentMethod: "debit" as PaymentMethod, cardId: "", bankId: "", tag: "",
+    installments: "1",
   });
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
-    api.addTransaction({
+    const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
+    await api.addTransaction({
       type: "expense", amount: amt, description: form.description.trim(), date: form.date,
-      categoryId: form.categoryId || undefined, essential: form.essential, cardId: form.cardId || undefined, tag: form.tag.trim() || undefined,
+      categoryId: form.categoryId || undefined, essential: form.essential,
+      paymentMethod: form.paymentMethod,
+      cardId: form.paymentMethod === "credit" ? form.cardId || undefined : undefined,
+      bankId: (form.paymentMethod === "debit" || form.paymentMethod === "pix") ? form.bankId || undefined : undefined,
+      tag: form.tag.trim() || undefined,
+      installmentTotal: inst > 1 ? inst : undefined,
     });
-    setForm({ ...form, amount: "", description: "", tag: "" });
+    setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
   const expenses = transactions.filter(t => t.type === "expense").sort((a, b) => b.date.localeCompare(a.date));
@@ -127,18 +137,49 @@ function GastosPage() {
                   className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.essential === "non_essential" ? "bg-[#820432]/20 border-[#820432]" : "border-border hover:bg-white/5"}`}>Não essencial</button>
               </div>
             </Field>
-            {cards.length > 0 && (
-              <Field label="Cartão (opcional)">
-                <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
-                  <option value="">À vista</option>
-                  {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <Field label="Método de pagamento">
+              <div className="grid grid-cols-4 gap-1.5">
+                {(["credit","debit","pix","cash"] as const).map(m => (
+                  <button key={m} type="button" onClick={() => setForm({ ...form, paymentMethod: m })}
+                    className={`rounded-xl py-2 text-[10px] font-mono border transition active:scale-95 ${form.paymentMethod === m ? "bg-primary/20 border-primary text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+                    {m === "credit" ? "Crédito" : m === "debit" ? "Débito" : m === "pix" ? "Pix" : "Dinheiro"}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            {form.paymentMethod === "credit" && (
+              <>
+                {cards.length > 0 && (
+                  <Field label="Cartão">
+                    <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                      <option value="">—</option>
+                      {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </Field>
+                )}
+                <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseFloat(form.amount.replace(",",".")) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
+                  <div className="flex items-center gap-2">
+                    <input type="range" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className="flex-1 accent-[var(--primary)]" />
+                    <input type="number" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className={`${inputCls} w-16 text-center`} />
+                  </div>
+                  {parseInt(form.installments) > 1 && (
+                    <p className="text-[10px] font-mono text-muted-foreground mt-1">Vamos criar {form.installments} lançamentos mensais a partir da data informada.</p>
+                  )}
+                </Field>
+              </>
+            )}
+            {(form.paymentMethod === "debit" || form.paymentMethod === "pix") && banks.length > 0 && (
+              <Field label="Banco">
+                <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
+                  <option value="">—</option>
+                  {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </Field>
             )}
             <Field label="Etiqueta (parâmetro livre)">
               <input value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} placeholder="Ex: viagem-japão, presente" className={inputCls} />
             </Field>
-            <button type="submit" className="w-full rounded-xl font-semibold py-3 text-white transition active:scale-[0.98]" style={{ background: ORANGE }}>
+            <button type="submit" data-sound="success" className="w-full rounded-xl font-semibold py-3 text-white transition active:scale-[0.98]" style={{ background: ORANGE }}>
               <Plus className="size-4 inline mr-1.5" /> Adicionar gasto
             </button>
           </form>
@@ -154,7 +195,7 @@ function GastosPage() {
                     <th className="py-2 px-3">Data</th>
                     <th className="py-2 px-3">Descrição</th>
                     <th className="py-2 px-3">Categoria</th>
-                    <th className="py-2 px-3">Tipo</th>
+                    <th className="py-2 px-3">Pgto</th>
                     <th className="py-2 px-3">Etiqueta</th>
                     <th className="py-2 px-3 text-right">Valor</th>
                     <th className="py-2 px-3"></th>
@@ -163,15 +204,27 @@ function GastosPage() {
                 <tbody>
                   {expenses.map(t => {
                     const cat = categories.find(c => c.id === t.categoryId);
+                    const pmLabel = t.paymentMethod === "credit" ? "Crédito" : t.paymentMethod === "debit" ? "Débito" : t.paymentMethod === "pix" ? "Pix" : t.paymentMethod === "cash" ? "Dinheiro" : "—";
                     return (
                       <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
                         <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
-                        <td className="py-2.5 px-3">{t.description || "—"}</td>
+                        <td className="py-2.5 px-3">
+                          {t.description || "—"}
+                          {t.installmentTotal ? <span className="ml-1.5 text-[10px] font-mono text-secondary">({t.installmentNo}/{t.installmentTotal})</span> : null}
+                        </td>
                         <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
-                        <td className="py-2.5 px-3"><span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${t.essential === "essential" ? "bg-[#006F77]/20 text-[#22C3CC]" : "bg-[#820432]/30 text-[#FF8FA3]"}`}>{t.essential === "essential" ? "essencial" : "não ess."}</span></td>
+                        <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
                         <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
                         <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
-                        <td className="py-2.5 px-3"><button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button></td>
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
+                          <button onClick={() => {
+                            if (t.installmentGroupId && t.installmentTotal && t.installmentTotal > 1) {
+                              const all = confirm(`Apagar todas as ${t.installmentTotal} parcelas desta compra? OK = todas · Cancelar = só esta`);
+                              api.removeTransaction(t.id, all ? { wholeGroup: true } : undefined);
+                            } else { api.removeTransaction(t.id); }
+                          }} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -181,6 +234,11 @@ function GastosPage() {
           )}
         </GlassCard>
       </section>
+      {editing && (
+        <TxEditModal tx={editing} categories={categories} cards={cards} banks={banks}
+          onSave={async (patch) => { await api.updateTransaction(editing.id, patch); }}
+          onClose={() => setEditing(null)} />
+      )}
     </AppShell>
   );
 }

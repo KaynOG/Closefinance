@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -13,6 +13,7 @@ const nav = [
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
+  { to: "/bancos", label: "Bancos", icon: Landmark },
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
@@ -22,19 +23,23 @@ const nav = [
 export function AppShell({ children }: { children?: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const [, api, user] = useStore();
+  const [state, api, user] = useStore();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); installGlobalClickSounds(); }, []);
   useEffect(() => {
-    if (mounted && !user && pathname !== "/auth") {
+    if (mounted && !state.loading && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
     }
-  }, [mounted, user, pathname, navigate]);
+  }, [mounted, state.loading, user, pathname, navigate]);
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground font-mono">
+        {state.loading ? "Carregando…" : null}
+      </div>
+    );
   }
 
   return (

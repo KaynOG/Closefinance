@@ -53,11 +53,11 @@ function AuthPage() {
 
   const pw = useMemo(() => scorePassword(form.password), [form.password]);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setInfo(null);
     if (mode === "login") {
-      const r = api.login(form.email, form.password);
+      const r = await api.login(form.email, form.password);
       if (!r.ok) setError(r.error);
       else navigate({ to: "/" });
     } else if (mode === "signup") {
@@ -65,7 +65,7 @@ function AuthPage() {
         setError("Preencha nome e e-mail."); return;
       }
       if (pw.score < 2) { setError("Sua senha está fraca. Atinja pelo menos o nível Média."); return; }
-      const r = api.signup({
+      const r = await api.signup({
         name: form.name, email: form.email, password: form.password,
         birthdate: form.birthdate || undefined, job: form.job || undefined,
         yearlyGoal: form.yearlyGoal ? parseFloat(form.yearlyGoal.replace(",", ".")) : undefined,
@@ -73,7 +73,7 @@ function AuthPage() {
       if (!r.ok) setError(r.error);
       else navigate({ to: "/" });
     } else {
-      const r = api.requestPasswordReset(form.email);
+      const r = await api.requestPasswordReset(form.email);
       if (!r.ok) setError(r.error);
       else setInfo({ link: r.link, email: r.email });
     }

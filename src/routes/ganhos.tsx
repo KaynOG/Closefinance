@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TxEditModal } from "@/components/TxEditModal";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
@@ -15,7 +16,8 @@ const CYAN = "#22C3CC";
 const CYAN_DARK = "#006F77";
 
 function GanhosPage() {
-  const [{ transactions, categories }, api] = useStore();
+  const [{ transactions, categories, cards, banks }, api] = useStore();
+  const [editing, setEditing] = useState<Transaction | null>(null);
   const today = new Date();
   const incomeCats = categories.filter(c => c.kind !== "expense");
 
@@ -156,7 +158,10 @@ function GanhosPage() {
                         </td>
                         <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
                         <td className="py-2.5 px-3 font-mono text-right" style={{ color: CYAN }}>+{formatBRL(t.amount)}</td>
-                        <td className="py-2.5 px-3"><button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button></td>
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
+                          <button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -166,6 +171,11 @@ function GanhosPage() {
           )}
         </GlassCard>
       </section>
+      {editing && (
+        <TxEditModal tx={editing} categories={categories} cards={cards} banks={banks}
+          onSave={async (patch) => { await api.updateTransaction(editing.id, patch); }}
+          onClose={() => setEditing(null)} />
+      )}
     </AppShell>
   );
 }

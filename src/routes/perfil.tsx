@@ -105,7 +105,7 @@ function PerfilPage() {
             {age !== null && <p>Idade: <span className="text-foreground">{age} anos</span></p>}
             <p>Pontos: <span className="text-foreground">{missions.totalPoints}</span></p>
           </div>
-          <button onClick={() => { api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
+          <button onClick={async () => { await api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
             <LogOut className="size-4" /> Sair da conta
           </button>
         </GlassCard>
@@ -171,19 +171,19 @@ function SecurityPanel() {
   const [sound, setSound] = useState(true);
   useEffect(() => { setSound(isSoundEnabled()); }, []);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
     if (pw.next !== pw.confirm) { setMsg({ type: "err", text: "A confirmação não bate com a nova senha." }); return; }
-    const r = api.changePassword(pw.current, pw.next);
+    const r = await api.changePassword(pw.current, pw.next);
     if (!r.ok) { setMsg({ type: "err", text: r.error }); return; }
     setMsg({ type: "ok", text: "Senha alterada com sucesso." });
     setPw({ current: "", next: "", confirm: "" });
   }
 
-  function sendResetEmail() {
+  async function sendResetEmail() {
     if (!user) return;
-    const r = api.requestPasswordReset(user.email);
+    const r = await api.requestPasswordReset(user.email);
     if (r.ok) setResetMsg({ link: r.link, email: r.email });
   }
 
