@@ -32,7 +32,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   }, [mounted, user, pathname, navigate]);
 
   if (!user) {
-    return <main className="min-h-screen">{children ?? <Outlet />}</main>;
+    return null;
   }
 
   return (
