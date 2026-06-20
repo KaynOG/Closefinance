@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, type Bank } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle } from "lucide-react";
+import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus } from "lucide-react";
 
 export const Route = createFileRoute("/bancos")({
   head: () => ({ meta: [{ title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
@@ -16,6 +16,7 @@ function BanksPage() {
   const [{ banks, users, currentUserId }, api] = useStore();
   const user = users.find(u => u.id === currentUserId);
   const goal = user?.yearlyGoal ?? 0;
+  const cash = user?.cashAmount ?? 0;
 
   const [form, setForm] = useState({ name: "", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
   const [editing, setEditing] = useState<Bank | null>(null);
