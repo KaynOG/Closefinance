@@ -494,29 +494,39 @@ export function useStore() {
     },
 
     // ---------- MISSIONS ----------
+    awardMission: async (missionId: string) => {
+      const uid = memory.currentUserId; if (!uid) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const def = MISSIONS_CATALOG.find(m => m.id === missionId);
+      const points = def?.points ?? 10;
+      const alreadyAwarded = memory.missions.history.some(h => h.missionId === missionId && h.points > 0 && h.date.slice(0, 10) === today);
+      if (alreadyAwarded) {
+        if (!memory.missions.completed.includes(missionId)) {
+          set({ missions: { ...memory.missions, date: today, completed: [...memory.missions.completed, missionId] } });
+        }
+        return;
+      }
+      const occurred = new Date().toISOString();
+      const { error } = await supabase.from("mission_history").insert({ user_id: uid, mission_id: missionId, points, occurred_at: occurred, day: today });
+      if (error) return;
+      const totalPoints = memory.missions.totalPoints + points;
+      const history = [{ date: occurred, missionId, points }, ...memory.missions.history];
+      const completed = memory.missions.completed.includes(missionId) ? memory.missions.completed : [...memory.missions.completed, missionId];
+      await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
+      set({ missions: { date: today, completed, totalPoints, history } });
+    },
     toggleMission: async (missionId: string) => {
       const uid = memory.currentUserId; if (!uid) return;
       const today = new Date().toISOString().slice(0, 10);
-      const isDone = memory.missions.completed.includes(missionId);
+      const def = MISSIONS_CATALOG.find(m => m.id === missionId);
+      const points = def?.points ?? 10;
       const alreadyAwarded = memory.missions.history.some(h => h.missionId === missionId && h.points > 0 && h.date.slice(0, 10) === today);
-      if (!isDone) {
-        const completed = [...memory.missions.completed, missionId];
-        let totalPoints = memory.missions.totalPoints;
-        let history = memory.missions.history;
-        if (!alreadyAwarded) {
-          const occurred = new Date().toISOString();
-          const { error } = await supabase.from("mission_history").insert({ user_id: uid, mission_id: missionId, points: 10, occurred_at: occurred, day: today });
-          if (!error) {
-            totalPoints += 10;
-            history = [{ date: occurred, missionId, points: 10 }, ...history];
-            await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
-          }
-        }
-        set({ missions: { date: today, completed, totalPoints, history } });
-      } else {
-        const completed = memory.missions.completed.filter(x => x !== missionId);
-        set({ missions: { ...memory.missions, date: today, completed } });
-      }
+      if (alreadyAwarded) return;
+      const occurred = new Date().toISOString();
+      await supabase.from("mission_history").insert({ user_id: uid, mission_id: missionId, points, occurred_at: occurred, day: today });
+      const totalPoints = memory.missions.totalPoints + points;
+      await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
+      set({ missions: { date: today, completed: [...memory.missions.completed, missionId], totalPoints, history: [{ date: occurred, missionId, points }, ...memory.missions.history] } });
     },
 
     // ---------- BACKUP ----------
