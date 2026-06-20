@@ -25,7 +25,7 @@ function CardsPage() {
   const today = new Date();
 
   const [form, setForm] = useState({
-    name: "", limit: "", closingDay: "1", dueDay: "10", color: PALETTE[0],
+    name: "", limit: "", usedManual: "", closingDay: "1", dueDay: "10", color: PALETTE[0],
   });
 
   function submit(e: React.FormEvent) {
@@ -34,18 +34,21 @@ function CardsPage() {
     if (!form.name.trim() || !lim) return;
     api.addCard({
       name: form.name.trim(), limit: lim,
+      usedManual: parseFloat(form.usedManual.replace(",", ".")) || 0,
       closingDay: Math.max(1, Math.min(28, parseInt(form.closingDay) || 1)),
       dueDay: Math.max(1, Math.min(28, parseInt(form.dueDay) || 10)),
       color: form.color,
     });
-    setForm({ name: "", limit: "", closingDay: "1", dueDay: "10", color: PALETTE[0] });
+    setForm({ name: "", limit: "", usedManual: "", closingDay: "1", dueDay: "10", color: PALETTE[0] });
   }
 
   const overview = useMemo(() => {
     const enriched = cards.map((c) => {
-      const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+      const manual = c.usedManual ?? 0;
+      const used = usedTx + manual;
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
-      return { ...c, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
+      return { ...c, usedTx, usedManualVal: manual, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
     const totalLimit = enriched.reduce((s, c) => s + c.limit, 0);
     const totalUsed = enriched.reduce((s, c) => s + c.used, 0);
@@ -97,6 +100,7 @@ function CardsPage() {
           <form onSubmit={submit} className="space-y-3">
             <Field label="Nome"><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank Roxinho" /></Field>
             <Field label="Limite total (R$)"><input className={inputCls} value={form.limit} onChange={e => setForm({ ...form, limit: e.target.value })} inputMode="decimal" placeholder="0,00" /></Field>
+            <Field label="Limite já ocupado (R$)"><input className={inputCls} value={form.usedManual} onChange={e => setForm({ ...form, usedManual: e.target.value })} inputMode="decimal" placeholder="0,00 (dívida atual no cartão)" /></Field>
             <div className="grid grid-cols-2 gap-2">
               <Field label="Fechamento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.closingDay} onChange={e => setForm({ ...form, closingDay: e.target.value })} /></Field>
               <Field label="Vencimento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.dueDay} onChange={e => setForm({ ...form, dueDay: e.target.value })} /></Field>
@@ -159,6 +163,23 @@ function CardsPage() {
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(c.used)} <span className="text-muted-foreground">({Math.round(c.pct)}%)</span></p></div>
                     <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(c.available)}</p></div>
+                  </div>
+                  <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 text-xs font-mono">
+                    <label className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">Limite já ocupado</span>
+                      <input
+                        type="number" min={0} step="0.01"
+                        defaultValue={c.usedManualVal}
+                        onBlur={(e) => {
+                          const v = parseFloat(e.target.value);
+                          if (!isNaN(v) && v !== c.usedManualVal) api.updateCard(c.id, { usedManual: Math.max(0, v) });
+                        }}
+                        className="w-28 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"
+                      />
+                    </label>
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                      Dívida já existente no cartão, somada ao uso do mês. Lançamentos: {formatBRL(c.usedTx)}.
+                    </p>
                   </div>
                   <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     <div>

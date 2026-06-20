@@ -20,6 +20,10 @@ function GastosPage() {
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [fMonth, setFMonth] = useState("all");
+  const [fCategory, setFCategory] = useState("all");
+  const [fMin, setFMin] = useState("");
+  const [fMax, setFMax] = useState("");
 
   const [form, setForm] = useState({
     amount: "", description: "", date: today.toISOString().slice(0, 10),
@@ -33,8 +37,22 @@ function GastosPage() {
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
     const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
+    let firstDate = form.date;
+    let amtPerInst = amt;
+    if (inst > 1) {
+      amtPerInst = Math.round((amt / inst) * 100) / 100;
+      if (form.paymentMethod === "credit" && form.cardId) {
+        const card = cards.find(c => c.id === form.cardId);
+        if (card) {
+          const base = new Date(form.date + "T00:00:00");
+          const close = new Date(base.getFullYear(), base.getMonth(), Math.min(28, card.closingDay));
+          if (close < base) close.setMonth(close.getMonth() + 1);
+          firstDate = close.toISOString().slice(0, 10);
+        }
+      }
+    }
     await api.addTransaction({
-      type: "expense", amount: amt, description: form.description.trim(), date: form.date,
+      type: "expense", amount: amtPerInst, description: form.description.trim(), date: firstDate,
       categoryId: form.categoryId || undefined, essential: form.essential,
       paymentMethod: form.paymentMethod,
       cardId: form.paymentMethod === "credit" ? form.cardId || undefined : undefined,
@@ -187,51 +205,93 @@ function GastosPage() {
 
         <GlassCard>
           <SectionTitle title="Planilha de gastos" subtitle={`${expenses.length} lançamentos`} />
-          {expenses.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum gasto ainda.</p> : (
-            <div className="overflow-x-auto -mx-3">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/10">
-                    <th className="py-2 px-3">Data</th>
-                    <th className="py-2 px-3">Descrição</th>
-                    <th className="py-2 px-3">Categoria</th>
-                    <th className="py-2 px-3">Pgto</th>
-                    <th className="py-2 px-3">Etiqueta</th>
-                    <th className="py-2 px-3 text-right">Valor</th>
-                    <th className="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenses.map(t => {
-                    const cat = categories.find(c => c.id === t.categoryId);
-                    const pmLabel = t.paymentMethod === "credit" ? "Crédito" : t.paymentMethod === "debit" ? "Débito" : t.paymentMethod === "pix" ? "Pix" : t.paymentMethod === "cash" ? "Dinheiro" : "—";
-                    return (
-                      <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
-                        <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
-                        <td className="py-2.5 px-3">
-                          {t.description || "—"}
-                          {t.installmentTotal ? <span className="ml-1.5 text-[10px] font-mono text-secondary">({t.installmentNo}/{t.installmentTotal})</span> : null}
-                        </td>
-                        <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
-                        <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
-                        <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
-                        <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
-                        <td className="py-2.5 px-3 whitespace-nowrap">
-                          <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
-                          <button onClick={() => {
-                            if (t.installmentGroupId && t.installmentTotal && t.installmentTotal > 1) {
-                              const all = confirm(`Apagar todas as ${t.installmentTotal} parcelas desta compra? OK = todas · Cancelar = só esta`);
-                              api.removeTransaction(t.id, all ? { wholeGroup: true } : undefined);
-                            } else { api.removeTransaction(t.id); }
-                          }} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {(() => {
+            const monthsSet = Array.from(new Set(expenses.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+            const minN = parseFloat(fMin.replace(",", "."));
+            const maxN = parseFloat(fMax.replace(",", "."));
+            const filtered = expenses.filter(t => {
+              if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;
+              if (fCategory !== "all" && (t.categoryId || "none") !== fCategory) return false;
+              if (!isNaN(minN) && t.amount < minN) return false;
+              if (!isNaN(maxN) && t.amount > maxN) return false;
+              return true;
+            });
+            const cleared = fMonth !== "all" || fCategory !== "all" || fMin || fMax;
+            return (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+                  <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
+                    <option value="all">Todos os meses</option>
+                    {monthsSet.map(m => {
+                      const [y, mm] = m.split("-");
+                      const label = new Date(parseInt(y), parseInt(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                      return <option key={m} value={m}>{label}</option>;
+                    })}
+                  </select>
+                  <select value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
+                    <option value="all">Todas as categorias</option>
+                    <option value="none">Sem categoria</option>
+                    {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <input value={fMin} onChange={e => setFMin(e.target.value)} placeholder="Valor mín." inputMode="decimal" className={inputCls} />
+                  <input value={fMax} onChange={e => setFMax(e.target.value)} placeholder="Valor máx." inputMode="decimal" className={inputCls} />
+                  <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); }}
+                    disabled={!cleared}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5 disabled:opacity-40">
+                    Limpar filtros
+                  </button>
+                </div>
+                <p className="text-[11px] font-mono text-muted-foreground mb-2">
+                  {filtered.length} de {expenses.length} · total {formatBRL(filtered.reduce((s, t) => s + t.amount, 0))}
+                </p>
+                {filtered.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum gasto encontrado para os filtros.</p> : (
+                  <div className="overflow-x-auto -mx-3">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/10">
+                          <th className="py-2 px-3">Data</th>
+                          <th className="py-2 px-3">Descrição</th>
+                          <th className="py-2 px-3">Categoria</th>
+                          <th className="py-2 px-3">Pgto</th>
+                          <th className="py-2 px-3">Etiqueta</th>
+                          <th className="py-2 px-3 text-right">Valor</th>
+                          <th className="py-2 px-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(t => {
+                          const cat = categories.find(c => c.id === t.categoryId);
+                          const pmLabel = t.paymentMethod === "credit" ? "Crédito" : t.paymentMethod === "debit" ? "Débito" : t.paymentMethod === "pix" ? "Pix" : t.paymentMethod === "cash" ? "Dinheiro" : "—";
+                          return (
+                            <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                              <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
+                              <td className="py-2.5 px-3">
+                                {t.description || "—"}
+                                {t.installmentTotal ? <span className="ml-1.5 text-[10px] font-mono text-secondary">({t.installmentNo}/{t.installmentTotal})</span> : null}
+                              </td>
+                              <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
+                              <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                              <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
+                              <td className="py-2.5 px-3 whitespace-nowrap">
+                                <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
+                                <button onClick={() => {
+                                  if (t.installmentGroupId && t.installmentTotal && t.installmentTotal > 1) {
+                                    const all = confirm(`Apagar todas as ${t.installmentTotal} parcelas desta compra? OK = todas · Cancelar = só esta`);
+                                    api.removeTransaction(t.id, all ? { wholeGroup: true } : undefined);
+                                  } else { api.removeTransaction(t.id); }
+                                }} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </GlassCard>
       </section>
       {editing && (

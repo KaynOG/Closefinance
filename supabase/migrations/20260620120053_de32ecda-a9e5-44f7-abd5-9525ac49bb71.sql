@@ -1,0 +1,1 @@
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS used_manual numeric NOT NULL DEFAULT 0;

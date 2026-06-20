@@ -752,7 +752,7 @@ function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boole
     { key: "flow", label: "Fluxo de caixa" },
     { key: "cards", label: "Limite cartões" },
     { key: "catHistory", label: "Histórico categorias" },
-    { key: "catPie", label: "Pizza categorias" },
+    { key: "catPie", label: "Gastos por categoria" },
     { key: "essentials", label: "Essenciais x não" },
   ];
   return (

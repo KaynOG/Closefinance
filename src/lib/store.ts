@@ -38,6 +38,7 @@ export interface Card {
   closingDay: number;
   dueDay: number;
   color: string;
+  usedManual?: number;
 }
 
 export interface Bank {
@@ -128,7 +129,7 @@ function mapCat(row: Record<string, unknown>): Category {
   return { id: String(row.id), name: String(row.name), color: String(row.color), icon: (row.icon as string) ?? undefined, kind: (row.kind as Category["kind"]) ?? "expense" };
 }
 function mapCard(row: Record<string, unknown>): Card {
-  return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color) };
+  return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color), usedManual: row.used_manual != null ? Number(row.used_manual) : 0 };
 }
 function mapBank(row: Record<string, unknown>): Bank {
   return { id: String(row.id), name: String(row.name), color: String(row.color), accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
@@ -325,7 +326,7 @@ export function useStore() {
     // ---------- CARDS ----------
     addCard: async (c: Omit<Card, "id">) => {
       const uid = memory.currentUserId; if (!uid) return;
-      const { data, error } = await supabase.from("cards").insert({ user_id: uid, name: c.name, limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color }).select("*").single();
+      const { data, error } = await supabase.from("cards").insert({ user_id: uid, name: c.name, limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color, used_manual: c.usedManual ?? 0 } as never).select("*").single();
       if (error || !data) return console.error(error);
       set({ cards: [...memory.cards, mapCard(data as Record<string, unknown>)] });
     },
@@ -336,6 +337,7 @@ export function useStore() {
       if (p.closingDay !== undefined) patch.closing_day = p.closingDay;
       if (p.dueDay !== undefined) patch.due_day = p.dueDay;
       if (p.color !== undefined) patch.color = p.color;
+      if (p.usedManual !== undefined) patch.used_manual = p.usedManual;
       const { error } = await supabase.from("cards").update(patch as never).eq("id", i);
       if (error) return console.error(error);
       set({ cards: memory.cards.map(x => x.id === i ? { ...x, ...p } : x) });
