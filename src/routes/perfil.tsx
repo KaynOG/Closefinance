@@ -282,6 +282,14 @@ function SecurityPanel() {
             </button>
           </div>
           <div>
+            <SectionTitle title="Notificações pop-up" subtitle="confirmações ao adicionar ganhos, gastos e alertas" />
+            <button onClick={() => { const v = !popups; setPopups(v); setPopupsEnabled(v); if (v) notify("Notificações ativadas"); }}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${popups ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+              {popups ? <Bell className="size-4" /> : <BellOff className="size-4" />}
+              {popups ? "Pop-ups ativados" : "Pop-ups desativados"}
+            </button>
+          </div>
+          <div>
             <div className="flex items-center gap-2 mb-3">
               <Palette className="size-4 text-primary" />
               <h3 className="font-semibold text-sm">Aparência</h3>
