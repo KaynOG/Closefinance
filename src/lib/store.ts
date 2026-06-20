@@ -266,6 +266,27 @@ export function useStore() {
           set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
         }
       }
+
+      // Ganho recebido em banco: credita no saldo em conta
+      if (t.type === "income" && t.bankId) {
+        const bank = memory.banks.find(b => b.id === t.bankId);
+        if (bank) {
+          const total = inserted.reduce((s, x) => s + x.amount, 0);
+          const newBalance = bank.accountBalance + total;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
+      // Ganho recebido em dinheiro físico: acrescenta na caixa
+      if (t.type === "income" && t.paymentMethod === "cash" && !t.bankId) {
+        const user = memory.users.find(u => u.id === uid);
+        if (user) {
+          const total = inserted.reduce((s, x) => s + x.amount, 0);
+          const newCash = (user.cashAmount ?? 0) + total;
+          await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
+          set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+        }
+      }
     },
     updateTransaction: async (i: string, p: Partial<Transaction>) => {
       const patch: Record<string, unknown> = {};
@@ -285,15 +306,35 @@ export function useStore() {
     },
     removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
-      const restoreToBank = (transaction: Transaction) => {
-        if (transaction.type !== "expense") return;
-        if (transaction.paymentMethod !== "debit" && transaction.paymentMethod !== "pix") return;
-        if (!transaction.bankId) return;
-        const bank = memory.banks.find(b => b.id === transaction.bankId);
-        if (!bank) return;
-        const newBalance = bank.accountBalance + transaction.amount;
-        supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
-        set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+      const reverseSideEffects = (transaction: Transaction) => {
+        // expense via débito/pix → devolve ao banco
+        if (transaction.type === "expense" && (transaction.paymentMethod === "debit" || transaction.paymentMethod === "pix") && transaction.bankId) {
+          const bank = memory.banks.find(b => b.id === transaction.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance + transaction.amount;
+            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        // income em banco → retira do saldo
+        if (transaction.type === "income" && transaction.bankId) {
+          const bank = memory.banks.find(b => b.id === transaction.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance - transaction.amount;
+            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        // income em dinheiro físico → retira da caixa
+        if (transaction.type === "income" && transaction.paymentMethod === "cash" && !transaction.bankId) {
+          const uid = memory.currentUserId; if (!uid) return;
+          const user = memory.users.find(u => u.id === uid);
+          if (user) {
+            const newCash = Math.max(0, (user.cashAmount ?? 0) - transaction.amount);
+            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+          }
+        }
       };
       if (opts?.wholeGroup && tx?.installmentGroupId) {
         const gid = tx.installmentGroupId;
@@ -301,12 +342,12 @@ export function useStore() {
         const { error } = await supabase.from("transactions").delete().eq("installment_group_id", gid);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.installmentGroupId !== gid) });
-        groupTxs.forEach(restoreToBank);
+        groupTxs.forEach(reverseSideEffects);
       } else {
         const { error } = await supabase.from("transactions").delete().eq("id", i);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.id !== i) });
-        if (tx) restoreToBank(tx);
+        if (tx) reverseSideEffects(tx);
       }
     },
 
