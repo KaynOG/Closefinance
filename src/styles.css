@@ -173,6 +173,48 @@
     radial-gradient(500px 320px at 0% 90%, rgba(34, 195, 204, 0.12), transparent 70%);
 }
 
+:root[data-accent="crimson"] {
+  --primary: #820432;
+  --primary-foreground: #ffffff;
+  --ring: #820432;
+  --sidebar-primary: #820432;
+  --sidebar-ring: #820432;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #820432 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #820432 0%, #ff8fa3 100%);
+  --gradient-bg:
+    radial-gradient(1200px 600px at 10% -10%, rgba(130, 4, 50, 0.32), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(0, 111, 119, 0.18), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(64, 64, 64, 0.22), transparent 60%);
+}
+
+:root[data-accent="teal"] {
+  --primary: #006f77;
+  --primary-foreground: #ffffff;
+  --ring: #006f77;
+  --sidebar-primary: #006f77;
+  --sidebar-ring: #006f77;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #006f77 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #006f77 0%, #22c3cc 100%);
+  --gradient-bg:
+    radial-gradient(1200px 600px at 10% -10%, rgba(0, 111, 119, 0.32), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(34, 195, 204, 0.2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(130, 4, 50, 0.2), transparent 60%);
+}
+
+:root[data-accent="graphite"] {
+  --primary: #404040;
+  --primary-foreground: #ffffff;
+  --ring: #404040;
+  --sidebar-primary: #404040;
+  --sidebar-ring: #404040;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #404040 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #404040 0%, #8a8a8a 100%);
+  --gradient-bg:
+    radial-gradient(1200px 600px at 10% -10%, rgba(64, 64, 64, 0.4), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(130, 4, 50, 0.18), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(0, 111, 119, 0.18), transparent 60%);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
