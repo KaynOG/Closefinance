@@ -229,8 +229,16 @@ export function useStore() {
       const installmentsTotal = t.installmentTotal ?? 1;
       const groupId = installmentsTotal > 1 ? id() : undefined;
       const baseDate = new Date(t.date + "T00:00:00");
+      const card = t.cardId ? memory.cards.find(c => c.id === t.cardId) : undefined;
       const rows = Array.from({ length: installmentsTotal }, (_, i) => {
-        const d = installmentsTotal > 1 ? addMonths(baseDate, i) : baseDate;
+        let d: Date;
+        if (installmentsTotal > 1 && i > 0 && card) {
+          // Parcelas após a primeira caem no dia de vencimento da fatura do cartão
+          const m = addMonths(baseDate, i);
+          d = new Date(m.getFullYear(), m.getMonth(), Math.min(28, card.dueDay));
+        } else {
+          d = installmentsTotal > 1 ? addMonths(baseDate, i) : baseDate;
+        }
         return {
           user_id: uid, type: t.type, amount: t.amount, description: t.description,
           date: d.toISOString().slice(0, 10),

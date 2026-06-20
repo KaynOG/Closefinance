@@ -8,6 +8,7 @@ import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon,
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -243,11 +244,43 @@ function SecurityPanel() {
               <Palette className="size-4 text-primary" />
               <h3 className="font-semibold text-sm">Aparência</h3>
             </div>
-            <ThemeToggle />
-            <p className="mt-2 text-[11px] font-mono text-muted-foreground">Alterne entre modo claro e modo escuro.</p>
+            <div className="flex items-center gap-3 mb-3">
+              <ThemeToggle />
+              <span className="text-[11px] font-mono text-muted-foreground">Modo claro / escuro</span>
+            </div>
+            <AccentPicker />
           </div>
         </div>
       </GlassCard>
+    </div>
+  );
+}
+
+function AccentPicker() {
+  const [a, setA] = useState<Accent>("violet");
+  useEffect(() => { setA(getAccent()); return onAccentChange(setA); }, []);
+  return (
+    <div>
+      <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Tema de cor</p>
+      <div className="grid grid-cols-4 gap-2">
+        {ACCENTS.map(opt => {
+          const active = a === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              data-sound="soft"
+              onClick={() => setAccent(opt.id)}
+              title={opt.name}
+              className={`group relative rounded-xl border p-2 transition active:scale-95 ${active ? "border-primary bg-primary/10" : "border-border hover:bg-white/5"}`}
+            >
+              <span className="block h-8 w-full rounded-lg" style={{ background: opt.color }} />
+              <span className="mt-1.5 block text-[10px] font-mono text-center">{opt.name}</span>
+              {active && <span className="absolute top-1 right-1 text-[9px] font-mono text-primary">●</span>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
