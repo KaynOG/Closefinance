@@ -34,6 +34,14 @@ function MissoesPage() {
 
   return (
     <AppShell>
+      {/* Wallpaper esmaecido baseado no tema */}
+      <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none opacity-70" style={{
+        backgroundImage:
+          "radial-gradient(60% 50% at 15% 10%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%), " +
+          "radial-gradient(55% 45% at 90% 90%, color-mix(in oklab, var(--secondary) 18%, transparent), transparent 70%), " +
+          "radial-gradient(40% 35% at 50% 50%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%)",
+      }} />
+
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Gamificação</p>
         <h1 className="text-3xl lg:text-4xl font-bold flex items-center gap-3">Missões <Trophy className="size-8 text-secondary" /></h1>
@@ -48,32 +56,26 @@ function MissoesPage() {
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <GlassCard className="lg:col-span-2">
-          <SectionTitle title="Missões de hoje" subtitle="cada missão pontua apenas 1× por dia" />
+          <SectionTitle title="Missões de hoje" subtitle="conclua realizando as ações no app — cada missão pontua 1× por dia" />
           <ul className="space-y-2">
             {DAILY_MISSIONS.map((m) => {
-              const done = missions.completed.includes(m.id);
               const awarded = missions.history.some(h => h.missionId === m.id && h.points > 0 && h.date.slice(0,10) === missions.date);
               return (
                 <li key={m.id}>
-                  <button data-no-sound onClick={() => {
-                    const wasDone = missions.completed.includes(m.id);
-                    api.toggleMission(m.id);
-                    if (!wasDone) playSequence(["complete", "chime"], 90);
-                  }}
-                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}>
-                    {done ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
+                  <div className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition ${awarded ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border"}`}>
+                    {awarded ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                        <p className={`font-semibold text-sm ${awarded ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
                         {awarded ? (
-                          <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-[#2BD9A1]/20 text-[#7DF2C5] shrink-0 flex items-center gap-1"><Lock className="size-3" /> pontuada</span>
+                          <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-[#2BD9A1]/20 text-[#7DF2C5] shrink-0 flex items-center gap-1"><Lock className="size-3" /> +{m.points} pontuada</span>
                         ) : (
                           <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">+{m.points} pts</span>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
                     </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}
@@ -81,11 +83,15 @@ function MissoesPage() {
         </GlassCard>
 
         <GlassCard>
-          <div className="flex items-center gap-2 mb-3">
-            <RankIcon className="size-5" style={{ color: rank.current.color }} />
-            <h3 className="font-semibold">Sua patente</h3>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="size-14 rounded-2xl grid place-items-center" style={{ background: `color-mix(in oklab, ${rank.current.color} 18%, transparent)`, border: `1px solid ${rank.current.color}66` }}>
+              <RankIcon className="size-9" style={{ color: rank.current.color }} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Sua patente</p>
+              <p className="font-display font-bold text-2xl leading-tight truncate" style={{ color: rank.current.color }}>{rank.displayName}</p>
+            </div>
           </div>
-          <p className="font-display font-bold text-2xl" style={{ color: rank.current.color }}>{rank.displayName}</p>
           <p className="font-mono text-xs text-muted-foreground mt-1">{missions.totalPoints} pts acumulados</p>
           {rank.next && (
             <>
