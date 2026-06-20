@@ -29,9 +29,9 @@ export function toggleTheme(): Theme {
   return next;
 }
 
-export function onThemeChange(cb: (t: Theme) => void) {
+export function onThemeChange(cb: (t: Theme) => void): () => void {
   listeners.add(cb);
-  return () => listeners.delete(cb);
+  return () => { listeners.delete(cb); };
 }
 
 export function initTheme() {

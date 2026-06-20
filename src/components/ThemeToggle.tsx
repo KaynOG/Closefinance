@@ -4,7 +4,7 @@ import { getTheme, toggleTheme, onThemeChange, type Theme } from "@/lib/theme";
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [t, setT] = useState<Theme>("dark");
-  useEffect(() => { setT(getTheme()); const off = onThemeChange(setT); return () => { off; }; }, []);
+  useEffect(() => { setT(getTheme()); return onThemeChange(setT); }, []);
   const isDark = t === "dark";
   return (
     <button
