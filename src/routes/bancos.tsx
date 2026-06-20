@@ -131,7 +131,12 @@ function BanksPage() {
                     </>
                   )}
                   {b.note && <p className="mt-3 text-xs font-mono text-muted-foreground italic">"{b.note}"</p>}
-                  <div className="flex items-center justify-end gap-1 mt-4">
+
+                  <QuickSaveInput bank={b} onAdd={async (amt) => {
+                    await api.updateBank(b.id, { savedAmount: b.savedAmount + amt });
+                  }} />
+
+                  <div className="flex items-center justify-end gap-1 mt-3">
                     <button onClick={() => setEditing(b)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground"><Pencil className="size-4" /></button>
                     <button onClick={() => api.removeBank(b.id)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-[#FF4D6D]"><Trash2 className="size-4" /></button>
                   </div>
