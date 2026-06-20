@@ -169,7 +169,7 @@ function CalendarPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="h-fit lg:sticky lg:top-4">
+        <GlassCard hideKey="cal-details" hideLabel="Detalhes do dia" className="h-fit lg:sticky lg:top-4">
           <SectionTitle title={selected ? "Detalhes" : "Selecione um dia"} subtitle={selected ?? "para ver as transações"} />
           {selectedItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem lançamentos neste dia.</p>
