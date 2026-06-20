@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore } from "@/lib/store";
+import { useStore, MISSIONS_CATALOG } from "@/lib/store";
 import { RANKS, getRank } from "@/lib/ranks";
-import { playSequence } from "@/lib/sound";
 import { useMemo } from "react";
 import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock } from "lucide-react";
 
@@ -12,12 +11,7 @@ export const Route = createFileRoute("/missoes")({
   component: MissoesPage,
 });
 
-const DAILY_MISSIONS = [
-  { id: "m1", title: "Registre um gasto de hoje", desc: "Mantenha a planilha viva.", points: 10 },
-  { id: "m2", title: "Classifique como essencial ou não", desc: "Crie consciência de prioridades.", points: 10 },
-  { id: "m3", title: "Veja seu saldo do mês", desc: "Olhar é o primeiro passo do controle.", points: 10 },
-  { id: "m4", title: "Anote uma meta da semana", desc: "Pequenas metas, grandes resultados.", points: 10 },
-];
+const DAILY_MISSIONS = MISSIONS_CATALOG;
 
 function MissoesPage() {
   const [{ missions }, api, user] = useStore();
