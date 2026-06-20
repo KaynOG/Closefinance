@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore } from "@/lib/store";
 import { RANKS, getRank } from "@/lib/ranks";
+import { playSequence } from "@/lib/sound";
 import { useMemo } from "react";
 import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock } from "lucide-react";
 
