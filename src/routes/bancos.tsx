@@ -63,6 +63,8 @@ function BanksPage() {
         </GlassCard>
       )}
 
+      <CashBox cash={cash} onAdd={(v) => api.addCash(v)} onSet={(v) => api.setCash(v)} />
+
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
         <GlassCard>
           <SectionTitle title="Novo banco" />
