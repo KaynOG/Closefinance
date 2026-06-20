@@ -100,6 +100,7 @@ function CardsPage() {
           <form onSubmit={submit} className="space-y-3">
             <Field label="Nome"><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank Roxinho" /></Field>
             <Field label="Limite total (R$)"><input className={inputCls} value={form.limit} onChange={e => setForm({ ...form, limit: e.target.value })} inputMode="decimal" placeholder="0,00" /></Field>
+            <Field label="Limite já ocupado (R$)"><input className={inputCls} value={form.usedManual} onChange={e => setForm({ ...form, usedManual: e.target.value })} inputMode="decimal" placeholder="0,00 (dívida atual no cartão)" /></Field>
             <div className="grid grid-cols-2 gap-2">
               <Field label="Fechamento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.closingDay} onChange={e => setForm({ ...form, closingDay: e.target.value })} /></Field>
               <Field label="Vencimento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.dueDay} onChange={e => setForm({ ...form, dueDay: e.target.value })} /></Field>
