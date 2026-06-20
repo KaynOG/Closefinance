@@ -390,9 +390,8 @@ function DashboardPage() {
               const done = missions.completed.includes(m.id);
               return (
                 <li key={m.id}>
-                  <button
-                    onClick={() => api.toggleMission(m.id)}
-                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}
+                  <div
+                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border"}`}
                   >
                     {done ? (
                       <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" />
@@ -405,12 +404,12 @@ function DashboardPage() {
                           {m.title}
                         </p>
                         <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">
-                          +10 pts
+                          +{m.points} pts
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
                     </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}
