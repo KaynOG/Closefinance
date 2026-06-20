@@ -22,6 +22,7 @@ function statusFromPct(pct: number): { label: string; tone: Tone; color: string;
 
 function CardsPage() {
   const [{ cards, transactions }, api] = useStore();
+  useEffect(() => { api.awardMission("visit_cards"); }, []);
   const today = new Date();
 
   const [form, setForm] = useState({
