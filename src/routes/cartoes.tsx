@@ -164,6 +164,23 @@ function CardsPage() {
                     <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(c.used)} <span className="text-muted-foreground">({Math.round(c.pct)}%)</span></p></div>
                     <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(c.available)}</p></div>
                   </div>
+                  <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 text-xs font-mono">
+                    <label className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">Limite já ocupado</span>
+                      <input
+                        type="number" min={0} step="0.01"
+                        defaultValue={c.usedManualVal}
+                        onBlur={(e) => {
+                          const v = parseFloat(e.target.value);
+                          if (!isNaN(v) && v !== c.usedManualVal) api.updateCard(c.id, { usedManual: Math.max(0, v) });
+                        }}
+                        className="w-28 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"
+                      />
+                    </label>
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                      Dívida já existente no cartão, somada ao uso do mês. Lançamentos: {formatBRL(c.usedTx)}.
+                    </p>
+                  </div>
                   <div className="mt-3 rounded-2xl bg-white/5 border border-border p-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     <div>
                       <p className="text-muted-foreground">Fatura do mês</p>
