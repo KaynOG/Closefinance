@@ -78,6 +78,19 @@ export interface MissionState {
   history: PointEntry[];
 }
 
+export interface MissionDef { id: string; title: string; desc: string; points: number; auto: boolean; }
+export const MISSIONS_CATALOG: MissionDef[] = [
+  { id: "daily_login", title: "Faça login hoje", desc: "Entre no app — sua jornada financeira começa aqui.", points: 10, auto: true },
+  { id: "view_dashboard", title: "Confira seu Dashboard", desc: "Abra o painel e olhe seus números do mês.", points: 5, auto: true },
+  { id: "visit_educacao", title: "Estude na aba Educação", desc: "Aprenda algo novo sobre dinheiro hoje.", points: 10, auto: true },
+  { id: "visit_cards", title: "Revise seus cartões", desc: "Abra a aba de Cartões e cheque seus limites.", points: 5, auto: true },
+  { id: "visit_banks", title: "Revise seus bancos", desc: "Abra a aba de Bancos e veja seus saldos.", points: 5, auto: true },
+  { id: "add_expense", title: "Registre um gasto", desc: "Adicione uma despesa real na planilha.", points: 10, auto: true },
+  { id: "add_income", title: "Registre uma receita", desc: "Adicione uma entrada de dinheiro.", points: 10, auto: true },
+  { id: "classify_essential", title: "Classifique um gasto", desc: "Marque um gasto como essencial ou não essencial.", points: 10, auto: true },
+  { id: "save_money", title: "Guarde dinheiro", desc: "Acrescente algum valor poupado no banco ou na sua caixa.", points: 15, auto: true },
+];
+
 export interface AppState {
   transactions: Transaction[];
   categories: Category[];
