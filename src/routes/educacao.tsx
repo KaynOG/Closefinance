@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard } from "@/components/ui-kit";
+import { useStore } from "@/lib/store";
 import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck, TrendingDown, Wallet, HeartPulse, Receipt, Calendar, Sparkles, BadgePercent, Rocket, Briefcase, GraduationCap, LineChart, Coins } from "lucide-react";
 
 export const Route = createFileRoute("/educacao")({
