@@ -71,6 +71,7 @@ const DAILY_TIPS = [
 
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
+  useEffect(() => { if (user) api.awardMission("view_dashboard"); }, [user?.id]);
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
