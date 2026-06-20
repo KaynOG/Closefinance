@@ -500,6 +500,7 @@ export function useStore() {
       const { error } = await supabase.from("profiles").update({ cash_amount: v }).eq("id", uid);
       if (error) return console.error(error);
       set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: v } : u) });
+      if (delta > 0) { try { await api.awardMission("save_money"); } catch {} }
     },
     changePassword: async (_currentPassword: string, newPassword: string) => {
       if (newPassword.length < 6) return { ok: false as const, error: "A nova senha deve ter pelo menos 6 caracteres." };
