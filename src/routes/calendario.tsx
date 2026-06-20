@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL } from "@/lib/store";
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Bell, AlertTriangle } from "lucide-react";
+import { notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/calendario")({
   head: () => ({ meta: [{ title: "Calendário — CloseFinance" }, { name: "description", content: "Calendário de entradas, vencimentos e gastos." }] }),
@@ -52,6 +53,36 @@ function CalendarPage() {
 
   const selectedItems = selected ? (byDay.get(selected)?.items ?? []) : [];
 
+  const weekAhead = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const end = new Date(today); end.setDate(end.getDate() + 7);
+    const inRange = transactions.filter(t => {
+      const d = new Date(t.date + "T00:00:00");
+      return d >= today && d <= end;
+    });
+    const incomes = inRange.filter(t => t.type === "income");
+    const expenses = inRange.filter(t => t.type === "expense");
+    return {
+      incomes, expenses,
+      totalIn: incomes.reduce((s, t) => s + t.amount, 0),
+      totalOut: expenses.reduce((s, t) => s + t.amount, 0),
+    };
+  }, [transactions]);
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const key = "closefinance:calendarNotified:" + today;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    if (weekAhead.expenses.length > 0) {
+      notify(`📅 ${weekAhead.expenses.length} conta(s) a vencer nos próximos 7 dias (${formatBRL(weekAhead.totalOut)})`, "warning");
+    }
+    if (weekAhead.incomes.length > 0) {
+      setTimeout(() => notify(`💰 ${weekAhead.incomes.length} ganho(s) previstos nos próximos 7 dias (${formatBRL(weekAhead.totalIn)})`, "info"), 600);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AppShell>
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -78,8 +109,37 @@ function CalendarPage() {
         </div>
       </header>
 
+      {(weekAhead.expenses.length > 0 || weekAhead.incomes.length > 0) && (
+        <GlassCard hideKey="cal-week-alert" hideLabel="Alertas da semana" className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Bell className="size-4 text-primary" />
+            <h2 className="text-base font-bold">Próximos 7 dias</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {weekAhead.expenses.length > 0 && (
+              <div className="rounded-xl border border-[#FF4D6D]/30 bg-[#FF4D6D]/5 p-3">
+                <div className="flex items-center gap-2 text-[#FF8FA3] text-xs font-mono uppercase tracking-wider">
+                  <AlertTriangle className="size-3.5" /> Contas a vencer
+                </div>
+                <p className="mt-1 text-lg font-bold">{formatBRL(weekAhead.totalOut)}</p>
+                <p className="text-xs text-muted-foreground">{weekAhead.expenses.length} lançamento(s)</p>
+              </div>
+            )}
+            {weekAhead.incomes.length > 0 && (
+              <div className="rounded-xl border border-[#2BD9A1]/30 bg-[#2BD9A1]/5 p-3">
+                <div className="flex items-center gap-2 text-[#7DF2C5] text-xs font-mono uppercase tracking-wider">
+                  <Bell className="size-3.5" /> Ganhos previstos
+                </div>
+                <p className="mt-1 text-lg font-bold">{formatBRL(weekAhead.totalIn)}</p>
+                <p className="text-xs text-muted-foreground">{weekAhead.incomes.length} lançamento(s)</p>
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-        <GlassCard>
+        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês">
           <div className="grid grid-cols-7 gap-2 mb-2">
             {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
               <div key={d} className="text-center text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{d}</div>
@@ -109,7 +169,7 @@ function CalendarPage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="h-fit lg:sticky lg:top-4">
+        <GlassCard hideKey="cal-details" hideLabel="Detalhes do dia" className="h-fit lg:sticky lg:top-4">
           <SectionTitle title={selected ? "Detalhes" : "Selecione um dia"} subtitle={selected ?? "para ver as transações"} />
           {selectedItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem lançamentos neste dia.</p>

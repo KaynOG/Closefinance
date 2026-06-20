@@ -4,11 +4,12 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail } from "lucide-react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff } from "lucide-react";
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
+import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -73,11 +74,11 @@ function PerfilPage() {
     <AppShell>
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Sua conta</p>
-        <h1 className="text-3xl lg:text-4xl font-bold">Perfil</h1>
+        <h1 className="text-3xl lg:text-4xl font-bold">Perfil & Ajustes</h1>
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 mb-6">
-        <GlassCard>
+        <GlassCard hideKey="perfil-1">
           <SectionTitle title="Foto de perfil" />
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
@@ -112,7 +113,7 @@ function PerfilPage() {
           </button>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard hideKey="perfil-2">
           <SectionTitle title="Dados pessoais" subtitle="atualize quando precisar" />
           <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Field label="Nome completo" icon={<UserIcon className="size-4" />}>
@@ -177,7 +178,7 @@ function SupportPanel() {
   const wpp = "5531993579103";
   const email = "filipewesley007@gmail.com";
   return (
-    <GlassCard>
+    <GlassCard hideKey="perfil-3">
       <p className="text-sm leading-relaxed text-muted-foreground mb-4">
         Olá! 👋 Se você tem dúvidas, sugestões ou precisa de ajuda para usar o <span className="text-foreground font-semibold">CloseFinance</span>,
         nossa equipe terá o maior prazer em te atender. Escolha o canal abaixo.
@@ -212,7 +213,8 @@ function SecurityPanel() {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [resetMsg, setResetMsg] = useState<{ link: string; email: string } | null>(null);
   const [sound, setSound] = useState(true);
-  useEffect(() => { setSound(isSoundEnabled()); }, []);
+  const [popups, setPopups] = useState(true);
+  useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -232,7 +234,7 @@ function SecurityPanel() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <GlassCard>
+      <GlassCard hideKey="perfil-4">
         <SectionTitle title="Alterar senha" subtitle="mantenha sua conta segura" />
         <form onSubmit={submit} className="space-y-3">
           <Field label="Senha atual" icon={<Lock className="size-4" />}>
@@ -253,7 +255,7 @@ function SecurityPanel() {
         </form>
       </GlassCard>
 
-      <GlassCard>
+      <GlassCard hideKey="perfil-5">
         <SectionTitle title="Recuperação por e-mail" subtitle="enviamos um link de redefinição" />
         <p className="text-sm text-muted-foreground">
           Se você esquecer sua senha, podemos enviar um link de redefinição para <span className="text-foreground font-mono">{user?.email}</span>.
@@ -278,6 +280,14 @@ function SecurityPanel() {
               className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${sound ? "border-secondary/50 bg-secondary/10 text-secondary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
               {sound ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
               {sound ? "Sons ativados" : "Sons desativados"}
+            </button>
+          </div>
+          <div>
+            <SectionTitle title="Notificações pop-up" subtitle="confirmações ao adicionar ganhos, gastos e alertas" />
+            <button onClick={() => { const v = !popups; setPopups(v); setPopupsEnabled(v); if (v) notify("Notificações ativadas"); }}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${popups ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+              {popups ? <Bell className="size-4" /> : <BellOff className="size-4" />}
+              {popups ? "Pop-ups ativados" : "Pop-ups desativados"}
             </button>
           </div>
           <div>

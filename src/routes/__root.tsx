@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ConsentModal } from "@/components/ConsentModal";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -111,6 +112,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <ConsentModal />
+      <Toaster richColors position="top-right" closeButton />
     </QueryClientProvider>
   );
 }

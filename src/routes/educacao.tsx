@@ -80,7 +80,7 @@ function EduPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {LESSONS.map((l) => (
-          <GlassCard key={l.title} className="relative overflow-hidden">
+          <GlassCard hideKey="educacao-2" key={l.title} className="relative overflow-hidden">
             <div className="absolute -top-10 -right-10 size-32 rounded-full opacity-30 blur-2xl" style={{ background: l.color }} />
             <div className="relative">
               <div className="flex items-center justify-between mb-3">
