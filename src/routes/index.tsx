@@ -379,7 +379,7 @@ function DashboardPage() {
           </ul>
         </GlassCard>
 
-        <GlassCard className="lg:col-span-2">
+        {!hidden.flow && (<GlassCard className="lg:col-span-2">
           <SectionTitle
             title={`Fluxo dos últimos ${periodMonths} meses`}
             subtitle="ganhos em ciano · gastos em laranja"
@@ -451,10 +451,10 @@ function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </GlassCard>
+        </GlassCard>)}
       </section>
 
-      <section className="mb-8">
+      {!hidden.cards && (<section className="mb-8">
         <SectionTitle title="Limite dos cartões" subtitle="usado e disponível por cartão neste mês" />
         {cards.length === 0 ? (
           <GlassCard>
@@ -507,9 +507,9 @@ function DashboardPage() {
             ))}
           </div>
         )}
-      </section>
+      </section>)}
 
-      <section className="mb-8">
+      {!hidden.catHistory && (<section className="mb-8">
         <GlassCard>
           <SectionTitle
             title="Gastos por categoria · histórico"
@@ -669,10 +669,10 @@ function DashboardPage() {
             </>
           )}
         </GlassCard>
-      </section>
+      </section>)}
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <GlassCard>
+        {!hidden.catPie && (<GlassCard>
           <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
           <div className="h-64">
             {byCat.length === 0 ? (
@@ -714,9 +714,9 @@ function DashboardPage() {
               </ResponsiveContainer>
             )}
           </div>
-        </GlassCard>
+        </GlassCard>)}
 
-        <GlassCard>
+        {!hidden.essentials && (<GlassCard>
           <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo" />
           <div className="space-y-5 mt-2">
             <Bar
@@ -741,11 +741,37 @@ function DashboardPage() {
               </p>
             </div>
           </div>
-        </GlassCard>
+        </GlassCard>)}
       </section>
     </AppShell>
   );
 }
+
+function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boolean>; onToggle: (k: string) => void }) {
+  const items = [
+    { key: "flow", label: "Fluxo de caixa" },
+    { key: "cards", label: "Limite cartões" },
+    { key: "catHistory", label: "Histórico categorias" },
+    { key: "catPie", label: "Pizza categorias" },
+    { key: "essentials", label: "Essenciais x não" },
+  ];
+  return (
+    <GlassCard className="mb-6">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mr-1">Mostrar gráficos:</span>
+        {items.map((it) => {
+          const off = hidden[it.key];
+          const Ico = off ? EyeOff : Eye;
+          return (
+            <button key={it.key} data-no-sound onClick={() => onToggle(it.key)}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono transition active:scale-95 ${off ? "border-border text-muted-foreground opacity-70" : "border-secondary/40 bg-secondary/10 text-secondary"}`}>
+              <Ico className="size-3" /> {it.label}
+            </button>
+          );
+        })}
+      </div>
+    </GlassCard>
+  );
 
 function Bar({
   label,
