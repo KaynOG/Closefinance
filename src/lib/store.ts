@@ -298,8 +298,14 @@ export function useStore() {
           const newCash = (user.cashAmount ?? 0) + total;
           await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+      // Auto-award de missões pela ação realizada
+      try {
+        if (t.type === "income") await api.awardMission("add_income");
+        if (t.type === "expense") {
+          await api.awardMission("add_expense");
+          if (t.essential) await api.awardMission("classify_essential");
         }
-      }
+      } catch {}
     },
     updateTransaction: async (i: string, p: Partial<Transaction>) => {
       const patch: Record<string, unknown> = {};
