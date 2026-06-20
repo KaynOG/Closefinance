@@ -29,7 +29,10 @@ import {
   CheckCircle2,
   Circle,
   BarChart3,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,11 +67,22 @@ const DAILY_TIPS = [
 ];
 
 function DashboardPage() {
-  const [{ transactions, categories, cards, missions }, api, user] = useStore();
+  const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
   const today = new Date();
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
+  const [hidden, setHidden] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("closefinance:hiddenCharts") ?? "{}"); } catch { return {}; }
+  });
+  function toggleHidden(key: string) {
+    setHidden(h => {
+      const next = { ...h, [key]: !h[key] };
+      if (typeof window !== "undefined") localStorage.setItem("closefinance:hiddenCharts", JSON.stringify(next));
+      return next;
+    });
+  }
   const greeting = useMemo(() => pickGreeting(user?.name), [user?.name]);
 
   const month = useMemo(() => {
@@ -199,15 +213,9 @@ function DashboardPage() {
   );
   const catGrandTotal = catTotals.reduce((s, c) => s + c.total, 0);
 
-  // Annual goal
+  // Annual goal — vinculada ao "guardado" nos bancos
   const goal = user?.yearlyGoal ?? 0;
-  const yearSaved = useMemo(
-    () =>
-      transactions
-        .filter((t) => new Date(t.date).getFullYear() === today.getFullYear())
-        .reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0),
-    [transactions],
-  );
+  const yearSaved = useMemo(() => banks.reduce((s, b) => s + (b.savedAmount || 0), 0), [banks]);
   const goalPct = goal > 0 ? Math.max(0, Math.min(100, (yearSaved / goal) * 100)) : 0;
 
   // tip of the day
@@ -215,15 +223,20 @@ function DashboardPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-          {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-        </p>
-        <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-          <span className="text-gradient">{greeting}</span>
-        </h1>
-        <p className="mt-2 font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado.</p>
+      <header className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+            {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+          </p>
+          <h1 className="text-3xl lg:text-4xl font-bold mt-1">
+            <span className="text-gradient">{greeting}</span>
+          </h1>
+          <p className="mt-2 font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado.</p>
+        </div>
+        <ThemeToggle />
       </header>
+
+      <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
