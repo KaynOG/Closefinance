@@ -18,6 +18,10 @@ const CYAN_DARK = "#006F77";
 function GanhosPage() {
   const [{ transactions, categories, cards, banks }, api] = useStore();
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [fMonth, setFMonth] = useState("all");
+  const [fCategory, setFCategory] = useState("all");
+  const [fMin, setFMin] = useState("");
+  const [fMax, setFMax] = useState("");
   const today = new Date();
   const incomeCats = categories.filter(c => c.kind !== "expense");
 
