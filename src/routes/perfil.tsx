@@ -8,6 +8,7 @@ import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon,
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
