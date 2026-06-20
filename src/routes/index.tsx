@@ -53,12 +53,8 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = [
-  { id: "m1", title: "Registre um gasto de hoje", desc: "Mantenha a planilha viva." },
-  { id: "m2", title: "Classifique como essencial ou não", desc: "Crie consciência de prioridades." },
-  { id: "m3", title: "Veja seu saldo do mês", desc: "Olhar é o primeiro passo do controle." },
-  { id: "m4", title: "Anote uma meta da semana", desc: "Pequenas metas, grandes resultados." },
-];
+import { MISSIONS_CATALOG } from "@/lib/store";
+const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 4);
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
