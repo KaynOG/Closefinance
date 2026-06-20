@@ -173,46 +173,121 @@
     radial-gradient(500px 320px at 0% 90%, rgba(34, 195, 204, 0.12), transparent 70%);
 }
 
+/* ===== Accent: Crimson (vinho) ===== */
 :root[data-accent="crimson"] {
   --primary: #820432;
   --primary-foreground: #ffffff;
+  --secondary: #ffb300;
+  --secondary-foreground: #2a0009;
+  --accent: #c1184a;
+  --accent-foreground: #ffffff;
   --ring: #820432;
   --sidebar-primary: #820432;
   --sidebar-ring: #820432;
+  --chart-1: #820432;
+  --chart-2: #ff8fa3;
+  --chart-3: #ffb300;
+  --chart-4: #c1184a;
+  --chart-5: #ffd0c2;
   --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #820432 70%, transparent);
   --gradient-primary: linear-gradient(135deg, #820432 0%, #ff8fa3 100%);
+  --gradient-warm: linear-gradient(135deg, #ffb300 0%, #820432 100%);
+  --gradient-cool: linear-gradient(135deg, #820432 0%, #c1184a 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(130, 4, 50, 0.32), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(0, 111, 119, 0.18), transparent 60%),
+    radial-gradient(1200px 600px at 10% -10%, rgba(130, 4, 50, 0.4), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(193, 24, 74, 0.22), transparent 60%),
     radial-gradient(800px 600px at 50% 120%, rgba(64, 64, 64, 0.22), transparent 60%);
+  --gradient-screen:
+    radial-gradient(600px 360px at 80% 0%, rgba(255, 143, 163, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(130, 4, 50, 0.10), transparent 70%);
+}
+:root[data-accent="crimson"]:not(.light) {
+  --background: #190311;
+  --popover: #2a071a;
+  --sidebar: rgba(25, 3, 17, 0.72);
+}
+:root[data-accent="crimson"].light {
+  --background: #fff3f5;
+  --popover: #ffffff;
+  --sidebar: rgba(255, 243, 245, 0.72);
 }
 
+/* ===== Accent: Teal ===== */
 :root[data-accent="teal"] {
   --primary: #006f77;
   --primary-foreground: #ffffff;
+  --secondary: #ffcc00;
+  --secondary-foreground: #002326;
+  --accent: #22c3cc;
+  --accent-foreground: #002326;
   --ring: #006f77;
   --sidebar-primary: #006f77;
   --sidebar-ring: #006f77;
+  --chart-1: #006f77;
+  --chart-2: #22c3cc;
+  --chart-3: #ffcc00;
+  --chart-4: #2bd9a1;
+  --chart-5: #b388ff;
   --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #006f77 70%, transparent);
   --gradient-primary: linear-gradient(135deg, #006f77 0%, #22c3cc 100%);
+  --gradient-warm: linear-gradient(135deg, #ffcc00 0%, #006f77 100%);
+  --gradient-cool: linear-gradient(135deg, #006f77 0%, #2bd9a1 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(0, 111, 119, 0.32), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(34, 195, 204, 0.2), transparent 60%),
-    radial-gradient(800px 600px at 50% 120%, rgba(130, 4, 50, 0.2), transparent 60%);
+    radial-gradient(1200px 600px at 10% -10%, rgba(0, 111, 119, 0.4), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(34, 195, 204, 0.22), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(43, 217, 161, 0.18), transparent 60%);
+  --gradient-screen:
+    radial-gradient(600px 360px at 80% 0%, rgba(34, 195, 204, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(0, 111, 119, 0.10), transparent 70%);
+}
+:root[data-accent="teal"]:not(.light) {
+  --background: #031617;
+  --popover: #062628;
+  --sidebar: rgba(3, 22, 23, 0.72);
+}
+:root[data-accent="teal"].light {
+  --background: #effbfb;
+  --popover: #ffffff;
+  --sidebar: rgba(239, 251, 251, 0.72);
 }
 
+/* ===== Accent: Grafite ===== */
 :root[data-accent="graphite"] {
   --primary: #404040;
   --primary-foreground: #ffffff;
+  --secondary: #ffcc00;
+  --secondary-foreground: #1a1a1a;
+  --accent: #8a8a8a;
+  --accent-foreground: #ffffff;
   --ring: #404040;
   --sidebar-primary: #404040;
   --sidebar-ring: #404040;
+  --chart-1: #404040;
+  --chart-2: #8a8a8a;
+  --chart-3: #ffcc00;
+  --chart-4: #820432;
+  --chart-5: #006f77;
   --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #404040 70%, transparent);
   --gradient-primary: linear-gradient(135deg, #404040 0%, #8a8a8a 100%);
+  --gradient-warm: linear-gradient(135deg, #ffcc00 0%, #404040 100%);
+  --gradient-cool: linear-gradient(135deg, #404040 0%, #1a1a1a 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(64, 64, 64, 0.4), transparent 60%),
+    radial-gradient(1200px 600px at 10% -10%, rgba(64, 64, 64, 0.5), transparent 60%),
     radial-gradient(900px 500px at 110% 10%, rgba(130, 4, 50, 0.18), transparent 60%),
     radial-gradient(800px 600px at 50% 120%, rgba(0, 111, 119, 0.18), transparent 60%);
+  --gradient-screen:
+    radial-gradient(600px 360px at 80% 0%, rgba(138, 138, 138, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(64, 64, 64, 0.10), transparent 70%);
+}
+:root[data-accent="graphite"]:not(.light) {
+  --background: #0d0d0d;
+  --popover: #1a1a1a;
+  --sidebar: rgba(13, 13, 13, 0.72);
+}
+:root[data-accent="graphite"].light {
+  --background: #f5f5f5;
+  --popover: #ffffff;
+  --sidebar: rgba(245, 245, 245, 0.72);
 }
 
 @layer base {
