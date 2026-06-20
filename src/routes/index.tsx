@@ -72,6 +72,8 @@ const DAILY_TIPS = [
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
   const today = new Date();
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -88,8 +90,14 @@ function DashboardPage() {
   }
   const greeting = useMemo(() => pickGreeting(user?.name), [user?.name]);
 
+  const displayMonth = useMemo(
+    () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
+    [monthOffset],
+  );
+  const isFutureMonth = monthOffset > 0;
+
   const month = useMemo(() => {
-    const tx = transactions.filter((t) => isSameMonth(t.date, today));
+    const tx = transactions.filter((t) => isSameMonth(t.date, displayMonth));
     const income = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
     const expense = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
     const essential = tx
@@ -99,7 +107,7 @@ function DashboardPage() {
       .filter((t) => t.type === "expense" && t.essential === "non_essential")
       .reduce((s, t) => s + t.amount, 0);
     return { tx, income, expense, essential, nonEssential, balance: income - expense };
-  }, [transactions]);
+  }, [transactions, displayMonth]);
 
   // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(
