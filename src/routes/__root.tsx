@@ -112,6 +112,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <ConsentModal />
+      <Toaster richColors position="top-right" closeButton />
     </QueryClientProvider>
   );
 }
