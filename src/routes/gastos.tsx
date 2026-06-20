@@ -20,6 +20,10 @@ function GastosPage() {
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [fMonth, setFMonth] = useState("all");
+  const [fCategory, setFCategory] = useState("all");
+  const [fMin, setFMin] = useState("");
+  const [fMax, setFMax] = useState("");
 
   const [form, setForm] = useState({
     amount: "", description: "", date: today.toISOString().slice(0, 10),
