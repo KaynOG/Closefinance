@@ -282,11 +282,17 @@ function DashboardPage() {
 
   // Annual goal — vinculada ao "guardado" nos bancos
   const goal = user?.yearlyGoal ?? 0;
-  const yearSaved = useMemo(() => banks.reduce((s, b) => s + (b.savedAmount || 0), 0), [banks]);
+  const yearSaved = totalSaved;
   const goalPct = goal > 0 ? Math.max(0, Math.min(100, (yearSaved / goal) * 100)) : 0;
 
   // tip of the day
   const tip = DAILY_TIPS[new Date().getDate() % DAILY_TIPS.length];
+
+  const monthLabel = displayMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthSub = monthOffset === 0
+    ? "Mês atual"
+    : monthOffset < 0 ? `${Math.abs(monthOffset)} ${Math.abs(monthOffset) === 1 ? "mês atrás" : "meses atrás"}`
+    : `${monthOffset} ${monthOffset === 1 ? "mês à frente · previsão" : "meses à frente · previsão"}`;
 
   return (
     <AppShell>
@@ -305,8 +311,46 @@ function DashboardPage() {
 
       <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 
+      <GlassCard className="mb-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setMonthOffset(o => o - 1)} aria-label="Mês anterior"
+              className="rounded-xl p-2 border border-border hover:bg-white/5 active:scale-95 transition">
+              <ChevronLeft className="size-4" />
+            </button>
+            <div className="min-w-[180px] text-center">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{monthSub}</p>
+              <p className="font-display text-base font-bold capitalize">{monthLabel}</p>
+            </div>
+            <button onClick={() => setMonthOffset(o => o + 1)} aria-label="Próximo mês"
+              className="rounded-xl p-2 border border-border hover:bg-white/5 active:scale-95 transition">
+              <ChevronRight className="size-4" />
+            </button>
+            {monthOffset !== 0 && (
+              <button onClick={() => setMonthOffset(0)} data-no-sound
+                className="ml-1 rounded-full border border-border px-3 py-1 text-[11px] font-mono text-muted-foreground hover:bg-white/5">
+                hoje
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <Sparkles className="size-3 text-secondary" /> Previsão fluxo
+            </span>
+            <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+              {([0, 3, 6] as const).map((n) => (
+                <button key={n} onClick={() => setForecastN(n)}
+                  className={`px-3 py-1.5 transition ${forecastN === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                  {n === 0 ? "off" : `+${n}m`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
+        <Stat label={`Receitas · ${isFutureMonth ? "previsto" : "mês"}`} value={formatBRL(month.income)} accent="teal" sub={isFutureMonth ? "agendado / parcelas" : "Entradas confirmadas"} />
         <Stat
           label="Despesas do mês"
           value={formatBRL(month.expense)}
