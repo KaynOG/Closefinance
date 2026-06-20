@@ -4,9 +4,10 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX } from "lucide-react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette } from "lucide-react";
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -223,18 +224,28 @@ function SecurityPanel() {
             <p className="text-[#7DF2C5]">Instruções enviadas para <strong>{resetMsg.email}</strong>.</p>
             <p className="text-muted-foreground">Link (válido por 30 min):</p>
             <a href={resetMsg.link} className="block break-all text-secondary underline">{resetMsg.link}</a>
-            <p className="text-[10px] text-muted-foreground">Em produção, este link é entregue diretamente no e-mail. Ative o serviço de e-mail (Lovable Cloud) para envio automático.</p>
+            <p className="text-[10px] text-muted-foreground">Em produção, este link é entregue diretamente no seu e-mail. Configure o serviço de e-mail para envio automático.</p>
           </div>
         )}
 
-        <div className="mt-6 pt-5 border-t border-border">
-          <SectionTitle title="Sons da interface" subtitle="cliques e confirmações" />
-          <button onClick={() => { const v = !sound; setSound(v); setSoundEnabled(v); if (v) playTone("success"); }}
-            data-no-sound
-            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${sound ? "border-secondary/50 bg-secondary/10 text-secondary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
-            {sound ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
-            {sound ? "Sons ativados" : "Sons desativados"}
-          </button>
+        <div className="mt-6 pt-5 border-t border-border space-y-4">
+          <div>
+            <SectionTitle title="Sons da interface" subtitle="cliques e confirmações" />
+            <button onClick={() => { const v = !sound; setSound(v); setSoundEnabled(v); if (v) playTone("success"); }}
+              data-no-sound
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${sound ? "border-secondary/50 bg-secondary/10 text-secondary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+              {sound ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              {sound ? "Sons ativados" : "Sons desativados"}
+            </button>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Palette className="size-4 text-primary" />
+              <h3 className="font-semibold text-sm">Aparência</h3>
+            </div>
+            <ThemeToggle />
+            <p className="mt-2 text-[11px] font-mono text-muted-foreground">Alterne entre modo claro e modo escuro.</p>
+          </div>
         </div>
       </GlassCard>
     </div>

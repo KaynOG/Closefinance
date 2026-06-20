@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard } from "@/components/ui-kit";
-import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck, TrendingDown, Wallet, HeartPulse, Receipt, Calendar, Sparkles, BadgePercent } from "lucide-react";
+import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck, TrendingDown, Wallet, HeartPulse, Receipt, Calendar, Sparkles, BadgePercent, Rocket, Briefcase, GraduationCap, LineChart, Coins } from "lucide-react";
 
 export const Route = createFileRoute("/educacao")({
   head: () => ({ meta: [{ title: "Educação financeira — CloseFinance" }, { name: "description", content: "Conceitos e práticas para evoluir suas finanças." }] }),
@@ -48,6 +48,21 @@ const LESSONS = [
   { icon: PiggyBank, color: "#FFD700", tag: "Investir",
     title: "Juros compostos a seu favor",
     body: "R$ 300/mês a 10% ao ano viram ~R$ 60 mil em 10 anos. Quanto antes começar, mais o tempo trabalha por você. Comece com qualquer valor." },
+  { icon: Rocket, color: "#22C3CC", tag: "Aumentar renda",
+    title: "Crie uma segunda fonte de renda",
+    body: "Freelas, vendas online, aulas particulares, conteúdo. Não precisa ser grande — R$ 500 a mais por mês podem virar reserva, investimento ou quitar uma dívida cara." },
+  { icon: Briefcase, color: "#540BD3", tag: "Carreira",
+    title: "Invista na sua principal habilidade",
+    body: "Um curso, certificação ou idioma podem destravar promoções e aumentos. Investir em você costuma ter o melhor ROI do mercado — retorno em forma de salário." },
+  { icon: GraduationCap, color: "#2BD9A1", tag: "Aumentar renda",
+    title: "Negocie seu salário com dados",
+    body: "Liste resultados entregues, pesquise faixas salariais da sua função e marque uma conversa. Pedir aumento bem fundamentado é uma das formas mais rápidas de ganhar mais." },
+  { icon: LineChart, color: "#FF6B1A", tag: "Investir",
+    title: "Diversifique para proteger e crescer",
+    body: "Não coloque tudo em um lugar só: misture renda fixa (CDB, Tesouro), variável (ações, FIIs) e reserva líquida. Diversificação reduz risco sem cortar potencial." },
+  { icon: Coins, color: "#FFCC00", tag: "Aumentar renda",
+    title: "Venda o que não usa",
+    body: "Roupas, eletrônicos parados, livros, móveis. Marketplaces transformam objetos esquecidos em dinheiro hoje — sem precisar trabalhar mais horas pra isso." },
 ];
 
 function EduPage() {

@@ -28,13 +28,25 @@ export function isSoundEnabled(): boolean {
   return enabled;
 }
 
-type Voice = "click" | "soft" | "success" | "warn";
+export type Voice =
+  | "click" | "soft" | "success" | "warn" | "complete"
+  | "pop"   | "chime" | "tap"     | "open"  | "close"
+  | "coin"  | "swoosh";
 
-const VOICES: Record<Voice, { freq: number; freq2?: number; dur: number; type: OscillatorType; gain: number }> = {
-  click:   { freq: 520, freq2: 660, dur: 0.10, type: "sine",     gain: 0.06 },
-  soft:    { freq: 360, freq2: 440, dur: 0.14, type: "triangle", gain: 0.05 },
-  success: { freq: 523, freq2: 784, dur: 0.22, type: "sine",     gain: 0.07 },
-  warn:    { freq: 220, freq2: 180, dur: 0.18, type: "triangle", gain: 0.07 },
+type Cfg = { freq: number; freq2?: number; dur: number; type: OscillatorType; gain: number; lp?: number };
+const VOICES: Record<Voice, Cfg> = {
+  click:    { freq: 520, freq2: 660, dur: 0.10, type: "sine",     gain: 0.06, lp: 2400 },
+  soft:     { freq: 360, freq2: 440, dur: 0.14, type: "triangle", gain: 0.05, lp: 1800 },
+  success:  { freq: 523, freq2: 784, dur: 0.22, type: "sine",     gain: 0.07, lp: 2800 },
+  warn:     { freq: 220, freq2: 180, dur: 0.18, type: "triangle", gain: 0.07, lp: 1400 },
+  complete: { freq: 660, freq2: 990, dur: 0.32, type: "sine",     gain: 0.08, lp: 3200 },
+  pop:      { freq: 720, freq2: 540, dur: 0.08, type: "sine",     gain: 0.05, lp: 2400 },
+  chime:    { freq: 880, freq2: 1320,dur: 0.28, type: "sine",     gain: 0.06, lp: 3600 },
+  tap:      { freq: 420,            dur: 0.05, type: "sine",     gain: 0.04, lp: 2000 },
+  open:     { freq: 300, freq2: 520, dur: 0.16, type: "triangle", gain: 0.05, lp: 2200 },
+  close:    { freq: 520, freq2: 300, dur: 0.16, type: "triangle", gain: 0.05, lp: 2200 },
+  coin:     { freq: 988, freq2: 1318,dur: 0.20, type: "square",   gain: 0.04, lp: 3000 },
+  swoosh:   { freq: 200, freq2: 80,  dur: 0.22, type: "sawtooth", gain: 0.04, lp: 1200 },
 };
 
 export function playTone(voice: Voice = "click") {
@@ -49,7 +61,7 @@ export function playTone(voice: Voice = "click") {
   const filter = ac.createBiquadFilter();
 
   filter.type = "lowpass";
-  filter.frequency.value = 2400;
+  filter.frequency.value = cfg.lp ?? 2400;
   filter.Q.value = 0.6;
 
   osc.type = cfg.type;
@@ -66,6 +78,11 @@ export function playTone(voice: Voice = "click") {
 
   osc.start(now);
   osc.stop(now + cfg.dur + 0.02);
+}
+
+/** Sequência curta de notas (ex.: ao concluir missão). */
+export function playSequence(voices: Voice[], spacingMs = 110) {
+  voices.forEach((v, i) => setTimeout(() => playTone(v), i * spacingMs));
 }
 
 let installed = false;

@@ -244,6 +244,17 @@ export function useStore() {
       if (error) { console.error(error); return; }
       const inserted = (data ?? []).map(r => mapTx(r as Record<string, unknown>));
       set({ transactions: [...inserted, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)) });
+
+      // Débito/Pix em banco: desconta automaticamente do saldo em conta
+      if (t.type === "expense" && (t.paymentMethod === "debit" || t.paymentMethod === "pix") && t.bankId) {
+        const bank = memory.banks.find(b => b.id === t.bankId);
+        if (bank) {
+          const total = inserted.reduce((s, x) => s + x.amount, 0);
+          const newBalance = bank.accountBalance - total;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
     },
     updateTransaction: async (i: string, p: Partial<Transaction>) => {
       const patch: Record<string, unknown> = {};
@@ -263,15 +274,28 @@ export function useStore() {
     },
     removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
+      const restoreToBank = (transaction: Transaction) => {
+        if (transaction.type !== "expense") return;
+        if (transaction.paymentMethod !== "debit" && transaction.paymentMethod !== "pix") return;
+        if (!transaction.bankId) return;
+        const bank = memory.banks.find(b => b.id === transaction.bankId);
+        if (!bank) return;
+        const newBalance = bank.accountBalance + transaction.amount;
+        supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+        set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+      };
       if (opts?.wholeGroup && tx?.installmentGroupId) {
         const gid = tx.installmentGroupId;
+        const groupTxs = memory.transactions.filter(x => x.installmentGroupId === gid);
         const { error } = await supabase.from("transactions").delete().eq("installment_group_id", gid);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.installmentGroupId !== gid) });
+        groupTxs.forEach(restoreToBank);
       } else {
         const { error } = await supabase.from("transactions").delete().eq("id", i);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.id !== i) });
+        if (tx) restoreToBank(tx);
       }
     },
 

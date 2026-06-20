@@ -6,6 +6,7 @@ import {
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
+import { initTheme } from "@/lib/theme";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -27,7 +28,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); installGlobalClickSounds(); }, []);
+  useEffect(() => { setMounted(true); installGlobalClickSounds(); initTheme(); }, []);
   useEffect(() => {
     if (mounted && !state.loading && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
