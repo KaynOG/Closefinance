@@ -31,6 +31,9 @@ import {
   BarChart3,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -69,6 +72,8 @@ const DAILY_TIPS = [
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
   const today = new Date();
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -85,8 +90,14 @@ function DashboardPage() {
   }
   const greeting = useMemo(() => pickGreeting(user?.name), [user?.name]);
 
+  const displayMonth = useMemo(
+    () => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1),
+    [monthOffset],
+  );
+  const isFutureMonth = monthOffset > 0;
+
   const month = useMemo(() => {
-    const tx = transactions.filter((t) => isSameMonth(t.date, today));
+    const tx = transactions.filter((t) => isSameMonth(t.date, displayMonth));
     const income = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
     const expense = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
     const essential = tx
@@ -96,14 +107,14 @@ function DashboardPage() {
       .filter((t) => t.type === "expense" && t.essential === "non_essential")
       .reduce((s, t) => s + t.amount, 0);
     return { tx, income, expense, essential, nonEssential, balance: income - expense };
-  }, [transactions]);
+  }, [transactions, displayMonth]);
 
   // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(
     () =>
       cards.map((c) => {
         const used = transactions
-          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today))
+          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth))
           .reduce((s, t) => s + t.amount, 0);
         return {
           ...c,
@@ -112,7 +123,7 @@ function DashboardPage() {
           pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0,
         };
       }),
-    [cards, transactions],
+    [cards, transactions, displayMonth],
   );
 
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
@@ -120,23 +131,60 @@ function DashboardPage() {
   const totalAvailable = Math.max(0, totalLimit - totalUsed);
   const totalCardPct = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
 
+  // Total guardado e total arrecadado (vida toda) — alimenta a saúde financeira
+  const totalSaved = useMemo(() => banks.reduce((s, b) => s + (b.savedAmount || 0), 0), [banks]);
+  const totalLifetimeIncome = useMemo(
+    () => transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
+    [transactions],
+  );
+
   const health = useMemo(() => {
-    if (month.income === 0 && month.expense === 0)
-      return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const };
-    const savingsRate = month.income > 0 ? month.balance / month.income : -1;
-    const essentialRatio = month.expense > 0 ? month.essential / month.expense : 1;
-    let score = 50 + savingsRate * 50 + (essentialRatio - 0.5) * 20;
+    if (month.income === 0 && month.expense === 0 && totalSaved === 0 && totalLimit === 0)
+      return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const, breakdown: [] as { label: string; delta: number }[] };
+
+    let score = 100;
+    const breakdown: { label: string; delta: number }[] = [];
+
+    // 1) Uso de cartão (até -35): quanto mais limite ocupado, menos pontos
     const cardUsageRatio = totalLimit > 0 ? totalUsed / totalLimit : 0;
-    score -= cardUsageRatio * 25;
+    const cardPenalty = Math.round(Math.min(35, cardUsageRatio * 45));
+    if (cardPenalty > 0) { score -= cardPenalty; breakdown.push({ label: `Uso de cartão ${Math.round(cardUsageRatio * 100)}%`, delta: -cardPenalty }); }
+
+    // 2) Despesas vs receitas do mês (até -35): quanto mais perto/acima, mais penalidade
+    if (month.income > 0) {
+      const expRatio = month.expense / month.income;
+      if (expRatio > 0.7) {
+        const expPenalty = Math.round(Math.min(35, (expRatio - 0.7) * 90));
+        score -= expPenalty;
+        breakdown.push({ label: `Despesas ${Math.round(expRatio * 100)}% da receita`, delta: -expPenalty });
+      }
+    } else if (month.expense > 0) {
+      score -= 25;
+      breakdown.push({ label: "Despesas sem receita", delta: -25 });
+    }
+
+    // 3) Reserva (até -30): pouco guardado em relação ao arrecadado
+    if (totalLifetimeIncome > 0) {
+      const savedRatio = totalSaved / totalLifetimeIncome;
+      if (savedRatio < 0.2) {
+        const savePenalty = Math.round(Math.min(30, (0.2 - savedRatio) * 150));
+        score -= savePenalty;
+        breakdown.push({ label: `Reserva ${Math.round(savedRatio * 100)}% do arrecadado`, delta: -savePenalty });
+      }
+    } else if (totalSaved === 0) {
+      score -= 15;
+      breakdown.push({ label: "Sem reserva guardada", delta: -15 });
+    }
+
     score = Math.round(Math.max(0, Math.min(100, score)));
     const label = score >= 75 ? "Excelente" : score >= 55 ? "Saudável" : score >= 35 ? "Atenção" : "Crítico";
     const tone: "success" | "teal" | "yellow" | "danger" =
       score >= 75 ? "success" : score >= 55 ? "teal" : score >= 35 ? "yellow" : "danger";
-    return { score, label, tone };
-  }, [month, totalLimit, totalUsed]);
+    return { score, label, tone, breakdown };
+  }, [month, totalLimit, totalUsed, totalSaved, totalLifetimeIncome]);
 
   const series = useMemo(() => {
-    const out = [];
+    const out: Array<{ month: string; receitas: number; despesas: number; forecast?: boolean }> = [];
     for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter((t) => isSameMonth(t.date, d));
@@ -146,8 +194,27 @@ function DashboardPage() {
         despesas: tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0),
       });
     }
+    // Previsão: média dos últimos 3 meses (ignora meses zerados) + parcelas futuras já agendadas
+    if (forecastN > 0) {
+      const last3 = out.slice(-3);
+      const nz = last3.filter(r => r.receitas + r.despesas > 0);
+      const baseRec = nz.length ? nz.reduce((s, r) => s + r.receitas, 0) / nz.length : 0;
+      const baseDes = nz.length ? nz.reduce((s, r) => s + r.despesas, 0) / nz.length : 0;
+      for (let i = 1; i <= forecastN; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const tx = transactions.filter((t) => isSameMonth(t.date, d));
+        const scheduledDes = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const scheduledRec = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+        out.push({
+          month: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }) + " ✦",
+          receitas: Math.round(Math.max(scheduledRec, baseRec)),
+          despesas: Math.round(scheduledDes + baseDes),
+          forecast: true,
+        });
+      }
+    }
     return out;
-  }, [transactions, periodMonths]);
+  }, [transactions, periodMonths, forecastN]);
 
   const byCat = useMemo(
     () =>
@@ -215,11 +282,17 @@ function DashboardPage() {
 
   // Annual goal — vinculada ao "guardado" nos bancos
   const goal = user?.yearlyGoal ?? 0;
-  const yearSaved = useMemo(() => banks.reduce((s, b) => s + (b.savedAmount || 0), 0), [banks]);
+  const yearSaved = totalSaved;
   const goalPct = goal > 0 ? Math.max(0, Math.min(100, (yearSaved / goal) * 100)) : 0;
 
   // tip of the day
   const tip = DAILY_TIPS[new Date().getDate() % DAILY_TIPS.length];
+
+  const monthLabel = displayMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthSub = monthOffset === 0
+    ? "Mês atual"
+    : monthOffset < 0 ? `${Math.abs(monthOffset)} ${Math.abs(monthOffset) === 1 ? "mês atrás" : "meses atrás"}`
+    : `${monthOffset} ${monthOffset === 1 ? "mês à frente · previsão" : "meses à frente · previsão"}`;
 
   return (
     <AppShell>
@@ -238,8 +311,46 @@ function DashboardPage() {
 
       <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 
+      <GlassCard className="mb-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setMonthOffset(o => o - 1)} aria-label="Mês anterior"
+              className="rounded-xl p-2 border border-border hover:bg-white/5 active:scale-95 transition">
+              <ChevronLeft className="size-4" />
+            </button>
+            <div className="min-w-[180px] text-center">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{monthSub}</p>
+              <p className="font-display text-base font-bold capitalize">{monthLabel}</p>
+            </div>
+            <button onClick={() => setMonthOffset(o => o + 1)} aria-label="Próximo mês"
+              className="rounded-xl p-2 border border-border hover:bg-white/5 active:scale-95 transition">
+              <ChevronRight className="size-4" />
+            </button>
+            {monthOffset !== 0 && (
+              <button onClick={() => setMonthOffset(0)} data-no-sound
+                className="ml-1 rounded-full border border-border px-3 py-1 text-[11px] font-mono text-muted-foreground hover:bg-white/5">
+                hoje
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <Sparkles className="size-3 text-secondary" /> Previsão fluxo
+            </span>
+            <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+              {([0, 3, 6] as const).map((n) => (
+                <button key={n} onClick={() => setForecastN(n)}
+                  className={`px-3 py-1.5 transition ${forecastN === n ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+                  {n === 0 ? "off" : `+${n}m`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <Stat label="Receitas do mês" value={formatBRL(month.income)} accent="teal" sub="Entradas confirmadas" />
+        <Stat label={`Receitas · ${isFutureMonth ? "previsto" : "mês"}`} value={formatBRL(month.income)} accent="teal" sub={isFutureMonth ? "agendado / parcelas" : "Entradas confirmadas"} />
         <Stat
           label="Despesas do mês"
           value={formatBRL(month.expense)}

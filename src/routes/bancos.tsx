@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, type Bank } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save } from "lucide-react";
+import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/bancos")({
   head: () => ({ meta: [{ title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
@@ -131,7 +131,12 @@ function BanksPage() {
                     </>
                   )}
                   {b.note && <p className="mt-3 text-xs font-mono text-muted-foreground italic">"{b.note}"</p>}
-                  <div className="flex items-center justify-end gap-1 mt-4">
+
+                  <QuickSaveInput bank={b} onAdd={async (amt) => {
+                    await api.updateBank(b.id, { savedAmount: b.savedAmount + amt });
+                  }} />
+
+                  <div className="flex items-center justify-end gap-1 mt-3">
                     <button onClick={() => setEditing(b)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground"><Pencil className="size-4" /></button>
                     <button onClick={() => api.removeBank(b.id)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-[#FF4D6D]"><Trash2 className="size-4" /></button>
                   </div>
@@ -189,4 +194,34 @@ function EditBankModal({ bank, onClose, onSave }: { bank: Bank; onClose: () => v
 const inp = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 font-mono";
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</span><div className="mt-1.5">{children}</div></label>;
+}
+
+function QuickSaveInput({ bank, onAdd }: { bank: Bank; onAdd: (amount: number) => void | Promise<void> }) {
+  const [val, setVal] = useState("");
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const n = parseFloat(val.replace(",", "."));
+    if (!Number.isFinite(n) || n === 0) return;
+    await onAdd(n);
+    setVal("");
+  }
+  return (
+    <form onSubmit={submit} className="mt-4 flex items-center gap-2">
+      <div className="flex-1 relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-mono text-muted-foreground">R$</span>
+        <input
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          inputMode="decimal"
+          placeholder="Acrescentar ao guardado"
+          className="w-full rounded-xl bg-white/5 border border-border pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:bg-white/10 font-mono"
+        />
+      </div>
+      <button type="submit" data-sound="coin" title="Adicionar ao guardado"
+        className="rounded-xl px-3 py-2 text-xs font-mono font-semibold flex items-center gap-1.5 active:scale-95 transition"
+        style={{ background: bank.color, color: "#fff" }}>
+        <PlusCircle className="size-4" /> Guardar
+      </button>
+    </form>
+  );
 }
