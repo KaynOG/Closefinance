@@ -68,6 +68,8 @@ const LESSONS = [
 ];
 
 function EduPage() {
+  const [, api] = useStore();
+  useEffect(() => { api.awardMission("visit_educacao"); }, []);
   return (
     <AppShell>
       <header className="mb-8">
