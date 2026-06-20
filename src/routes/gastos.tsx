@@ -33,8 +33,22 @@ function GastosPage() {
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
     const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
+    let firstDate = form.date;
+    let amtPerInst = amt;
+    if (inst > 1) {
+      amtPerInst = Math.round((amt / inst) * 100) / 100;
+      if (form.paymentMethod === "credit" && form.cardId) {
+        const card = cards.find(c => c.id === form.cardId);
+        if (card) {
+          const base = new Date(form.date + "T00:00:00");
+          const close = new Date(base.getFullYear(), base.getMonth(), Math.min(28, card.closingDay));
+          if (close < base) close.setMonth(close.getMonth() + 1);
+          firstDate = close.toISOString().slice(0, 10);
+        }
+      }
+    }
     await api.addTransaction({
-      type: "expense", amount: amt, description: form.description.trim(), date: form.date,
+      type: "expense", amount: amtPerInst, description: form.description.trim(), date: firstDate,
       categoryId: form.categoryId || undefined, essential: form.essential,
       paymentMethod: form.paymentMethod,
       cardId: form.paymentMethod === "credit" ? form.cardId || undefined : undefined,
