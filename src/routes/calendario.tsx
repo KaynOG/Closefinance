@@ -109,8 +109,37 @@ function CalendarPage() {
         </div>
       </header>
 
+      {(weekAhead.expenses.length > 0 || weekAhead.incomes.length > 0) && (
+        <GlassCard hideKey="cal-week-alert" hideLabel="Alertas da semana" className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Bell className="size-4 text-primary" />
+            <h2 className="text-base font-bold">Próximos 7 dias</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {weekAhead.expenses.length > 0 && (
+              <div className="rounded-xl border border-[#FF4D6D]/30 bg-[#FF4D6D]/5 p-3">
+                <div className="flex items-center gap-2 text-[#FF8FA3] text-xs font-mono uppercase tracking-wider">
+                  <AlertTriangle className="size-3.5" /> Contas a vencer
+                </div>
+                <p className="mt-1 text-lg font-bold">{formatBRL(weekAhead.totalOut)}</p>
+                <p className="text-xs text-muted-foreground">{weekAhead.expenses.length} lançamento(s)</p>
+              </div>
+            )}
+            {weekAhead.incomes.length > 0 && (
+              <div className="rounded-xl border border-[#2BD9A1]/30 bg-[#2BD9A1]/5 p-3">
+                <div className="flex items-center gap-2 text-[#7DF2C5] text-xs font-mono uppercase tracking-wider">
+                  <Bell className="size-3.5" /> Ganhos previstos
+                </div>
+                <p className="mt-1 text-lg font-bold">{formatBRL(weekAhead.totalIn)}</p>
+                <p className="text-xs text-muted-foreground">{weekAhead.incomes.length} lançamento(s)</p>
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-        <GlassCard>
+        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês">
           <div className="grid grid-cols-7 gap-2 mb-2">
             {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
               <div key={d} className="text-center text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{d}</div>
