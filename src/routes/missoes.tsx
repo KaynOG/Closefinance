@@ -61,7 +61,11 @@ function MissoesPage() {
               const awarded = missions.history.some(h => h.missionId === m.id && h.points > 0 && h.date.slice(0,10) === missions.date);
               return (
                 <li key={m.id}>
-                  <button onClick={() => api.toggleMission(m.id)}
+                  <button data-no-sound onClick={() => {
+                    const wasDone = missions.completed.includes(m.id);
+                    api.toggleMission(m.id);
+                    if (!wasDone) playSequence(["complete", "chime"], 90);
+                  }}
                     className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}>
                     {done ? <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" /> : <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />}
                     <div className="min-w-0 flex-1">
