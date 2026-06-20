@@ -129,7 +129,7 @@ function mapCat(row: Record<string, unknown>): Category {
   return { id: String(row.id), name: String(row.name), color: String(row.color), icon: (row.icon as string) ?? undefined, kind: (row.kind as Category["kind"]) ?? "expense" };
 }
 function mapCard(row: Record<string, unknown>): Card {
-  return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color) };
+  return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color), usedManual: row.used_manual != null ? Number(row.used_manual) : 0 };
 }
 function mapBank(row: Record<string, unknown>): Bank {
   return { id: String(row.id), name: String(row.name), color: String(row.color), accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
