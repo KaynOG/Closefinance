@@ -25,7 +25,7 @@ function CardsPage() {
   const today = new Date();
 
   const [form, setForm] = useState({
-    name: "", limit: "", closingDay: "1", dueDay: "10", color: PALETTE[0],
+    name: "", limit: "", usedManual: "", closingDay: "1", dueDay: "10", color: PALETTE[0],
   });
 
   function submit(e: React.FormEvent) {
@@ -34,18 +34,21 @@ function CardsPage() {
     if (!form.name.trim() || !lim) return;
     api.addCard({
       name: form.name.trim(), limit: lim,
+      usedManual: parseFloat(form.usedManual.replace(",", ".")) || 0,
       closingDay: Math.max(1, Math.min(28, parseInt(form.closingDay) || 1)),
       dueDay: Math.max(1, Math.min(28, parseInt(form.dueDay) || 10)),
       color: form.color,
     });
-    setForm({ name: "", limit: "", closingDay: "1", dueDay: "10", color: PALETTE[0] });
+    setForm({ name: "", limit: "", usedManual: "", closingDay: "1", dueDay: "10", color: PALETTE[0] });
   }
 
   const overview = useMemo(() => {
     const enriched = cards.map((c) => {
-      const used = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
+      const manual = c.usedManual ?? 0;
+      const used = usedTx + manual;
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
-      return { ...c, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
+      return { ...c, usedTx, usedManualVal: manual, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
     const totalLimit = enriched.reduce((s, c) => s + c.limit, 0);
     const totalUsed = enriched.reduce((s, c) => s + c.used, 0);
