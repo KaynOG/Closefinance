@@ -1,12 +1,27 @@
 export type Theme = "light" | "dark";
+export type Accent = "violet" | "crimson" | "teal" | "graphite";
 
 const KEY = "closefinance:theme";
+const AKEY = "closefinance:accent";
 const listeners = new Set<(t: Theme) => void>();
+const aListeners = new Set<(a: Accent) => void>();
+
+export const ACCENTS: { id: Accent; name: string; color: string }[] = [
+  { id: "violet", name: "Violeta", color: "#540BD3" },
+  { id: "crimson", name: "Crimson", color: "#820432" },
+  { id: "teal", name: "Teal", color: "#006F77" },
+  { id: "graphite", name: "Grafite", color: "#404040" },
+];
 
 export function getTheme(): Theme {
   if (typeof window === "undefined") return "dark";
-  const v = localStorage.getItem(KEY);
-  return v === "light" ? "light" : "dark";
+  return localStorage.getItem(KEY) === "light" ? "light" : "dark";
+}
+
+export function getAccent(): Accent {
+  if (typeof window === "undefined") return "violet";
+  const v = localStorage.getItem(AKEY);
+  return (["violet", "crimson", "teal", "graphite"] as Accent[]).includes(v as Accent) ? (v as Accent) : "violet";
 }
 
 export function applyTheme(t: Theme) {
@@ -17,10 +32,21 @@ export function applyTheme(t: Theme) {
   root.dataset.theme = t;
 }
 
+export function applyAccent(a: Accent) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.accent = a;
+}
+
 export function setTheme(t: Theme) {
   if (typeof window !== "undefined") localStorage.setItem(KEY, t);
   applyTheme(t);
   listeners.forEach(l => l(t));
+}
+
+export function setAccent(a: Accent) {
+  if (typeof window !== "undefined") localStorage.setItem(AKEY, a);
+  applyAccent(a);
+  aListeners.forEach(l => l(a));
 }
 
 export function toggleTheme(): Theme {
@@ -34,6 +60,12 @@ export function onThemeChange(cb: (t: Theme) => void): () => void {
   return () => { listeners.delete(cb); };
 }
 
+export function onAccentChange(cb: (a: Accent) => void): () => void {
+  aListeners.add(cb);
+  return () => { aListeners.delete(cb); };
+}
+
 export function initTheme() {
   applyTheme(getTheme());
+  applyAccent(getAccent());
 }
