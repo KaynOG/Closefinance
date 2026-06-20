@@ -269,11 +269,15 @@ export function useStore() {
       const inserted = (data ?? []).map(r => mapTx(r as Record<string, unknown>));
       set({ transactions: [...inserted, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)) });
 
+      // Apenas lançamentos com data até hoje impactam o saldo atual
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const appliedRows = inserted.filter(x => x.date <= todayStr);
+
       // Débito/Pix em banco: desconta automaticamente do saldo em conta
       if (t.type === "expense" && (t.paymentMethod === "debit" || t.paymentMethod === "pix") && t.bankId) {
         const bank = memory.banks.find(b => b.id === t.bankId);
-        if (bank) {
-          const total = inserted.reduce((s, x) => s + x.amount, 0);
+        if (bank && appliedRows.length) {
+          const total = appliedRows.reduce((s, x) => s + x.amount, 0);
           const newBalance = bank.accountBalance - total;
           await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
           set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
@@ -283,8 +287,8 @@ export function useStore() {
       // Ganho recebido em banco: credita no saldo em conta
       if (t.type === "income" && t.bankId) {
         const bank = memory.banks.find(b => b.id === t.bankId);
-        if (bank) {
-          const total = inserted.reduce((s, x) => s + x.amount, 0);
+        if (bank && appliedRows.length) {
+          const total = appliedRows.reduce((s, x) => s + x.amount, 0);
           const newBalance = bank.accountBalance + total;
           await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
           set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
@@ -293,13 +297,14 @@ export function useStore() {
       // Ganho recebido em dinheiro físico: acrescenta na caixa
       if (t.type === "income" && t.paymentMethod === "cash" && !t.bankId) {
         const user = memory.users.find(u => u.id === uid);
-        if (user) {
-          const total = inserted.reduce((s, x) => s + x.amount, 0);
+        if (user && appliedRows.length) {
+          const total = appliedRows.reduce((s, x) => s + x.amount, 0);
           const newCash = (user.cashAmount ?? 0) + total;
           await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
         }
       }
+
       // Auto-award de missões pela ação realizada
       try {
         if (t.type === "income") await api.awardMission("add_income");
@@ -327,7 +332,10 @@ export function useStore() {
     },
     removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
+      const todayStr2 = new Date().toISOString().slice(0, 10);
       const reverseSideEffects = (transaction: Transaction) => {
+        // Lançamentos futuros não impactaram o saldo, então não revertem
+        if (transaction.date > todayStr2) return;
         // expense via débito/pix → devolve ao banco
         if (transaction.type === "expense" && (transaction.paymentMethod === "debit" || transaction.paymentMethod === "pix") && transaction.bankId) {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
@@ -357,6 +365,7 @@ export function useStore() {
           }
         }
       };
+
       if (opts?.wholeGroup && tx?.installmentGroupId) {
         const gid = tx.installmentGroupId;
         const groupTxs = memory.transactions.filter(x => x.installmentGroupId === gid);
