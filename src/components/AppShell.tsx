@@ -1,12 +1,13 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark, LifeBuoy,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
 import { initTheme } from "@/lib/theme";
+import { ConsentModal } from "./ConsentModal";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,6 +19,7 @@ const nav = [
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
+  { to: "/suporte", label: "Suporte", icon: LifeBuoy },
   { to: "/perfil", label: "Perfil", icon: UserIcon },
 ] as const;
 
@@ -114,6 +116,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main key={pathname} className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
         {children ?? <Outlet />}
       </main>
+      <ConsentModal />
     </div>
   );
 }
