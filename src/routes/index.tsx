@@ -114,7 +114,7 @@ function DashboardPage() {
     () =>
       cards.map((c) => {
         const used = transactions
-          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today))
+          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth))
           .reduce((s, t) => s + t.amount, 0);
         return {
           ...c,
@@ -123,7 +123,7 @@ function DashboardPage() {
           pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0,
         };
       }),
-    [cards, transactions],
+    [cards, transactions, displayMonth],
   );
 
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
