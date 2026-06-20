@@ -1,7 +1,7 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark, LifeBuoy,
+  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -19,7 +19,6 @@ const nav = [
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
-  { to: "/suporte", label: "Suporte", icon: LifeBuoy },
   { to: "/perfil", label: "Perfil", icon: UserIcon },
 ] as const;
 
