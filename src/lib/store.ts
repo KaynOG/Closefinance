@@ -38,6 +38,7 @@ export interface Card {
   closingDay: number;
   dueDay: number;
   color: string;
+  usedManual?: number;
 }
 
 export interface Bank {
