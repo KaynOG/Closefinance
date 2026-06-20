@@ -147,6 +147,15 @@ function CardsPage() {
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, ${c.status.color})` }} />
                   </div>
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-[10px] font-mono mb-1">
+                      <span className="text-muted-foreground">Limite usado</span>
+                      <span style={{ color: c.status.color }}>{Math.round(c.pct)}%</span>
+                    </div>
+                    <input type="range" min={0} max={100} value={Math.round(c.pct)} readOnly aria-label="Limite usado"
+                      className="w-full cursor-default appearance-none h-2 rounded-full bg-white/10 outline-none"
+                      style={{ accentColor: c.status.color, background: `linear-gradient(90deg, ${c.color} 0%, ${c.status.color} ${Math.round(c.pct)}%, rgba(255,255,255,0.10) ${Math.round(c.pct)}%, rgba(255,255,255,0.10) 100%)` }} />
+                  </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
                     <div><p className="text-muted-foreground">Usado no mês</p><p className="text-foreground text-sm">{formatBRL(c.used)} <span className="text-muted-foreground">({Math.round(c.pct)}%)</span></p></div>
                     <div><p className="text-muted-foreground">Disponível</p><p className="text-foreground text-sm">{formatBRL(c.available)}</p></div>
