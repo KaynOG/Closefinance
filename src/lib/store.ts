@@ -428,6 +428,7 @@ export function useStore() {
       set({ banks: [...memory.banks, mapBank(data as Record<string, unknown>)] });
     },
     updateBank: async (i: string, p: Partial<Bank>) => {
+      const prev = memory.banks.find(b => b.id === i);
       const patch: Record<string, unknown> = {};
       if (p.name !== undefined) patch.name = p.name;
       if (p.color !== undefined) patch.color = p.color;
@@ -437,6 +438,9 @@ export function useStore() {
       const { error } = await supabase.from("banks").update(patch as never).eq("id", i);
       if (error) return console.error(error);
       set({ banks: memory.banks.map(x => x.id === i ? { ...x, ...p } : x) });
+      if (prev && p.savedAmount !== undefined && p.savedAmount > prev.savedAmount) {
+        try { await api.awardMission("save_money"); } catch {}
+      }
     },
     removeBank: async (i: string) => {
       const { error } = await supabase.from("banks").delete().eq("id", i);
