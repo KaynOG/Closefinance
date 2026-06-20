@@ -213,7 +213,8 @@ function SecurityPanel() {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [resetMsg, setResetMsg] = useState<{ link: string; email: string } | null>(null);
   const [sound, setSound] = useState(true);
-  useEffect(() => { setSound(isSoundEnabled()); }, []);
+  const [popups, setPopups] = useState(true);
+  useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
