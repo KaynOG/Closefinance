@@ -53,7 +53,6 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-import { MISSIONS_CATALOG } from "@/lib/store";
 const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 4);
 
 const DAILY_TIPS = [
