@@ -4,6 +4,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL, type TxType, type Essential } from "@/lib/store";
 import { useState } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/transacoes")({
   head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
@@ -37,6 +38,11 @@ function TxPage() {
       essential: form.type === "expense" ? form.essential : undefined,
       cardId: form.type === "expense" ? form.cardId || undefined : undefined,
     });
+    toast.success(
+      form.type === "income"
+        ? `Ganho de ${formatBRL(amt)} adicionado com sucesso!`
+        : `Gasto de ${formatBRL(amt)} registrado com sucesso!`
+    );
     setForm({ ...form, amount: "", description: "" });
   }
 

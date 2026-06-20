@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { TxEditModal } from "@/components/TxEditModal";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
@@ -47,6 +48,7 @@ function GastosPage() {
       tag: form.tag.trim() || undefined,
       installmentTotal: inst > 1 ? inst : undefined,
     });
+    toast.success(`Gasto de ${formatBRL(amtPerInst)}${inst > 1 ? ` (${inst}x)` : ""} registrado com sucesso!`);
     setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
