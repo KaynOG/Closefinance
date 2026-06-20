@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { TxEditModal } from "@/components/TxEditModal";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
@@ -39,6 +40,7 @@ function GanhosPage() {
       categoryId: form.categoryId || undefined, tag: form.tag.trim() || undefined,
       bankId, paymentMethod,
     });
+    toast.success(`Ganho de ${formatBRL(amt)} adicionado com sucesso!`);
     setForm({ ...form, amount: "", description: "", tag: "" });
   }
 
