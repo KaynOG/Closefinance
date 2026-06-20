@@ -14,6 +14,7 @@ const PALETTE = ["#22C3CC", "#2BD9A1", "#540BD3", "#FFCC00", "#FF6B1A", "#820432
 
 function BanksPage() {
   const [{ banks, users, currentUserId }, api] = useStore();
+  useEffect(() => { api.awardMission("visit_banks"); }, []);
   const user = users.find(u => u.id === currentUserId);
   const goal = user?.yearlyGoal ?? 0;
   const cash = user?.cashAmount ?? 0;
