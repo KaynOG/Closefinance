@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, type Bank } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save } from "lucide-react";
+import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/bancos")({
   head: () => ({ meta: [{ title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
