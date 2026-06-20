@@ -109,6 +109,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <ConsentModal />
     </QueryClientProvider>
   );
 }
