@@ -460,9 +460,25 @@ export function useStore() {
       if (patch.yearlyGoal !== undefined) p.yearly_goal = patch.yearlyGoal ?? null;
       if (patch.avatar !== undefined) p.avatar = patch.avatar || null;
       if (patch.gender !== undefined) p.gender = patch.gender;
+      if (patch.cashAmount !== undefined) p.cash_amount = patch.cashAmount;
       const { error } = await supabase.from("profiles").update(p as never).eq("id", uid);
       if (error) return console.error(error);
       set({ users: memory.users.map(u => u.id === uid ? { ...u, ...patch } : u) });
+    },
+    setCash: async (amount: number) => {
+      const uid = memory.currentUserId; if (!uid) return;
+      const v = Math.max(0, amount);
+      const { error } = await supabase.from("profiles").update({ cash_amount: v }).eq("id", uid);
+      if (error) return console.error(error);
+      set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: v } : u) });
+    },
+    addCash: async (delta: number) => {
+      const uid = memory.currentUserId; if (!uid) return;
+      const user = memory.users.find(u => u.id === uid); if (!user) return;
+      const v = Math.max(0, (user.cashAmount ?? 0) + delta);
+      const { error } = await supabase.from("profiles").update({ cash_amount: v }).eq("id", uid);
+      if (error) return console.error(error);
+      set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: v } : u) });
     },
     changePassword: async (_currentPassword: string, newPassword: string) => {
       if (newPassword.length < 6) return { ok: false as const, error: "A nova senha deve ter pelo menos 6 caracteres." };
