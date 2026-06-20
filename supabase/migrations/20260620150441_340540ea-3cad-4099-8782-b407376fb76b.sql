@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS cash_amount numeric NOT NULL DEFAULT 0;
