@@ -35,6 +35,10 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       navigate({ to: "/auth" });
     }
   }, [mounted, state.loading, user, pathname, navigate]);
+  useEffect(() => {
+    if (user) { api.awardMission("daily_login"); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (!user) {
     return (
