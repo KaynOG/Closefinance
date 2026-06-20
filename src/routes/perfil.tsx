@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette } from "lucide-react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail } from "lucide-react";
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -154,6 +154,14 @@ function PerfilPage() {
         <SecurityPanel />
       </section>
 
+      <section className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <LifeBuoy className="size-5 text-secondary" />
+          <h2 className="text-xl lg:text-2xl font-bold">Suporte</h2>
+        </div>
+        <SupportPanel />
+      </section>
+
       <section>
         <div className="flex items-center gap-2 mb-4">
           <DatabaseBackup className="size-5 text-secondary" />
@@ -162,6 +170,39 @@ function PerfilPage() {
         <BackupContent />
       </section>
     </AppShell>
+  );
+}
+
+function SupportPanel() {
+  const wpp = "5531993579103";
+  const email = "filipewesley007@gmail.com";
+  return (
+    <GlassCard>
+      <p className="text-sm leading-relaxed text-muted-foreground mb-4">
+        Olá! 👋 Se você tem dúvidas, sugestões ou precisa de ajuda para usar o <span className="text-foreground font-semibold">CloseFinance</span>,
+        nossa equipe terá o maior prazer em te atender. Escolha o canal abaixo.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <a href={`https://wa.me/${wpp}`} target="_blank" rel="noopener noreferrer"
+          className="rounded-2xl border border-border p-4 flex flex-col gap-2 hover:bg-white/5 transition active:scale-[0.98] group">
+          <div className="size-10 rounded-xl bg-emerald-500/20 text-emerald-400 grid place-items-center">
+            <MessageCircle className="size-5" />
+          </div>
+          <p className="font-semibold text-sm">WhatsApp</p>
+          <p className="text-xs text-muted-foreground font-mono">(31) 99357-9103</p>
+          <span className="text-xs text-primary group-hover:underline">Abrir conversa →</span>
+        </a>
+        <a href={`mailto:${email}`}
+          className="rounded-2xl border border-border p-4 flex flex-col gap-2 hover:bg-white/5 transition active:scale-[0.98] group">
+          <div className="size-10 rounded-xl bg-primary/20 text-primary grid place-items-center">
+            <Mail className="size-5" />
+          </div>
+          <p className="font-semibold text-sm">E-mail</p>
+          <p className="text-xs text-muted-foreground font-mono break-all">{email}</p>
+          <span className="text-xs text-primary group-hover:underline">Enviar mensagem →</span>
+        </a>
+      </div>
+    </GlassCard>
   );
 }
 

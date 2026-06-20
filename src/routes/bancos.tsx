@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, type Bank } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus } from "lucide-react";
 
 export const Route = createFileRoute("/bancos")({
@@ -14,6 +14,7 @@ const PALETTE = ["#22C3CC", "#2BD9A1", "#540BD3", "#FFCC00", "#FF6B1A", "#820432
 
 function BanksPage() {
   const [{ banks, users, currentUserId }, api] = useStore();
+  useEffect(() => { api.awardMission("visit_banks"); }, []);
   const user = users.find(u => u.id === currentUserId);
   const goal = user?.yearlyGoal ?? 0;
   const cash = user?.cashAmount ?? 0;

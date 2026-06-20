@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -53,12 +53,7 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = [
-  { id: "m1", title: "Registre um gasto de hoje", desc: "Mantenha a planilha viva." },
-  { id: "m2", title: "Classifique como essencial ou não", desc: "Crie consciência de prioridades." },
-  { id: "m3", title: "Veja seu saldo do mês", desc: "Olhar é o primeiro passo do controle." },
-  { id: "m4", title: "Anote uma meta da semana", desc: "Pequenas metas, grandes resultados." },
-];
+const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 4);
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
@@ -71,6 +66,7 @@ const DAILY_TIPS = [
 
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
+  useEffect(() => { if (user) api.awardMission("view_dashboard"); }, [user?.id]);
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
@@ -394,9 +390,8 @@ function DashboardPage() {
               const done = missions.completed.includes(m.id);
               return (
                 <li key={m.id}>
-                  <button
-                    onClick={() => api.toggleMission(m.id)}
-                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 active:scale-[0.99] ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border hover:bg-white/5"}`}
+                  <div
+                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border"}`}
                   >
                     {done ? (
                       <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" />
@@ -409,12 +404,12 @@ function DashboardPage() {
                           {m.title}
                         </p>
                         <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">
-                          +10 pts
+                          +{m.points} pts
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
                     </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}
