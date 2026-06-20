@@ -82,7 +82,7 @@ function GanhosPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <GlassCard className="lg:col-span-2">
+        <GlassCard hideKey="ganhos-1" className="lg:col-span-2">
           <SectionTitle title="Evolução dos ganhos" subtitle="últimos 12 meses" />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -103,7 +103,7 @@ function GanhosPage() {
           </div>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard hideKey="ganhos-2">
           <SectionTitle title="Por categoria" subtitle="mês atual" />
           <div className="h-72">
             {byCat.length === 0 ? <p className="text-sm text-muted-foreground">Sem ganhos categorizados este mês.</p> : (
@@ -123,7 +123,7 @@ function GanhosPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
-        <GlassCard>
+        <GlassCard hideKey="ganhos-3">
           <SectionTitle title="Novo ganho" />
           <form onSubmit={submit} className="space-y-3">
             <Field label="Valor (R$)"><input required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0,00" inputMode="decimal" className={inputCls} /></Field>
@@ -152,7 +152,7 @@ function GanhosPage() {
           </form>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard hideKey="ganhos-4">
           <SectionTitle title="Planilha de ganhos" subtitle={`${incomes.length} lançamentos`} />
           {(() => {
             const monthsSet = Array.from(new Set(incomes.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
