@@ -31,6 +31,9 @@ import {
   BarChart3,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
