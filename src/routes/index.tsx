@@ -772,6 +772,9 @@ function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boole
       </div>
     </GlassCard>
   );
+}
+
+
 
 function Bar({
   label,
