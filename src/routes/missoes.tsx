@@ -14,7 +14,7 @@ export const Route = createFileRoute("/missoes")({
 const DAILY_MISSIONS = MISSIONS_CATALOG;
 
 function MissoesPage() {
-  const [{ missions }, api, user] = useStore();
+  const [{ missions }, , user] = useStore();
   const gender = user?.gender;
 
   const rank = useMemo(() => getRank(missions.totalPoints, gender), [missions.totalPoints, gender]);
