@@ -131,23 +131,60 @@ function DashboardPage() {
   const totalAvailable = Math.max(0, totalLimit - totalUsed);
   const totalCardPct = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
 
+  // Total guardado e total arrecadado (vida toda) — alimenta a saúde financeira
+  const totalSaved = useMemo(() => banks.reduce((s, b) => s + (b.savedAmount || 0), 0), [banks]);
+  const totalLifetimeIncome = useMemo(
+    () => transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0),
+    [transactions],
+  );
+
   const health = useMemo(() => {
-    if (month.income === 0 && month.expense === 0)
-      return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const };
-    const savingsRate = month.income > 0 ? month.balance / month.income : -1;
-    const essentialRatio = month.expense > 0 ? month.essential / month.expense : 1;
-    let score = 50 + savingsRate * 50 + (essentialRatio - 0.5) * 20;
+    if (month.income === 0 && month.expense === 0 && totalSaved === 0 && totalLimit === 0)
+      return { score: 70, label: "Sem dados suficientes", tone: "yellow" as const, breakdown: [] as { label: string; delta: number }[] };
+
+    let score = 100;
+    const breakdown: { label: string; delta: number }[] = [];
+
+    // 1) Uso de cartão (até -35): quanto mais limite ocupado, menos pontos
     const cardUsageRatio = totalLimit > 0 ? totalUsed / totalLimit : 0;
-    score -= cardUsageRatio * 25;
+    const cardPenalty = Math.round(Math.min(35, cardUsageRatio * 45));
+    if (cardPenalty > 0) { score -= cardPenalty; breakdown.push({ label: `Uso de cartão ${Math.round(cardUsageRatio * 100)}%`, delta: -cardPenalty }); }
+
+    // 2) Despesas vs receitas do mês (até -35): quanto mais perto/acima, mais penalidade
+    if (month.income > 0) {
+      const expRatio = month.expense / month.income;
+      if (expRatio > 0.7) {
+        const expPenalty = Math.round(Math.min(35, (expRatio - 0.7) * 90));
+        score -= expPenalty;
+        breakdown.push({ label: `Despesas ${Math.round(expRatio * 100)}% da receita`, delta: -expPenalty });
+      }
+    } else if (month.expense > 0) {
+      score -= 25;
+      breakdown.push({ label: "Despesas sem receita", delta: -25 });
+    }
+
+    // 3) Reserva (até -30): pouco guardado em relação ao arrecadado
+    if (totalLifetimeIncome > 0) {
+      const savedRatio = totalSaved / totalLifetimeIncome;
+      if (savedRatio < 0.2) {
+        const savePenalty = Math.round(Math.min(30, (0.2 - savedRatio) * 150));
+        score -= savePenalty;
+        breakdown.push({ label: `Reserva ${Math.round(savedRatio * 100)}% do arrecadado`, delta: -savePenalty });
+      }
+    } else if (totalSaved === 0) {
+      score -= 15;
+      breakdown.push({ label: "Sem reserva guardada", delta: -15 });
+    }
+
     score = Math.round(Math.max(0, Math.min(100, score)));
     const label = score >= 75 ? "Excelente" : score >= 55 ? "Saudável" : score >= 35 ? "Atenção" : "Crítico";
     const tone: "success" | "teal" | "yellow" | "danger" =
       score >= 75 ? "success" : score >= 55 ? "teal" : score >= 35 ? "yellow" : "danger";
-    return { score, label, tone };
-  }, [month, totalLimit, totalUsed]);
+    return { score, label, tone, breakdown };
+  }, [month, totalLimit, totalUsed, totalSaved, totalLifetimeIncome]);
 
   const series = useMemo(() => {
-    const out = [];
+    const out: Array<{ month: string; receitas: number; despesas: number; forecast?: boolean }> = [];
     for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter((t) => isSameMonth(t.date, d));
@@ -157,8 +194,27 @@ function DashboardPage() {
         despesas: tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0),
       });
     }
+    // Previsão: média dos últimos 3 meses (ignora meses zerados) + parcelas futuras já agendadas
+    if (forecastN > 0) {
+      const last3 = out.slice(-3);
+      const nz = last3.filter(r => r.receitas + r.despesas > 0);
+      const baseRec = nz.length ? nz.reduce((s, r) => s + r.receitas, 0) / nz.length : 0;
+      const baseDes = nz.length ? nz.reduce((s, r) => s + r.despesas, 0) / nz.length : 0;
+      for (let i = 1; i <= forecastN; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const tx = transactions.filter((t) => isSameMonth(t.date, d));
+        const scheduledDes = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const scheduledRec = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+        out.push({
+          month: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }) + " ✦",
+          receitas: Math.round(Math.max(scheduledRec, baseRec)),
+          despesas: Math.round(scheduledDes + baseDes),
+          forecast: true,
+        });
+      }
+    }
     return out;
-  }, [transactions, periodMonths]);
+  }, [transactions, periodMonths, forecastN]);
 
   const byCat = useMemo(
     () =>
