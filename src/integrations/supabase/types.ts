@@ -56,6 +56,7 @@ export type Database = {
           id: string
           limit_amount: number
           name: string
+          used_manual: number
           user_id: string
         }
         Insert: {
@@ -66,6 +67,7 @@ export type Database = {
           id?: string
           limit_amount?: number
           name: string
+          used_manual?: number
           user_id: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           id?: string
           limit_amount?: number
           name?: string
+          used_manual?: number
           user_id?: string
         }
         Relationships: []
