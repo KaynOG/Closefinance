@@ -19,7 +19,7 @@ const nav = [
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
-  { to: "/perfil", label: "Perfil", icon: UserIcon },
+  { to: "/perfil", label: "Perfil & Ajustes", icon: UserIcon },
 ] as const;
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
