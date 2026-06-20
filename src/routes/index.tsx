@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AreaChart,
   Area,
