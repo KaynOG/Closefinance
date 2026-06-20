@@ -53,6 +53,36 @@ function CalendarPage() {
 
   const selectedItems = selected ? (byDay.get(selected)?.items ?? []) : [];
 
+  const weekAhead = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const end = new Date(today); end.setDate(end.getDate() + 7);
+    const inRange = transactions.filter(t => {
+      const d = new Date(t.date + "T00:00:00");
+      return d >= today && d <= end;
+    });
+    const incomes = inRange.filter(t => t.type === "income");
+    const expenses = inRange.filter(t => t.type === "expense");
+    return {
+      incomes, expenses,
+      totalIn: incomes.reduce((s, t) => s + t.amount, 0),
+      totalOut: expenses.reduce((s, t) => s + t.amount, 0),
+    };
+  }, [transactions]);
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const key = "closefinance:calendarNotified:" + today;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    if (weekAhead.expenses.length > 0) {
+      notify(`📅 ${weekAhead.expenses.length} conta(s) a vencer nos próximos 7 dias (${formatBRL(weekAhead.totalOut)})`, "warning");
+    }
+    if (weekAhead.incomes.length > 0) {
+      setTimeout(() => notify(`💰 ${weekAhead.incomes.length} ganho(s) previstos nos próximos 7 dias (${formatBRL(weekAhead.totalIn)})`, "info"), 600);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AppShell>
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
