@@ -332,7 +332,10 @@ export function useStore() {
     },
     removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
+      const todayStr2 = new Date().toISOString().slice(0, 10);
       const reverseSideEffects = (transaction: Transaction) => {
+        // Lançamentos futuros não impactaram o saldo, então não revertem
+        if (transaction.date > todayStr2) return;
         // expense via débito/pix → devolve ao banco
         if (transaction.type === "expense" && (transaction.paymentMethod === "debit" || transaction.paymentMethod === "pix") && transaction.bankId) {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
@@ -362,6 +365,7 @@ export function useStore() {
           }
         }
       };
+
       if (opts?.wholeGroup && tx?.installmentGroupId) {
         const gid = tx.installmentGroupId;
         const groupTxs = memory.transactions.filter(x => x.installmentGroupId === gid);
