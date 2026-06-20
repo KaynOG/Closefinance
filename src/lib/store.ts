@@ -61,6 +61,7 @@ export interface User {
   yearlyGoal?: number;
   avatar?: string;
   gender?: Gender;
+  cashAmount?: number;
   createdAt: string;
 }
 
@@ -144,6 +145,7 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
     yearlyGoal: p.yearly_goal != null ? Number(p.yearly_goal) : undefined,
     avatar: (p.avatar as string) ?? undefined,
     gender: ((p.gender as Gender) ?? "other"),
+    cashAmount: p.cash_amount != null ? Number(p.cash_amount) : 0,
     createdAt: (p.created_at as string) ?? supa.created_at,
   };
 }
