@@ -25,13 +25,20 @@ function GanhosPage() {
   const today = new Date();
   const incomeCats = categories.filter(c => c.kind !== "expense");
 
-  const [form, setForm] = useState({ amount: "", description: "", date: today.toISOString().slice(0, 10), categoryId: incomeCats[0]?.id ?? "", tag: "" });
+  const [form, setForm] = useState({ amount: "", description: "", date: today.toISOString().slice(0, 10), categoryId: incomeCats[0]?.id ?? "", tag: "", destination: "none" });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
-    api.addTransaction({ type: "income", amount: amt, description: form.description.trim(), date: form.date, categoryId: form.categoryId || undefined, tag: form.tag.trim() || undefined });
+    const dest = form.destination;
+    const bankId = dest && dest !== "none" && dest !== "cash" ? dest : undefined;
+    const paymentMethod = dest === "cash" ? "cash" as const : undefined;
+    api.addTransaction({
+      type: "income", amount: amt, description: form.description.trim(), date: form.date,
+      categoryId: form.categoryId || undefined, tag: form.tag.trim() || undefined,
+      bankId, paymentMethod,
+    });
     setForm({ ...form, amount: "", description: "", tag: "" });
   }
 
@@ -124,6 +131,14 @@ function GanhosPage() {
               <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
                 {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Recebido em">
+              <select value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className={inputCls}>
+                <option value="none">Não informar</option>
+                <option value="cash">💵 Dinheiro físico (caixa)</option>
+                {banks.length > 0 && <option disabled>— Bancos —</option>}
+                {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             </Field>
             <Field label="Etiqueta (parâmetro livre)">
