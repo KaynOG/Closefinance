@@ -73,7 +73,7 @@ function PerfilPage() {
     <AppShell>
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Sua conta</p>
-        <h1 className="text-3xl lg:text-4xl font-bold">Perfil</h1>
+        <h1 className="text-3xl lg:text-4xl font-bold">Perfil & Ajustes</h1>
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 mb-6">
