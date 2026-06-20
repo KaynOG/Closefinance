@@ -39,7 +39,7 @@ function GastosPage() {
     const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
     const amtPerInst = inst > 1 ? Math.round((amt / inst) * 100) / 100 : amt;
     await api.addTransaction({
-      type: "expense", amount: amtPerInst, description: form.description.trim(), date: firstDate,
+      type: "expense", amount: amtPerInst, description: form.description.trim(), date: form.date,
       categoryId: form.categoryId || undefined, essential: form.essential,
       paymentMethod: form.paymentMethod,
       cardId: form.paymentMethod === "credit" ? form.cardId || undefined : undefined,
