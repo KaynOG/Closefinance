@@ -228,3 +228,70 @@ function QuickSaveInput({ bank, onAdd }: { bank: Bank; onAdd: (amount: number) =
     </form>
   );
 }
+
+function CashBox({ cash, onAdd, onSet }: { cash: number; onAdd: (v: number) => void | Promise<void>; onSet: (v: number) => void | Promise<void> }) {
+  const [val, setVal] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState(String(cash));
+
+  async function add(sign: 1 | -1) {
+    const n = parseFloat(val.replace(",", "."));
+    if (!Number.isFinite(n) || n === 0) return;
+    await onAdd(sign * n);
+    setVal("");
+  }
+
+  async function saveSet(e: React.FormEvent) {
+    e.preventDefault();
+    const n = parseFloat(editVal.replace(",", "."));
+    if (!Number.isFinite(n) || n < 0) return;
+    await onSet(n);
+    setEditing(false);
+  }
+
+  return (
+    <GlassCard className="mb-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="size-12 rounded-2xl grid place-items-center" style={{ background: "linear-gradient(135deg, #2BD9A1, #006F77)" }}>
+            <Banknote className="size-6 text-white" />
+          </div>
+          <div>
+            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Caixa</p>
+            <h3 className="text-lg font-bold">Dinheiro físico</h3>
+          </div>
+        </div>
+        {editing ? (
+          <form onSubmit={saveSet} className="flex items-center gap-2">
+            <input value={editVal} onChange={e => setEditVal(e.target.value)} inputMode="decimal" autoFocus
+              className="w-32 rounded-xl bg-white/5 border border-border px-3 py-2 text-sm outline-none focus:border-primary font-mono" />
+            <button type="submit" data-sound="success" className="rounded-xl bg-primary text-primary-foreground px-3 py-2 text-xs font-mono font-semibold">Salvar</button>
+            <button type="button" data-no-sound onClick={() => { setEditing(false); setEditVal(String(cash)); }} className="rounded-xl border border-border px-3 py-2 text-xs font-mono">Cancelar</button>
+          </form>
+        ) : (
+          <button onClick={() => { setEditVal(String(cash)); setEditing(true); }} className="text-right hover:opacity-80 transition" title="Clique para ajustar manualmente">
+            <p className="text-2xl font-bold" style={{ color: "#2BD9A1" }}>{formatBRL(cash)}</p>
+            <p className="text-[10px] font-mono text-muted-foreground">clique para editar</p>
+          </button>
+        )}
+      </div>
+      <div className="mt-4 flex items-center gap-2">
+        <div className="flex-1 relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-mono text-muted-foreground">R$</span>
+          <input value={val} onChange={e => setVal(e.target.value)} inputMode="decimal" placeholder="Adicionar ou retirar"
+            className="w-full rounded-xl bg-white/5 border border-border pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:bg-white/10 font-mono" />
+        </div>
+        <button type="button" data-sound="coin" onClick={() => add(1)} title="Adicionar"
+          className="rounded-xl px-3 py-2 text-xs font-mono font-semibold flex items-center gap-1.5 active:scale-95 transition text-white"
+          style={{ background: "#2BD9A1" }}>
+          <PlusCircle className="size-4" /> Entrar
+        </button>
+        <button type="button" data-sound="click" onClick={() => add(-1)} title="Retirar"
+          className="rounded-xl px-3 py-2 text-xs font-mono font-semibold flex items-center gap-1.5 active:scale-95 transition border border-border hover:bg-white/5">
+          <Minus className="size-4" /> Sair
+        </button>
+      </div>
+      <p className="mt-2 text-[11px] font-mono text-muted-foreground">Ganhos marcados como "dinheiro físico" entram automaticamente nesta caixa.</p>
+    </GlassCard>
+  );
+}
