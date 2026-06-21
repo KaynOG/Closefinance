@@ -53,7 +53,7 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 4);
+const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
@@ -307,7 +307,7 @@ function DashboardPage() {
 
       <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 
-      <GlassCard hideKey="index-1" className="mb-4">
+      <GlassCard hideKey="index-1" hideLabel="Seletor de mês" className="mb-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <button onClick={() => setMonthOffset(o => o - 1)} aria-label="Mês anterior"
@@ -375,7 +375,7 @@ function DashboardPage() {
 
       {/* Missions + Tip + Goal */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <GlassCard hideKey="index-2" className="lg:col-span-2">
+        <GlassCard hideKey="index-2" hideLabel="Missões de hoje" className="lg:col-span-2">
           <SectionTitle
             title="Missões de hoje"
             subtitle={`${missions.totalPoints} pts acumulados · +10 por missão`}
@@ -426,14 +426,14 @@ function DashboardPage() {
         </GlassCard>
 
         <div className="space-y-4">
-          <GlassCard hideKey="index-3">
+          <GlassCard hideKey="index-3" hideLabel="Dica do dia">
             <div className="flex items-center gap-2 mb-2">
               <Lightbulb className="size-4 text-secondary" />
               <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Dica do dia</p>
             </div>
             <p className="text-sm leading-relaxed">{tip}</p>
           </GlassCard>
-          <GlassCard hideKey="index-4">
+          <GlassCard hideKey="index-4" hideLabel="Meta anual">
             <div className="flex items-center gap-2 mb-3">
               <Target className="size-4 text-secondary" />
               <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Meta anual</p>
@@ -462,7 +462,7 @@ function DashboardPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        <GlassCard hideKey="index-5" className="lg:col-span-1">
+        <GlassCard hideKey="index-5" hideLabel="Saúde financeira" className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <HeartPulse className="size-5 text-secondary" />
             <h3 className="font-semibold">Saúde financeira</h3>
@@ -485,7 +485,7 @@ function DashboardPage() {
           </ul>
         </GlassCard>
 
-        {!hidden.flow && (<GlassCard hideKey="index-6" className="lg:col-span-2">
+        {!hidden.flow && (<GlassCard hideKey="index-6" hideLabel="Fluxo de caixa" className="lg:col-span-2">
           <SectionTitle
             title={`Fluxo dos últimos ${periodMonths} meses`}
             subtitle="ganhos em ciano · gastos em laranja"
@@ -563,7 +563,7 @@ function DashboardPage() {
       {!hidden.cards && (<section className="mb-8">
         <SectionTitle title="Limite dos cartões" subtitle="usado e disponível por cartão neste mês" />
         {cards.length === 0 ? (
-          <GlassCard hideKey="index-7">
+          <GlassCard hideKey="index-7" hideLabel="Cartões">
             <p className="text-sm text-muted-foreground">
               Cadastre seus cartões em{" "}
               <Link to="/cartoes" className="text-secondary underline">
@@ -591,8 +591,16 @@ function DashboardPage() {
                     </div>
                     <CreditCard className="size-4 text-muted-foreground" />
                   </div>
-                  <p className="mt-4 font-mono text-xs text-muted-foreground">Usado</p>
-                  <p className="text-2xl font-bold">{formatBRL(c.used)}</p>
+                  <div className="mt-4 flex items-end justify-between gap-2">
+                    <div>
+                      <p className="font-mono text-xs text-muted-foreground">Usado</p>
+                      <p className="text-2xl font-bold">{formatBRL(c.used)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono text-xs text-muted-foreground">Limite</p>
+                      <p className="text-lg font-bold font-mono">{formatBRL(c.limit)}</p>
+                    </div>
+                  </div>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
@@ -601,9 +609,7 @@ function DashboardPage() {
                   </div>
                   <div className="mt-3 flex justify-between text-xs font-mono">
                     <span className="text-muted-foreground">Disponível</span>
-                    <span>
-                      {formatBRL(c.available)} / {formatBRL(c.limit)}
-                    </span>
+                    <span className="font-semibold">{formatBRL(c.available)}</span>
                   </div>
                   <p className="mt-2 text-[11px] font-mono text-muted-foreground">
                     Libera dia {c.dueDay} · fechamento dia {c.closingDay}
@@ -616,7 +622,7 @@ function DashboardPage() {
       </section>)}
 
       {!hidden.catHistory && (<section className="mb-8">
-        <GlassCard hideKey="index-8">
+        <GlassCard hideKey="index-8" hideLabel="Gastos por categoria · histórico">
           <SectionTitle
             title="Gastos por categoria · histórico"
             subtitle={
@@ -778,7 +784,7 @@ function DashboardPage() {
       </section>)}
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {!hidden.catPie && (<GlassCard hideKey="index-9">
+        {!hidden.catPie && (<GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
           <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
           <div className="h-64">
             {byCat.length === 0 ? (
@@ -822,7 +828,7 @@ function DashboardPage() {
           </div>
         </GlassCard>)}
 
-        {!hidden.essentials && (<GlassCard hideKey="index-10">
+        {!hidden.essentials && (<GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
           <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo" />
           <div className="space-y-5 mt-2">
             <Bar
@@ -862,7 +868,7 @@ function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boole
     { key: "essentials", label: "Essenciais x não" },
   ];
   return (
-    <GlassCard hideKey="index-11" className="mb-6">
+    <GlassCard hideKey="index-11" hideLabel="Mostrar gráficos" className="mb-6">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground mr-1">Mostrar gráficos:</span>
         {items.map((it) => {

@@ -76,7 +76,7 @@ function CardsPage() {
             <Stat label="Status de crédito" value={overview.status.label} accent={overview.status.tone === "success" ? "success" : overview.status.tone === "ok" ? "yellow" : overview.status.tone === "warn" ? "crimson" : "danger"} sub="quanto + perto do teto, pior" />
           </section>
 
-          <GlassCard hideKey="cartoes-1" className="mb-6">
+          <GlassCard hideKey="cartoes-1" hideLabel="Saúde geral dos cartões" className="mb-6">
             <SectionTitle title="Saúde geral dos cartões" subtitle="visão consolidada · uso vs. limite" />
             <div className="flex items-center justify-between text-xs font-mono mb-2">
               <span className="text-muted-foreground">0%</span>
@@ -96,7 +96,7 @@ function CardsPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
-        <GlassCard hideKey="cartoes-2">
+        <GlassCard hideKey="cartoes-2" hideLabel="Novo cartão">
           <SectionTitle title="Novo cartão" />
           <form onSubmit={submit} className="space-y-3">
             <Field label="Nome"><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank Roxinho" /></Field>
@@ -124,7 +124,7 @@ function CardsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start">
           {cards.length === 0 && (
-            <GlassCard hideKey="cartoes-3" className="md:col-span-2">
+            <GlassCard hideKey="cartoes-3" hideLabel="Lista de cartões" className="md:col-span-2">
               <p className="text-sm text-muted-foreground">Você ainda não tem cartões. Cadastre seu primeiro ao lado.</p>
             </GlassCard>
           )}

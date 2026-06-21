@@ -78,7 +78,7 @@ function PerfilPage() {
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 mb-6">
-        <GlassCard hideKey="perfil-1">
+        <GlassCard hideKey="perfil-1" hideLabel="Foto de perfil">
           <SectionTitle title="Foto de perfil" />
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
@@ -113,7 +113,7 @@ function PerfilPage() {
           </button>
         </GlassCard>
 
-        <GlassCard hideKey="perfil-2">
+        <GlassCard hideKey="perfil-2" hideLabel="Dados pessoais">
           <SectionTitle title="Dados pessoais" subtitle="atualize quando precisar" />
           <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Field label="Nome completo" icon={<UserIcon className="size-4" />}>
@@ -178,7 +178,7 @@ function SupportPanel() {
   const wpp = "5531993579103";
   const email = "filipewesley007@gmail.com";
   return (
-    <GlassCard hideKey="perfil-3">
+    <GlassCard hideKey="perfil-3" hideLabel="Suporte">
       <p className="text-sm leading-relaxed text-muted-foreground mb-4">
         Olá! 👋 Se você tem dúvidas, sugestões ou precisa de ajuda para usar o <span className="text-foreground font-semibold">CloseFinance</span>,
         nossa equipe terá o maior prazer em te atender. Escolha o canal abaixo.
@@ -234,7 +234,7 @@ function SecurityPanel() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <GlassCard hideKey="perfil-4">
+      <GlassCard hideKey="perfil-4" hideLabel="Alterar senha">
         <SectionTitle title="Alterar senha" subtitle="mantenha sua conta segura" />
         <form onSubmit={submit} className="space-y-3">
           <Field label="Senha atual" icon={<Lock className="size-4" />}>
@@ -255,7 +255,7 @@ function SecurityPanel() {
         </form>
       </GlassCard>
 
-      <GlassCard hideKey="perfil-5">
+      <GlassCard hideKey="perfil-5" hideLabel="Recuperação por e-mail">
         <SectionTitle title="Recuperação por e-mail" subtitle="enviamos um link de redefinição" />
         <p className="text-sm text-muted-foreground">
           Se você esquecer sua senha, podemos enviar um link de redefinição para <span className="text-foreground font-mono">{user?.email}</span>.

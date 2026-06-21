@@ -11,7 +11,7 @@ export const Route = createFileRoute("/missoes")({
   component: MissoesPage,
 });
 
-const DAILY_MISSIONS = MISSIONS_CATALOG;
+const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
 
 function MissoesPage() {
   const [{ missions }, , user] = useStore();
@@ -55,7 +55,7 @@ function MissoesPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <GlassCard hideKey="missoes-1" className="lg:col-span-2">
+        <GlassCard className="lg:col-span-2">
           <SectionTitle title="Missões de hoje" subtitle="conclua realizando as ações no app — cada missão pontua 1× por dia" />
           <ul className="space-y-2">
             {DAILY_MISSIONS.map((m) => {
@@ -82,7 +82,7 @@ function MissoesPage() {
           </ul>
         </GlassCard>
 
-        <GlassCard hideKey="missoes-2">
+        <GlassCard>
           <div className="flex items-center gap-3 mb-3">
             <div className="size-14 rounded-2xl grid place-items-center" style={{ background: `color-mix(in oklab, ${rank.current.color} 18%, transparent)`, border: `1px solid ${rank.current.color}66` }}>
               <RankIcon className="size-9" style={{ color: rank.current.color }} />
@@ -122,7 +122,7 @@ function MissoesPage() {
         </GlassCard>
       </section>
 
-      <GlassCard hideKey="missoes-3">
+      <GlassCard>
         <SectionTitle title="Histórico de pontuação" subtitle="data e hora de cada conclusão" />
         {missions.history.length === 0 ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2"><Sparkles className="size-4" /> Complete sua primeira missão para começar a pontuar!</p>

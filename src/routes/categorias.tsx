@@ -80,7 +80,7 @@ function CategoriesPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
-        <GlassCard hideKey="categorias-1">
+        <GlassCard hideKey="categorias-1" hideLabel="Nova categoria">
           <SectionTitle title="Nova categoria" />
           <form onSubmit={submit} className="space-y-3">
             <label className="block">
