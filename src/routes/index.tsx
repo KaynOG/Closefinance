@@ -109,11 +109,15 @@ function DashboardPage() {
   const cardUsage = useMemo(
     () =>
       cards.map((c) => {
-        const used = transactions
+        const usedTx = transactions
           .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth))
           .reduce((s, t) => s + t.amount, 0);
+        const manual = c.usedManual ?? 0;
+        const used = usedTx + manual;
         return {
           ...c,
+          usedTx,
+          usedManualVal: manual,
           used,
           available: Math.max(0, c.limit - used),
           pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0,
