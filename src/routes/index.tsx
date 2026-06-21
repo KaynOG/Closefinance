@@ -53,7 +53,7 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 4);
+const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
@@ -591,8 +591,16 @@ function DashboardPage() {
                     </div>
                     <CreditCard className="size-4 text-muted-foreground" />
                   </div>
-                  <p className="mt-4 font-mono text-xs text-muted-foreground">Usado</p>
-                  <p className="text-2xl font-bold">{formatBRL(c.used)}</p>
+                  <div className="mt-4 flex items-end justify-between gap-2">
+                    <div>
+                      <p className="font-mono text-xs text-muted-foreground">Usado</p>
+                      <p className="text-2xl font-bold">{formatBRL(c.used)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono text-xs text-muted-foreground">Limite</p>
+                      <p className="text-lg font-bold font-mono">{formatBRL(c.limit)}</p>
+                    </div>
+                  </div>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
@@ -601,9 +609,7 @@ function DashboardPage() {
                   </div>
                   <div className="mt-3 flex justify-between text-xs font-mono">
                     <span className="text-muted-foreground">Disponível</span>
-                    <span>
-                      {formatBRL(c.available)} / {formatBRL(c.limit)}
-                    </span>
+                    <span className="font-semibold">{formatBRL(c.available)}</span>
                   </div>
                   <p className="mt-2 text-[11px] font-mono text-muted-foreground">
                     Libera dia {c.dueDay} · fechamento dia {c.closingDay}
