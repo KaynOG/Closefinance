@@ -55,7 +55,7 @@ function BanksPage() {
       </section>
 
       {goal > 0 && (
-        <GlassCard hideKey="bancos-1" className="mb-6">
+        <GlassCard hideKey="bancos-1" hideLabel="Progresso da meta anual" className="mb-6">
           <SectionTitle title="Progresso da meta anual" subtitle={`${formatBRL(totals.saved)} de ${formatBRL(goal)}`} />
           <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
             <div className="h-full transition-all duration-700" style={{ width: `${totals.goalPct}%`, background: "linear-gradient(90deg, #22C3CC, #2BD9A1)" }} />
@@ -67,7 +67,7 @@ function BanksPage() {
       <CashBox cash={cash} onAdd={(v) => api.addCash(v)} onSet={(v) => api.setCash(v)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-4">
-        <GlassCard hideKey="bancos-2">
+        <GlassCard hideKey="bancos-2" hideLabel="Novo banco">
           <SectionTitle title="Novo banco" />
           <form onSubmit={submit} className="space-y-3">
             <Field label="Nome"><input className={inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank, Inter, Caixa…" /></Field>
@@ -96,7 +96,7 @@ function BanksPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start">
           {banks.length === 0 && (
-            <GlassCard hideKey="bancos-3" className="md:col-span-2">
+            <GlassCard hideKey="bancos-3" hideLabel="Lista de bancos" className="md:col-span-2">
               <p className="text-sm text-muted-foreground">Você ainda não cadastrou bancos. Adicione o primeiro ao lado para acompanhar seu patrimônio e meta.</p>
             </GlassCard>
           )}
@@ -251,7 +251,7 @@ function CashBox({ cash, onAdd, onSet }: { cash: number; onAdd: (v: number) => v
   }
 
   return (
-    <GlassCard hideKey="bancos-4" className="mb-6">
+    <GlassCard hideKey="bancos-4" hideLabel="Dinheiro físico (caixa)" className="mb-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="size-12 rounded-2xl grid place-items-center" style={{ background: "linear-gradient(135deg, #2BD9A1, #006F77)" }}>
