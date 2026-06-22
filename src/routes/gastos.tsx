@@ -154,6 +154,26 @@ function GastosPage() {
             <Field label="Valor (R$)"><input required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0,00" inputMode="decimal" className={inputCls} /></Field>
             <Field label="Descrição"><input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Mercado, conta de luz..." className={inputCls} /></Field>
             <Field label="Data"><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} /></Field>
+            <Field label="Pagamento de fatura?">
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: false, invoiceCardId: "" })}
+                  className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${!form.isInvoicePayment ? "bg-white/10 border-primary" : "border-border hover:bg-white/5"}`}>Não</button>
+                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: true, invoiceCardId: form.invoiceCardId || (cards[0]?.id ?? "") })}
+                  className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.isInvoicePayment ? "bg-[#540BD3]/20 border-[#540BD3]" : "border-border hover:bg-white/5"}`}>Sim</button>
+              </div>
+            </Field>
+            {form.isInvoicePayment && (
+              <Field label="Cartão da fatura">
+                {cards.length === 0 ? (
+                  <p className="text-xs font-mono text-muted-foreground">Cadastre um cartão na aba Cartões.</p>
+                ) : (
+                  <select value={form.invoiceCardId} onChange={e => setForm({ ...form, invoiceCardId: e.target.value })} className={inputCls}>
+                    {cards.map(c => <option key={c.id} value={c.id}>{c.name} · usado {formatBRL((c.usedManual ?? 0))}</option>)}
+                  </select>
+                )}
+                <p className="text-[10px] font-mono text-muted-foreground mt-1">O valor pago será liberado no limite usado do cartão.</p>
+              </Field>
+            )}
             <Field label="Categoria">
               <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
