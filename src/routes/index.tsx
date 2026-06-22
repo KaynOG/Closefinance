@@ -107,12 +107,17 @@ function DashboardPage() {
 
   // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(
-    () =>
-      cards.map((c) => {
+    () => {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      return cards.map((c) => {
+        const invoiceTag = `${INVOICE_PAYMENT_TAG_PREFIX}${c.id}`;
         const usedTx = transactions
-          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth))
+          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
           .reduce((s, t) => s + t.amount, 0);
-        const manual = c.usedManual ?? 0;
+        const released = transactions
+          .filter((t) => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr)
+          .reduce((s, t) => s + t.amount, 0);
+        const manual = Math.max(0, (c.usedManual ?? 0) - released);
         const used = usedTx + manual;
         return {
           ...c,
@@ -122,7 +127,8 @@ function DashboardPage() {
           available: Math.max(0, c.limit - used),
           pct: c.limit ? Math.min(100, (used / c.limit) * 100) : 0,
         };
-      }),
+      });
+    },
     [cards, transactions, displayMonth],
   );
 
