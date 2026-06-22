@@ -44,12 +44,16 @@ function CardsPage() {
   }
 
   const overview = useMemo(() => {
+    const todayStr = today.toISOString().slice(0, 10);
     const enriched = cards.map((c) => {
-      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
-      const manual = c.usedManual ?? 0;
+      const invoiceTag = `${INVOICE_PAYMENT_TAG_PREFIX}${c.id}`;
+      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX)).reduce((s, t) => s + t.amount, 0);
+      const released = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
+      const pending = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date > todayStr).reduce((s, t) => s + t.amount, 0);
+      const manual = Math.max(0, (c.usedManual ?? 0) - released);
       const used = usedTx + manual;
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
-      return { ...c, usedTx, usedManualVal: manual, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
+      return { ...c, usedTx, usedManualVal: manual, released, pending, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
     const totalLimit = enriched.reduce((s, c) => s + c.limit, 0);
     const totalUsed = enriched.reduce((s, c) => s + c.used, 0);
