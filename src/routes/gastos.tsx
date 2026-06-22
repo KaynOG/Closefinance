@@ -31,12 +31,36 @@ function GastosPage() {
     categoryId: expenseCats[0]?.id ?? "", essential: "essential" as Essential,
     paymentMethod: "debit" as PaymentMethod, cardId: "", bankId: "", tag: "",
     installments: "1",
+    isInvoicePayment: false, invoiceCardId: "",
   });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
+
+    // Pagamento de fatura: registra o gasto (saída do banco/pix/dinheiro) e
+    // libera o valor pago do limite usado do cartão escolhido.
+    if (form.isInvoicePayment) {
+      if (!form.invoiceCardId) { notify("Escolha o cartão da fatura."); return; }
+      const card = cards.find(c => c.id === form.invoiceCardId);
+      if (!card) return;
+      const pm: PaymentMethod = form.paymentMethod === "credit" ? "debit" : form.paymentMethod;
+      await api.addTransaction({
+        type: "expense", amount: amt,
+        description: form.description.trim() || `Pagamento fatura ${card.name}`,
+        date: form.date, categoryId: form.categoryId || undefined, essential: "essential",
+        paymentMethod: pm,
+        bankId: (pm === "debit" || pm === "pix") ? form.bankId || undefined : undefined,
+        tag: form.tag.trim() || `fatura-${card.name}`,
+      });
+      const newUsedManual = Math.max(0, (card.usedManual ?? 0) - amt);
+      await api.updateCard(card.id, { usedManual: newUsedManual });
+      notify(`Pagamento de fatura de ${formatBRL(amt)} aplicado ao cartão ${card.name}.`);
+      setForm({ ...form, amount: "", description: "", tag: "", installments: "1", isInvoicePayment: false, invoiceCardId: "" });
+      return;
+    }
+
     const inst = form.paymentMethod === "credit" ? Math.max(1, Math.min(36, parseInt(form.installments) || 1)) : 1;
     const amtPerInst = inst > 1 ? Math.round((amt / inst) * 100) / 100 : amt;
     await api.addTransaction({
