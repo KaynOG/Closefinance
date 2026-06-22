@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
@@ -34,29 +34,39 @@ function GastosPage() {
     isInvoicePayment: false, invoiceCardId: "",
   });
 
+  const invoiceCat = categories.find(c => c.name === "Adiantamento/Pagamento de fatura");
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
 
     // Pagamento de fatura: registra o gasto (saída do banco/pix/dinheiro) e
-    // libera o valor pago do limite usado do cartão escolhido.
+    // marca o lançamento com tag especial. O limite do cartão só será liberado
+    // automaticamente quando a data do lançamento chegar (cálculo feito na aba
+    // Cartões e no Dashboard).
     if (form.isInvoicePayment) {
       if (!form.invoiceCardId) { notify("Escolha o cartão da fatura."); return; }
       const card = cards.find(c => c.id === form.invoiceCardId);
       if (!card) return;
       const pm: PaymentMethod = form.paymentMethod === "credit" ? "debit" : form.paymentMethod;
+      const userTag = form.tag.trim();
+      const taggedTag = `${INVOICE_PAYMENT_TAG_PREFIX}${card.id}${userTag ? `|${userTag}` : ""}`;
       await api.addTransaction({
         type: "expense", amount: amt,
         description: form.description.trim() || `Pagamento fatura ${card.name}`,
-        date: form.date, categoryId: form.categoryId || undefined, essential: "essential",
+        date: form.date,
+        categoryId: invoiceCat?.id || form.categoryId || undefined,
+        essential: "essential",
         paymentMethod: pm,
         bankId: (pm === "debit" || pm === "pix") ? form.bankId || undefined : undefined,
-        tag: form.tag.trim() || `fatura-${card.name}`,
+        tag: taggedTag,
       });
-      const newUsedManual = Math.max(0, (card.usedManual ?? 0) - amt);
-      await api.updateCard(card.id, { usedManual: newUsedManual });
-      notify(`Pagamento de fatura de ${formatBRL(amt)} aplicado ao cartão ${card.name}.`);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const willApplyNow = form.date <= todayStr;
+      notify(willApplyNow
+        ? `Pagamento de fatura de ${formatBRL(amt)} aplicado ao limite do cartão ${card.name}.`
+        : `Pagamento de fatura de ${formatBRL(amt)} agendado · libera o limite do ${card.name} em ${new Date(form.date + "T00:00:00").toLocaleDateString("pt-BR")}.`);
       setForm({ ...form, amount: "", description: "", tag: "", installments: "1", isInvoicePayment: false, invoiceCardId: "" });
       return;
     }
@@ -158,7 +168,7 @@ function GastosPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: false, invoiceCardId: "" })}
                   className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${!form.isInvoicePayment ? "bg-white/10 border-primary" : "border-border hover:bg-white/5"}`}>Não</button>
-                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: true, invoiceCardId: form.invoiceCardId || (cards[0]?.id ?? "") })}
+                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: true, invoiceCardId: form.invoiceCardId || (cards[0]?.id ?? ""), categoryId: invoiceCat?.id || form.categoryId })}
                   className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.isInvoicePayment ? "bg-[#540BD3]/20 border-[#540BD3]" : "border-border hover:bg-white/5"}`}>Sim</button>
               </div>
             </Field>
@@ -304,7 +314,7 @@ function GastosPage() {
                               </td>
                               <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
                               <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
-                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{(() => { const pf = parseInvoicePaymentTag(t.tag); if (pf) { const cn = cards.find(c => c.id === pf.cardId)?.name ?? "cartão"; return <span style={{ color: "#2BD9A1" }}>Pgto fatura · {cn}{pf.userTag ? ` · ${pf.userTag}` : ""}</span>; } return t.tag || "—"; })()}</td>
                               <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
                               <td className="py-2.5 px-3 whitespace-nowrap">
                                 <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>

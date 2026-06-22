@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse } from "lucide-react";
 
@@ -44,12 +44,16 @@ function CardsPage() {
   }
 
   const overview = useMemo(() => {
+    const todayStr = today.toISOString().slice(0, 10);
     const enriched = cards.map((c) => {
-      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
-      const manual = c.usedManual ?? 0;
+      const invoiceTag = `${INVOICE_PAYMENT_TAG_PREFIX}${c.id}`;
+      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX)).reduce((s, t) => s + t.amount, 0);
+      const released = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
+      const pending = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date > todayStr).reduce((s, t) => s + t.amount, 0);
+      const manual = Math.max(0, (c.usedManual ?? 0) - released);
       const used = usedTx + manual;
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
-      return { ...c, usedTx, usedManualVal: manual, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
+      return { ...c, usedTx, usedManualVal: manual, released, pending, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
     const totalLimit = enriched.reduce((s, c) => s + c.limit, 0);
     const totalUsed = enriched.reduce((s, c) => s + c.used, 0);
@@ -191,6 +195,13 @@ function CardsPage() {
                       <p className="text-muted-foreground">Limite a liberar</p>
                       <p className="text-sm" style={{ color: "#2BD9A1" }}>{formatBRL(fatura)}</p>
                     </div>
+                    {c.pending > 0 && (
+                      <div className="col-span-2 rounded-lg bg-[#2BD9A1]/10 border border-[#2BD9A1]/30 px-2 py-1.5">
+                        <p className="text-[10px]" style={{ color: "#2BD9A1" }}>
+                          Pagamento agendado: {formatBRL(c.pending)} libera o limite na data do lançamento.
+                        </p>
+                      </div>
+                    )}
                     <p className="col-span-2 text-[10px] text-muted-foreground leading-snug">Vence dia {c.dueDay} · pagar a fatura libera esse limite no cartão.</p>
                   </div>
                   <div className="mt-3 rounded-2xl p-3 border flex items-start gap-2 text-xs" style={{ borderColor: c.status.color + "55", background: c.status.color + "12" }}>
