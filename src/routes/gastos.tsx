@@ -314,7 +314,7 @@ function GastosPage() {
                               </td>
                               <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
                               <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
-                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{(() => { const pf = parseInvoicePaymentTag(t.tag); if (pf) { const cn = cards.find(c => c.id === pf.cardId)?.name ?? "cartão"; return <span style={{ color: "#2BD9A1" }}>Pgto fatura · {cn}{pf.userTag ? ` · ${pf.userTag}` : ""}</span>; } return t.tag || "—"; })()}</td>
                               <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
                               <td className="py-2.5 px-3 whitespace-nowrap">
                                 <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
