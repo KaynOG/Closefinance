@@ -34,29 +34,39 @@ function GastosPage() {
     isInvoicePayment: false, invoiceCardId: "",
   });
 
+  const invoiceCat = categories.find(c => c.name === "Adiantamento/Pagamento de fatura");
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseFloat(form.amount.replace(",", "."));
     if (!amt || amt <= 0) return;
 
     // Pagamento de fatura: registra o gasto (saída do banco/pix/dinheiro) e
-    // libera o valor pago do limite usado do cartão escolhido.
+    // marca o lançamento com tag especial. O limite do cartão só será liberado
+    // automaticamente quando a data do lançamento chegar (cálculo feito na aba
+    // Cartões e no Dashboard).
     if (form.isInvoicePayment) {
       if (!form.invoiceCardId) { notify("Escolha o cartão da fatura."); return; }
       const card = cards.find(c => c.id === form.invoiceCardId);
       if (!card) return;
       const pm: PaymentMethod = form.paymentMethod === "credit" ? "debit" : form.paymentMethod;
+      const userTag = form.tag.trim();
+      const taggedTag = `${INVOICE_PAYMENT_TAG_PREFIX}${card.id}${userTag ? `|${userTag}` : ""}`;
       await api.addTransaction({
         type: "expense", amount: amt,
         description: form.description.trim() || `Pagamento fatura ${card.name}`,
-        date: form.date, categoryId: form.categoryId || undefined, essential: "essential",
+        date: form.date,
+        categoryId: invoiceCat?.id || form.categoryId || undefined,
+        essential: "essential",
         paymentMethod: pm,
         bankId: (pm === "debit" || pm === "pix") ? form.bankId || undefined : undefined,
-        tag: form.tag.trim() || `fatura-${card.name}`,
+        tag: taggedTag,
       });
-      const newUsedManual = Math.max(0, (card.usedManual ?? 0) - amt);
-      await api.updateCard(card.id, { usedManual: newUsedManual });
-      notify(`Pagamento de fatura de ${formatBRL(amt)} aplicado ao cartão ${card.name}.`);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const willApplyNow = form.date <= todayStr;
+      notify(willApplyNow
+        ? `Pagamento de fatura de ${formatBRL(amt)} aplicado ao limite do cartão ${card.name}.`
+        : `Pagamento de fatura de ${formatBRL(amt)} agendado · libera o limite do ${card.name} em ${new Date(form.date + "T00:00:00").toLocaleDateString("pt-BR")}.`);
       setForm({ ...form, amount: "", description: "", tag: "", installments: "1", isInvoicePayment: false, invoiceCardId: "" });
       return;
     }
