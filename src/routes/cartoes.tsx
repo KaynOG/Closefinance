@@ -195,6 +195,13 @@ function CardsPage() {
                       <p className="text-muted-foreground">Limite a liberar</p>
                       <p className="text-sm" style={{ color: "#2BD9A1" }}>{formatBRL(fatura)}</p>
                     </div>
+                    {c.pending > 0 && (
+                      <div className="col-span-2 rounded-lg bg-[#2BD9A1]/10 border border-[#2BD9A1]/30 px-2 py-1.5">
+                        <p className="text-[10px]" style={{ color: "#2BD9A1" }}>
+                          Pagamento agendado: {formatBRL(c.pending)} libera o limite na data do lançamento.
+                        </p>
+                      </div>
+                    )}
                     <p className="col-span-2 text-[10px] text-muted-foreground leading-snug">Vence dia {c.dueDay} · pagar a fatura libera esse limite no cartão.</p>
                   </div>
                   <div className="mt-3 rounded-2xl p-3 border flex items-start gap-2 text-xs" style={{ borderColor: c.status.color + "55", background: c.status.color + "12" }}>
