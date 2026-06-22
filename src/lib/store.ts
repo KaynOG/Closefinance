@@ -183,16 +183,36 @@ async function loadAll(supaUser: SupaUser) {
   const history: PointEntry[] = (missR.data ?? []).map(r => ({ date: String((r as Record<string, unknown>).occurred_at), missionId: String((r as Record<string, unknown>).mission_id), points: Number((r as Record<string, unknown>).points) }));
   const completed = history.filter(h => h.date.slice(0, 10) === today && h.points > 0).map(h => h.missionId);
 
+  let cats = (catsR.data ?? []).map(r => mapCat(r as Record<string, unknown>));
+  // Garante a categoria padrão de Adiantamento/Pagamento de fatura
+  const INVOICE_CAT_NAME = "Adiantamento/Pagamento de fatura";
+  if (!cats.some(c => c.name === INVOICE_CAT_NAME)) {
+    const { data: newCat } = await supabase.from("categories")
+      .insert({ user_id: uid, name: INVOICE_CAT_NAME, color: "#2BD9A1", kind: "expense" })
+      .select("*").single();
+    if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
+  }
+
   set({
     loading: false,
     currentUserId: uid,
     users: [user],
-    categories: (catsR.data ?? []).map(r => mapCat(r as Record<string, unknown>)),
+    categories: cats,
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
     banks: (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>)),
     transactions: (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>)),
     missions: { date: today, completed, totalPoints, history },
   });
+}
+
+// Marker prefix usado no campo tag para identificar pagamentos de fatura.
+// Formato: `__pf__:<cardId>` + opcional `|<tag livre do usuário>`
+export const INVOICE_PAYMENT_TAG_PREFIX = "__pf__:";
+export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?: string } | null {
+  if (!tag || !tag.startsWith(INVOICE_PAYMENT_TAG_PREFIX)) return null;
+  const rest = tag.slice(INVOICE_PAYMENT_TAG_PREFIX.length);
+  const [cardId, userTag] = rest.split("|");
+  return { cardId, userTag: userTag || undefined };
 }
 
 function clearAll() {
