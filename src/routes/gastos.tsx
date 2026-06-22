@@ -168,7 +168,7 @@ function GastosPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: false, invoiceCardId: "" })}
                   className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${!form.isInvoicePayment ? "bg-white/10 border-primary" : "border-border hover:bg-white/5"}`}>Não</button>
-                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: true, invoiceCardId: form.invoiceCardId || (cards[0]?.id ?? "") })}
+                <button type="button" onClick={() => setForm({ ...form, isInvoicePayment: true, invoiceCardId: form.invoiceCardId || (cards[0]?.id ?? ""), categoryId: invoiceCat?.id || form.categoryId })}
                   className={`rounded-xl p-2.5 text-xs font-mono border transition active:scale-95 ${form.isInvoicePayment ? "bg-[#540BD3]/20 border-[#540BD3]" : "border-border hover:bg-white/5"}`}>Sim</button>
               </div>
             </Field>
