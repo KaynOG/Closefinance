@@ -945,7 +945,7 @@ function HealthRing({
   const offset = c - (score / 100) * c;
   const colorMap: Record<string, string> = {
     violet: "#540BD3",
-    yellow: "#FFCC00",
+    yellow: "#f4fafe",
     teal: "#006F77",
     crimson: "#820432",
     success: "#2BD9A1",
