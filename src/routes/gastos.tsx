@@ -25,6 +25,7 @@ function GastosPage() {
   const [fCategory, setFCategory] = useState("all");
   const [fMin, setFMin] = useState("");
   const [fMax, setFMax] = useState("");
+  const [fSearch, setFSearch] = useState("");
 
   const [form, setForm] = useState({
     amount: "", description: "", date: today.toISOString().slice(0, 10),
