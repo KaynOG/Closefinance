@@ -173,43 +173,43 @@
     radial-gradient(500px 320px at 0% 90%, rgba(245, 158, 15, 0.10), transparent 70%);
 }
 
-/* ===== Accent: Crimson (vinho) ===== */
+/* ===== Accent: Laranja ===== */
 :root[data-accent="crimson"] {
-  --primary: #820432;
-  --primary-foreground: #ffffff;
-  --secondary: #ffb300;
-  --secondary-foreground: #2a0009;
-  --accent: #c1184a;
-  --accent-foreground: #ffffff;
-  --ring: #820432;
-  --sidebar-primary: #820432;
-  --sidebar-ring: #820432;
-  --chart-1: #820432;
-  --chart-2: #ff8fa3;
-  --chart-3: #ffb300;
+  --primary: #f59e0f;
+  --primary-foreground: #1a1208;
+  --secondary: #f4fafe;
+  --secondary-foreground: #1a1208;
+  --accent: #f59e0f;
+  --accent-foreground: #1a1208;
+  --ring: #f59e0f;
+  --sidebar-primary: #f59e0f;
+  --sidebar-ring: #f59e0f;
+  --chart-1: #f59e0f;
+  --chart-2: #ffd27a;
+  --chart-3: #f4fafe;
   --chart-4: #c1184a;
-  --chart-5: #ffd0c2;
-  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #820432 70%, transparent);
-  --gradient-primary: linear-gradient(135deg, #820432 0%, #ff8fa3 100%);
-  --gradient-warm: linear-gradient(135deg, #ffb300 0%, #820432 100%);
-  --gradient-cool: linear-gradient(135deg, #820432 0%, #c1184a 100%);
+  --chart-5: #ffb300;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #f59e0f 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #f59e0f 0%, #ffd27a 100%);
+  --gradient-warm: linear-gradient(135deg, #f59e0f 0%, #c1184a 100%);
+  --gradient-cool: linear-gradient(135deg, #f59e0f 0%, #ffb300 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(130, 4, 50, 0.4), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(193, 24, 74, 0.22), transparent 60%),
-    radial-gradient(800px 600px at 50% 120%, rgba(64, 64, 64, 0.22), transparent 60%);
+    radial-gradient(1200px 600px at 10% -10%, rgba(245, 158, 15, 0.35), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(245, 158, 15, 0.2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(244, 250, 254, 0.1), transparent 60%);
   --gradient-screen:
-    radial-gradient(600px 360px at 80% 0%, rgba(255, 143, 163, 0.10), transparent 70%),
-    radial-gradient(500px 320px at 0% 90%, rgba(130, 4, 50, 0.10), transparent 70%);
+    radial-gradient(600px 360px at 80% 0%, rgba(255, 210, 122, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(245, 158, 15, 0.10), transparent 70%);
 }
 :root[data-accent="crimson"]:not(.light) {
-  --background: #190311;
-  --popover: #2a071a;
-  --sidebar: rgba(25, 3, 17, 0.72);
+  --background: #1a1208;
+  --popover: #2a1d0e;
+  --sidebar: rgba(26, 18, 8, 0.72);
 }
 :root[data-accent="crimson"].light {
-  --background: #fff3f5;
+  --background: #fff8ec;
   --popover: #ffffff;
-  --sidebar: rgba(255, 243, 245, 0.72);
+  --sidebar: rgba(255, 248, 236, 0.72);
 }
 
 /* ===== Accent: Teal ===== */
