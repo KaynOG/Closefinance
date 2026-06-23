@@ -125,6 +125,7 @@ function CategoriesPage() {
           {categories.map((c) => {
             const count = transactions.filter(t => t.categoryId === c.id).length;
             const Icon = CATEGORY_ICONS[c.icon ?? "tag"] ?? Tag;
+            const isLocked = c.name === "Adiantamento/Pagamento de fatura";
             return (
               <div key={c.id} className="glass rounded-2xl p-4 flex items-center gap-3">
                 <div className="size-10 rounded-xl grid place-items-center shrink-0" style={{ background: c.color + "33", color: c.color }}>
@@ -134,20 +135,28 @@ function CategoriesPage() {
                   <input
                     value={c.name}
                     onChange={(e) => api.updateCategory(c.id, { name: e.target.value })}
-                    className="w-full bg-transparent text-sm font-semibold outline-none border-b border-transparent focus:border-white/20"
+                    readOnly={isLocked}
+                    className="w-full bg-transparent text-sm font-semibold outline-none border-b border-transparent focus:border-white/20 disabled:opacity-60"
                   />
                   <div className="flex items-center gap-1.5 mt-1">
                     <select value={c.icon ?? "tag"} onChange={(e) => api.updateCategory(c.id, { icon: e.target.value })}
                       className="bg-transparent text-[10px] font-mono text-muted-foreground outline-none cursor-pointer hover:text-foreground">
-                      {ICON_LIST.map(i => <option key={i.id} value={i.id} className="bg-[#14062E]">{i.label}</option>)}
+                      {ICON_LIST.map(i => <option key={i.id} value={i.id} className="bg-[#0d2226]">{i.label}</option>)}
                     </select>
                     <span className="text-[11px] font-mono text-muted-foreground">· {count} transações</span>
+                    {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
                   </div>
                 </div>
                 <input type="color" value={c.color} onChange={(e) => api.updateCategory(c.id, { color: e.target.value })} className="size-7 rounded-full bg-transparent cursor-pointer" />
-                <button onClick={() => api.removeCategory(c.id)} className="rounded-lg p-1.5 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
-                  <Trash2 className="size-4" />
-                </button>
+                {isLocked ? (
+                  <span title="Categoria padrão — não pode ser apagada" className="rounded-lg p-1.5 text-muted-foreground/40 cursor-not-allowed">
+                    <Trash2 className="size-4" />
+                  </span>
+                ) : (
+                  <button onClick={() => api.removeCategory(c.id)} className="rounded-lg p-1.5 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
               </div>
             );
           })}
