@@ -7,10 +7,10 @@ const listeners = new Set<(t: Theme) => void>();
 const aListeners = new Set<(a: Accent) => void>();
 
 export const ACCENTS: { id: Accent; name: string; color: string }[] = [
-  { id: "violet", name: "Violeta", color: "#540BD3" },
-  { id: "crimson", name: "Crimson", color: "#820432" },
-  { id: "teal", name: "Teal", color: "#006F77" },
-  { id: "graphite", name: "Grafite", color: "#404040" },
+  { id: "violet", name: "Padrão", color: "#007078" },
+  { id: "crimson", name: "Laranja", color: "#f59e0f" },
+  { id: "teal", name: "Limão", color: "#e2e043" },
+  { id: "graphite", name: "Grafite", color: "#292c40" },
 ];
 
 export function getTheme(): Theme {
