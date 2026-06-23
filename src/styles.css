@@ -253,41 +253,41 @@
 
 /* ===== Accent: Grafite ===== */
 :root[data-accent="graphite"] {
-  --primary: #404040;
-  --primary-foreground: #ffffff;
-  --secondary: #ffcc00;
-  --secondary-foreground: #1a1a1a;
-  --accent: #8a8a8a;
-  --accent-foreground: #ffffff;
-  --ring: #404040;
-  --sidebar-primary: #404040;
-  --sidebar-ring: #404040;
-  --chart-1: #404040;
-  --chart-2: #8a8a8a;
-  --chart-3: #ffcc00;
+  --primary: #292c40;
+  --primary-foreground: #f4fafe;
+  --secondary: #f4fafe;
+  --secondary-foreground: #292c40;
+  --accent: #5b6080;
+  --accent-foreground: #f4fafe;
+  --ring: #292c40;
+  --sidebar-primary: #292c40;
+  --sidebar-ring: #292c40;
+  --chart-1: #292c40;
+  --chart-2: #5b6080;
+  --chart-3: #f4fafe;
   --chart-4: #820432;
   --chart-5: #006f77;
-  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #404040 70%, transparent);
-  --gradient-primary: linear-gradient(135deg, #404040 0%, #8a8a8a 100%);
-  --gradient-warm: linear-gradient(135deg, #ffcc00 0%, #404040 100%);
-  --gradient-cool: linear-gradient(135deg, #404040 0%, #1a1a1a 100%);
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #292c40 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #292c40 0%, #5b6080 100%);
+  --gradient-warm: linear-gradient(135deg, #f4fafe 0%, #292c40 100%);
+  --gradient-cool: linear-gradient(135deg, #292c40 0%, #0a1518 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(64, 64, 64, 0.5), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(130, 4, 50, 0.18), transparent 60%),
-    radial-gradient(800px 600px at 50% 120%, rgba(0, 111, 119, 0.18), transparent 60%);
+    radial-gradient(1200px 600px at 10% -10%, rgba(41, 44, 64, 0.5), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(91, 96, 128, 0.2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(244, 250, 254, 0.06), transparent 60%);
   --gradient-screen:
-    radial-gradient(600px 360px at 80% 0%, rgba(138, 138, 138, 0.10), transparent 70%),
-    radial-gradient(500px 320px at 0% 90%, rgba(64, 64, 64, 0.10), transparent 70%);
+    radial-gradient(600px 360px at 80% 0%, rgba(91, 96, 128, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(41, 44, 64, 0.10), transparent 70%);
 }
 :root[data-accent="graphite"]:not(.light) {
-  --background: #0d0d0d;
-  --popover: #1a1a1a;
-  --sidebar: rgba(13, 13, 13, 0.72);
+  --background: #0d0e16;
+  --popover: #1a1c28;
+  --sidebar: rgba(13, 14, 22, 0.72);
 }
 :root[data-accent="graphite"].light {
-  --background: #f5f5f5;
+  --background: #eef0f6;
   --popover: #ffffff;
-  --sidebar: rgba(245, 245, 245, 0.72);
+  --sidebar: rgba(238, 240, 246, 0.72);
 }
 
 @layer base {
