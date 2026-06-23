@@ -72,7 +72,7 @@ export function Stat({ label, value, sub, accent = "violet", hideKey }: {
 }) {
   const accentMap: Record<string, string> = {
     violet: "from-[#540BD3] to-[#B388FF]",
-    yellow: "from-[#FFCC00] to-[#FFE066]",
+    yellow: "from-[#f4fafe] to-[#f4fafe]",
     teal: "from-[#006F77] to-[#22C3CC]",
     crimson: "from-[#820432] to-[#D14B72]",
     success: "from-[#2BD9A1] to-[#7DF2C5]",
