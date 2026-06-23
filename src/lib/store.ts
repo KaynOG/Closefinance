@@ -419,6 +419,11 @@ export function useStore() {
       set({ categories: memory.categories.map(x => x.id === i ? { ...x, ...p } : x) });
     },
     removeCategory: async (i: string) => {
+      const cat = memory.categories.find(c => c.id === i);
+      if (cat?.name === "Adiantamento/Pagamento de fatura") {
+        console.warn("Categoria padrão Adiantamento/Pagamento de fatura não pode ser apagada.");
+        return;
+      }
       const { error } = await supabase.from("categories").delete().eq("id", i);
       if (error) return console.error(error);
       set({ categories: memory.categories.filter(x => x.id !== i) });
