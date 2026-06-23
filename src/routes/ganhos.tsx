@@ -23,6 +23,7 @@ function GanhosPage() {
   const [fCategory, setFCategory] = useState("all");
   const [fMin, setFMin] = useState("");
   const [fMax, setFMax] = useState("");
+  const [fSearch, setFSearch] = useState("");
   const today = new Date();
   const incomeCats = categories.filter(c => c.kind !== "expense");
 
