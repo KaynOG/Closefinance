@@ -212,43 +212,43 @@
   --sidebar: rgba(255, 248, 236, 0.72);
 }
 
-/* ===== Accent: Teal ===== */
+/* ===== Accent: Limão ===== */
 :root[data-accent="teal"] {
-  --primary: #006f77;
-  --primary-foreground: #ffffff;
-  --secondary: #ffcc00;
-  --secondary-foreground: #002326;
-  --accent: #22c3cc;
-  --accent-foreground: #002326;
-  --ring: #006f77;
-  --sidebar-primary: #006f77;
-  --sidebar-ring: #006f77;
-  --chart-1: #006f77;
-  --chart-2: #22c3cc;
-  --chart-3: #ffcc00;
+  --primary: #e2e043;
+  --primary-foreground: #1a1a08;
+  --secondary: #f4fafe;
+  --secondary-foreground: #1a1a08;
+  --accent: #e2e043;
+  --accent-foreground: #1a1a08;
+  --ring: #e2e043;
+  --sidebar-primary: #e2e043;
+  --sidebar-ring: #e2e043;
+  --chart-1: #e2e043;
+  --chart-2: #f0ed8a;
+  --chart-3: #f4fafe;
   --chart-4: #2bd9a1;
-  --chart-5: #b388ff;
-  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #006f77 70%, transparent);
-  --gradient-primary: linear-gradient(135deg, #006f77 0%, #22c3cc 100%);
-  --gradient-warm: linear-gradient(135deg, #ffcc00 0%, #006f77 100%);
-  --gradient-cool: linear-gradient(135deg, #006f77 0%, #2bd9a1 100%);
+  --chart-5: #006f77;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #e2e043 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #e2e043 0%, #f0ed8a 100%);
+  --gradient-warm: linear-gradient(135deg, #e2e043 0%, #2bd9a1 100%);
+  --gradient-cool: linear-gradient(135deg, #e2e043 0%, #006f77 100%);
   --gradient-bg:
-    radial-gradient(1200px 600px at 10% -10%, rgba(0, 111, 119, 0.4), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(34, 195, 204, 0.22), transparent 60%),
+    radial-gradient(1200px 600px at 10% -10%, rgba(226, 224, 67, 0.35), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(240, 237, 138, 0.22), transparent 60%),
     radial-gradient(800px 600px at 50% 120%, rgba(43, 217, 161, 0.18), transparent 60%);
   --gradient-screen:
-    radial-gradient(600px 360px at 80% 0%, rgba(34, 195, 204, 0.10), transparent 70%),
-    radial-gradient(500px 320px at 0% 90%, rgba(0, 111, 119, 0.10), transparent 70%);
+    radial-gradient(600px 360px at 80% 0%, rgba(240, 237, 138, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(226, 224, 67, 0.10), transparent 70%);
 }
 :root[data-accent="teal"]:not(.light) {
-  --background: #031617;
-  --popover: #062628;
-  --sidebar: rgba(3, 22, 23, 0.72);
+  --background: #14140a;
+  --popover: #1f1f10;
+  --sidebar: rgba(20, 20, 10, 0.72);
 }
 :root[data-accent="teal"].light {
-  --background: #effbfb;
+  --background: #fbfbe8;
   --popover: #ffffff;
-  --sidebar: rgba(239, 251, 251, 0.72);
+  --sidebar: rgba(251, 251, 232, 0.72);
 }
 
 /* ===== Accent: Grafite ===== */
