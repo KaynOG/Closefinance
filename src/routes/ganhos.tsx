@@ -159,17 +159,20 @@ function GanhosPage() {
             const monthsSet = Array.from(new Set(incomes.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
             const minN = parseFloat(fMin.replace(",", "."));
             const maxN = parseFloat(fMax.replace(",", "."));
+            const q = fSearch.trim().toLowerCase();
             const filtered = incomes.filter(t => {
               if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;
               if (fCategory !== "all" && (t.categoryId || "none") !== fCategory) return false;
               if (!isNaN(minN) && t.amount < minN) return false;
               if (!isNaN(maxN) && t.amount > maxN) return false;
+              if (q && !(t.description ?? "").toLowerCase().includes(q)) return false;
               return true;
             });
-            const cleared = fMonth !== "all" || fCategory !== "all" || fMin || fMax;
+            const cleared = fMonth !== "all" || fCategory !== "all" || fMin || fMax || fSearch;
             return (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+                  <input value={fSearch} onChange={e => setFSearch(e.target.value)} placeholder="Buscar descrição..." className={inputCls + " md:col-span-2"} />
                   <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
                     <option value="all">Todos os meses</option>
                     {monthsSet.map(m => {
@@ -185,9 +188,9 @@ function GanhosPage() {
                   </select>
                   <input value={fMin} onChange={e => setFMin(e.target.value)} placeholder="Valor mín." inputMode="decimal" className={inputCls} />
                   <input value={fMax} onChange={e => setFMax(e.target.value)} placeholder="Valor máx." inputMode="decimal" className={inputCls} />
-                  <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); }}
+                  <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); setFSearch(""); }}
                     disabled={!cleared}
-                    className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5 disabled:opacity-40">
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5 disabled:opacity-40 md:col-span-2">
                     Limpar filtros
                   </button>
                 </div>
