@@ -9,6 +9,11 @@ import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
+import { getBg, setBg, onBgChange, type BgChoice } from "@/lib/background";
+import bgTealOrange from "@/assets/bg-teal-orange.png.asset.json";
+import bgTealWaves from "@/assets/bg-teal-waves.png.asset.json";
+import bgOrangeGlow from "@/assets/bg-orange-glow.png.asset.json";
+import bgLimeStripes from "@/assets/bg-lime-stripes.png.asset.json";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/perfil")({
@@ -300,6 +305,9 @@ function SecurityPanel() {
               <span className="text-[11px] font-mono text-muted-foreground">Modo claro / escuro</span>
             </div>
             <AccentPicker />
+            <div className="mt-4">
+              <BackgroundPicker />
+            </div>
           </div>
         </div>
       </GlassCard>
@@ -334,6 +342,54 @@ function AccentPicker() {
       </div>
     </div>
   );
+}
+
+const BG_OPTIONS: { id: BgChoice; name: string }[] = [
+  { id: "auto", name: "Automático" },
+  { id: "teal-orange", name: "Teal/Laranja" },
+  { id: "teal-waves", name: "Ondas Teal" },
+  { id: "orange-glow", name: "Brilho Laranja" },
+  { id: "lime-stripes", name: "Listras Limão" },
+];
+
+function BackgroundPicker() {
+  const [b, setB] = useState<BgChoice>("auto");
+  useEffect(() => { setB(getBg()); return onBgChange(setB); }, []);
+  return (
+    <div>
+      <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Fundo do app</p>
+      <div className="grid grid-cols-5 gap-2">
+        {BG_OPTIONS.map(opt => {
+          const active = b === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              data-sound="soft"
+              onClick={() => setBg(opt.id)}
+              title={opt.name}
+              className={`group relative rounded-xl border p-2 transition active:scale-95 ${active ? "border-primary bg-primary/10" : "border-border hover:bg-white/5"}`}
+            >
+              <span className={`block h-8 w-full rounded-lg overflow-hidden ${opt.id === "auto" ? "bg-[image:var(--gradient-primary)]" : ""}`}>
+                {opt.id !== "auto" && <BgThumb id={opt.id as Exclude<BgChoice, "auto">} />}
+              </span>
+              <span className="mt-1.5 block text-[9px] font-mono text-center truncate">{opt.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BgThumb({ id }: { id: Exclude<BgChoice, "auto"> }) {
+  const urls: Record<Exclude<BgChoice, "auto">, string> = {
+    "teal-orange": bgTealOrange.url,
+    "teal-waves": bgTealWaves.url,
+    "orange-glow": bgOrangeGlow.url,
+    "lime-stripes": bgLimeStripes.url,
+  };
+  return <span className="block size-full rounded-lg" style={{ backgroundImage: `url(${urls[id]})`, backgroundSize: "cover", backgroundPosition: "center" }} />;
 }
 
 const input = "w-full rounded-xl bg-white/5 border border-border pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
