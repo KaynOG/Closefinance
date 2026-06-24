@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ConsentModal } from "@/components/ConsentModal";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemedBackground } from "@/components/ThemedBackground";
 
 function NotFoundComponent() {
   return (
@@ -110,6 +111,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemedBackground />
       <Outlet />
       <ConsentModal />
       <Toaster richColors position="top-right" closeButton />

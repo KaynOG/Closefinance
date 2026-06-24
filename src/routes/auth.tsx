@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Logo } from "@/components/Logo";
+import bgLogin from "@/assets/bg-login.png.asset.json";
 import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Briefcase, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
@@ -80,19 +81,24 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-60" style={{ background: "var(--gradient-bg)" }} />
-        <div className="absolute -top-32 -left-32 size-96 rounded-full blur-3xl opacity-30 bg-primary animate-pulse" />
-        <div className="absolute bottom-0 right-0 size-96 rounded-full blur-3xl opacity-20 bg-secondary" />
+    <div className="min-h-screen grid lg:grid-cols-2 relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${bgLogin.url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/40" />
 
-        <div className="relative flex items-center gap-3 animate-in fade-in slide-in-from-top duration-500">
-          <Logo size={56} />
-          <div>
-            <p className="font-display font-bold text-2xl">CloseFinance</p>
-            <p className="font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado</p>
-          </div>
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
+        <div className="relative animate-in fade-in slide-in-from-top duration-500">
+          <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.3em]">CloseFinance</p>
+          <p className="font-mono text-xs text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
         </div>
+
 
         <div className="relative animate-in fade-in slide-in-from-left duration-700">
           <h1 className="text-5xl font-bold leading-tight">
@@ -121,15 +127,13 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Logo size={44} />
-            <div>
-              <p className="font-display font-bold text-xl leading-none">CloseFinance</p>
-              <p className="font-mono text-[10px] text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
-            </div>
-          </div>
-
           <div className="glass-strong rounded-3xl p-6 lg:p-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <Logo size={56} />
+              <p className="mt-3 font-display font-bold text-lg leading-none">CloseFinance</p>
+              <p className="font-mono text-[10px] text-muted-foreground mt-1.5 tracking-wider">Bolso fechado, financeiro guardado</p>
+            </div>
+
             {mode !== "forgot" ? (
               <div className="flex gap-1 p-1 rounded-2xl bg-white/5 mb-6">
                 {(["login", "signup"] as const).map(m => (
