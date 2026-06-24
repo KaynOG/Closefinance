@@ -370,10 +370,8 @@ function BackgroundPicker() {
               title={opt.name}
               className={`group relative rounded-xl border p-2 transition active:scale-95 ${active ? "border-primary bg-primary/10" : "border-border hover:bg-white/5"}`}
             >
-              <span className={`block h-8 w-full rounded-lg ${opt.id === "auto" ? "bg-[image:var(--gradient-primary)]" : ""}`}
-                style={opt.id !== "auto" ? { backgroundImage: `url(/__l5e/assets-v1/placeholder)`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-              >
-                {opt.id !== "auto" && <BgThumb id={opt.id} />}
+              <span className={`block h-8 w-full rounded-lg overflow-hidden ${opt.id === "auto" ? "bg-[image:var(--gradient-primary)]" : ""}`}>
+                {opt.id !== "auto" && <BgThumb id={opt.id as Exclude<BgChoice, "auto">} />}
               </span>
               <span className="mt-1.5 block text-[9px] font-mono text-center truncate">{opt.name}</span>
             </button>
