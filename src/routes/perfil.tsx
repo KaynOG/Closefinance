@@ -339,6 +339,57 @@ function AccentPicker() {
   );
 }
 
+const BG_OPTIONS: { id: BgChoice; name: string }[] = [
+  { id: "auto", name: "Automático" },
+  { id: "teal-orange", name: "Teal/Laranja" },
+  { id: "teal-waves", name: "Ondas Teal" },
+  { id: "orange-glow", name: "Brilho Laranja" },
+  { id: "lime-stripes", name: "Listras Limão" },
+];
+
+function BackgroundPicker() {
+  const [b, setB] = useState<BgChoice>("auto");
+  useEffect(() => { setB(getBg()); return onBgChange(setB); }, []);
+  return (
+    <div>
+      <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Fundo do app</p>
+      <div className="grid grid-cols-5 gap-2">
+        {BG_OPTIONS.map(opt => {
+          const active = b === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              data-sound="soft"
+              onClick={() => setBg(opt.id)}
+              title={opt.name}
+              className={`group relative rounded-xl border p-2 transition active:scale-95 ${active ? "border-primary bg-primary/10" : "border-border hover:bg-white/5"}`}
+            >
+              <span className={`block h-8 w-full rounded-lg ${opt.id === "auto" ? "bg-[image:var(--gradient-primary)]" : ""}`}
+                style={opt.id !== "auto" ? { backgroundImage: `url(/__l5e/assets-v1/placeholder)`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+              >
+                {opt.id !== "auto" && <BgThumb id={opt.id} />}
+              </span>
+              <span className="mt-1.5 block text-[9px] font-mono text-center truncate">{opt.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BgThumb({ id }: { id: Exclude<BgChoice, "auto"> }) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const urls: Record<Exclude<BgChoice, "auto">, string> = {
+    "teal-orange": require("@/assets/bg-teal-orange.png.asset.json").url,
+    "teal-waves": require("@/assets/bg-teal-waves.png.asset.json").url,
+    "orange-glow": require("@/assets/bg-orange-glow.png.asset.json").url,
+    "lime-stripes": require("@/assets/bg-lime-stripes.png.asset.json").url,
+  };
+  return <span className="block size-full rounded-lg" style={{ backgroundImage: `url(${urls[id]})`, backgroundSize: "cover", backgroundPosition: "center" }} />;
+}
+
 const input = "w-full rounded-xl bg-white/5 border border-border pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
 
 function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
