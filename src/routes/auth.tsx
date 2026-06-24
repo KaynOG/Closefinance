@@ -81,18 +81,23 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-60" style={{ background: "var(--gradient-bg)" }} />
-        <div className="absolute -top-32 -left-32 size-96 rounded-full blur-3xl opacity-30 bg-primary animate-pulse" />
-        <div className="absolute bottom-0 right-0 size-96 rounded-full blur-3xl opacity-20 bg-secondary" />
+    <div className="min-h-screen grid lg:grid-cols-2 relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${bgLogin.url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/40" />
 
-        <div className="relative flex items-center gap-3 animate-in fade-in slide-in-from-top duration-500">
-          <Logo size={56} />
-          <div>
-            <p className="font-display font-bold text-2xl">CloseFinance</p>
-            <p className="font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado</p>
-          </div>
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
+        <div className="relative animate-in fade-in slide-in-from-top duration-500">
+          <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.3em]">CloseFinance</p>
+          <p className="font-mono text-xs text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
+        </div>
         </div>
 
         <div className="relative animate-in fade-in slide-in-from-left duration-700">
