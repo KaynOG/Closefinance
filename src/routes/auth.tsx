@@ -127,15 +127,13 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Logo size={44} />
-            <div>
-              <p className="font-display font-bold text-xl leading-none">CloseFinance</p>
-              <p className="font-mono text-[10px] text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
-            </div>
-          </div>
-
           <div className="glass-strong rounded-3xl p-6 lg:p-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <Logo size={56} />
+              <p className="mt-3 font-display font-bold text-lg leading-none">CloseFinance</p>
+              <p className="font-mono text-[10px] text-muted-foreground mt-1.5 tracking-wider">Bolso fechado, financeiro guardado</p>
+            </div>
+
             {mode !== "forgot" ? (
               <div className="flex gap-1 p-1 rounded-2xl bg-white/5 mb-6">
                 {(["login", "signup"] as const).map(m => (
