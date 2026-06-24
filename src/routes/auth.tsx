@@ -98,7 +98,7 @@ function AuthPage() {
           <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.3em]">CloseFinance</p>
           <p className="font-mono text-xs text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
         </div>
-        </div>
+
 
         <div className="relative animate-in fade-in slide-in-from-left duration-700">
           <h1 className="text-5xl font-bold leading-tight">
