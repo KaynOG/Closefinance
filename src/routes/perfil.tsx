@@ -385,12 +385,11 @@ function BackgroundPicker() {
 }
 
 function BgThumb({ id }: { id: Exclude<BgChoice, "auto"> }) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const urls: Record<Exclude<BgChoice, "auto">, string> = {
-    "teal-orange": require("@/assets/bg-teal-orange.png.asset.json").url,
-    "teal-waves": require("@/assets/bg-teal-waves.png.asset.json").url,
-    "orange-glow": require("@/assets/bg-orange-glow.png.asset.json").url,
-    "lime-stripes": require("@/assets/bg-lime-stripes.png.asset.json").url,
+    "teal-orange": bgTealOrange.url,
+    "teal-waves": bgTealWaves.url,
+    "orange-glow": bgOrangeGlow.url,
+    "lime-stripes": bgLimeStripes.url,
   };
   return <span className="block size-full rounded-lg" style={{ backgroundImage: `url(${urls[id]})`, backgroundSize: "cover", backgroundPosition: "center" }} />;
 }
