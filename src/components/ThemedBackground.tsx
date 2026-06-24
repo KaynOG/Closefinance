@@ -30,7 +30,7 @@ export function ThemedBackground() {
     const off2 = onBgChange(setBgState);
     return () => { off1(); off2(); };
   }, []);
-  const choice: Exclude<BgChoice, "auto"> = bg === "auto" ? ACCENT_MAP[accent] : bg;
+  const choice: Exclude<BgChoice, "auto"> = bg !== "auto" ? bg : ACCENT_MAP[accent];
   return (
     <div
       aria-hidden
