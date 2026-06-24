@@ -328,21 +328,21 @@
 }
 
 @utility glass {
-  background: linear-gradient(135deg, color-mix(in oklab, var(--foreground) 7%, transparent), color-mix(in oklab, var(--foreground) 2%, transparent));
-  backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, color-mix(in oklab, var(--foreground) 5%, transparent), color-mix(in oklab, var(--foreground) 1%, transparent));
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
   box-shadow:
-    0 10px 40px -20px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+    0 12px 50px -22px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 6%, transparent);
 }
 
 @utility glass-strong {
-  background: linear-gradient(135deg, color-mix(in oklab, var(--foreground) 10%, transparent), color-mix(in oklab, var(--foreground) 4%, transparent));
-  backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, color-mix(in oklab, var(--foreground) 8%, transparent), color-mix(in oklab, var(--foreground) 2%, transparent));
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
   box-shadow:
-    0 20px 60px -20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
+    0 24px 70px -24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 10%, transparent);
 }
 
 @utility glow-violet {
