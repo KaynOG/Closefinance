@@ -10,6 +10,10 @@ import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { getBg, setBg, onBgChange, type BgChoice } from "@/lib/background";
+import bgTealOrange from "@/assets/bg-teal-orange.png.asset.json";
+import bgTealWaves from "@/assets/bg-teal-waves.png.asset.json";
+import bgOrangeGlow from "@/assets/bg-orange-glow.png.asset.json";
+import bgLimeStripes from "@/assets/bg-lime-stripes.png.asset.json";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/perfil")({
