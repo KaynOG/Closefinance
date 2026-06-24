@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Logo } from "@/components/Logo";
+import bgLogin from "@/assets/bg-login.png.asset.json";
 import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Briefcase, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
