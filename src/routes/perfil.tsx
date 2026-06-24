@@ -9,6 +9,7 @@ import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
+import { getBg, setBg, onBgChange, type BgChoice } from "@/lib/background";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/perfil")({
@@ -300,7 +301,9 @@ function SecurityPanel() {
               <span className="text-[11px] font-mono text-muted-foreground">Modo claro / escuro</span>
             </div>
             <AccentPicker />
-          </div>
+            <div className="mt-4">
+              <BackgroundPicker />
+            </div>
         </div>
       </GlassCard>
     </div>
