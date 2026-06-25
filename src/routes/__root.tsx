@@ -69,7 +69,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "CloseFinance" },
+      { name: "theme-color", content: "#0a1518" },
       { title: "CloseFinance — Feche o mês no azul" },
       { name: "description", content: "Controle financeiro e educação financeira com calendário, status de saúde, cartões, missões diárias e categorias personalizáveis." },
       { name: "author", content: "CloseFinance" },
@@ -87,6 +92,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" },
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/__l5e/assets-v1/ca9a02b1-ecb8-4a3b-9693-410a2b19d2da/logo-closefinance-v2.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/__l5e/assets-v1/ca9a02b1-ecb8-4a3b-9693-410a2b19d2da/logo-closefinance-v2.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
