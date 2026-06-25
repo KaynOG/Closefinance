@@ -122,9 +122,6 @@ function PerfilPage() {
             <Field label="Data de nascimento" icon={<CalIcon className="size-4" />}>
               <input type="date" value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className={input} />
             </Field>
-            <Field label="Emprego atual" icon={<Briefcase className="size-4" />}>
-              <input value={form.job} onChange={e => setForm({ ...form, job: e.target.value })} placeholder="Ex: Designer" className={input} />
-            </Field>
             <Field label="Meta financeira anual (R$)" icon={<Target className="size-4" />}>
               <input value={form.yearlyGoal} onChange={e => setForm({ ...form, yearlyGoal: e.target.value })} inputMode="decimal" placeholder="0,00" className={input} />
             </Field>
