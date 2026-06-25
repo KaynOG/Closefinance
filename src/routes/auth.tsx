@@ -297,3 +297,13 @@ function IconField({ icon, value, onChange, placeholder, type, inputMode }: Icon
     </label>
   );
 }
+
+function GBtn({ current, value, label, icon, onClick }: { current: Gender; value: Gender; label: string; icon: React.ReactNode; onClick: (v: Gender) => void }) {
+  const active = current === value;
+  return (
+    <button type="button" onClick={() => onClick(value)}
+      className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-mono transition ${active ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+      {icon}{label}
+    </button>
+  );
+}
