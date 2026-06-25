@@ -200,10 +200,10 @@ function AuthPage() {
               )}
 
               {mode === "signup" && (
-                <div className="space-y-3 pt-2 border-t border-white/10">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground pt-2">Perfil</p>
+                <div className="space-y-3">
                   <IconField icon={<CalIcon className="size-4" />} placeholder="Data de nascimento" type="date"
                     value={form.birthdate} onChange={v => setForm({ ...form, birthdate: v })} />
+
 
                   <div>
                     <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Gênero</span>
