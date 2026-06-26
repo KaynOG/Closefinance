@@ -102,29 +102,43 @@ function CardsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
         <GlassCard hideKey="cartoes-2" hideLabel="Novo cartão">
-          <SectionTitle title="Novo cartão" />
-          <form onSubmit={submit} className="space-y-3">
-            <Field label="Nome"><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank Roxinho" /></Field>
-            <Field label="Limite total (R$)"><input className={inputCls} value={form.limit} onChange={e => setForm({ ...form, limit: e.target.value })} inputMode="decimal" placeholder="0,00" /></Field>
-            <Field label="Limite já ocupado (R$)"><input className={inputCls} value={form.usedManual} onChange={e => setForm({ ...form, usedManual: e.target.value })} inputMode="decimal" placeholder="0,00 (dívida atual no cartão)" /></Field>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Fechamento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.closingDay} onChange={e => setForm({ ...form, closingDay: e.target.value })} /></Field>
-              <Field label="Vencimento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.dueDay} onChange={e => setForm({ ...form, dueDay: e.target.value })} /></Field>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary"><CC className="size-4" /></div>
+              <h2 className="text-base font-semibold">Novo cartão</h2>
             </div>
-            <Field label="Cor de identificação">
-              <div className="flex flex-wrap gap-2">
-                {PALETTE.map(c => (
-                  <button key={c} type="button" onClick={() => setForm({ ...form, color: c })}
-                    className={`size-8 rounded-full border-2 transition ${form.color === c ? "border-white scale-110" : "border-transparent"}`}
-                    style={{ background: c }} aria-label={c} />
-                ))}
-                <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
-              </div>
-            </Field>
-            <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">
-              <Plus className="size-4 inline mr-1.5" /> Adicionar cartão
+            <button onClick={() => setOpenNew(o => !o)}
+              aria-label={openNew ? "Recolher" : "Expandir"}
+              className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+              {openNew ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
             </button>
-          </form>
+          </div>
+          <div className={`grid transition-all duration-300 ease-out ${openNew ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+            <div className="overflow-hidden">
+              <form onSubmit={submit} className="space-y-3">
+                <Field label="Nome"><input className={inputCls} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Nubank Roxinho" /></Field>
+                <Field label="Limite total (R$)"><input className={inputCls} value={form.limit} onChange={e => setForm({ ...form, limit: e.target.value })} inputMode="decimal" placeholder="0,00" /></Field>
+                <Field label="Limite já ocupado (R$)"><input className={inputCls} value={form.usedManual} onChange={e => setForm({ ...form, usedManual: e.target.value })} inputMode="decimal" placeholder="0,00 (dívida atual no cartão)" /></Field>
+                <div className="grid grid-cols-2 gap-2">
+                  <Field label="Fechamento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.closingDay} onChange={e => setForm({ ...form, closingDay: e.target.value })} /></Field>
+                  <Field label="Vencimento (dia)"><input className={inputCls} type="number" min={1} max={28} value={form.dueDay} onChange={e => setForm({ ...form, dueDay: e.target.value })} /></Field>
+                </div>
+                <Field label="Cor de identificação">
+                  <div className="flex flex-wrap gap-2">
+                    {PALETTE.map(c => (
+                      <button key={c} type="button" onClick={() => setForm({ ...form, color: c })}
+                        className={`size-8 rounded-full border-2 transition ${form.color === c ? "border-white scale-110" : "border-transparent"}`}
+                        style={{ background: c }} aria-label={c} />
+                    ))}
+                    <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
+                  </div>
+                </Field>
+                <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">
+                  <Plus className="size-4 inline mr-1.5" /> Adicionar cartão
+                </button>
+              </form>
+            </div>
+          </div>
         </GlassCard>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start">
