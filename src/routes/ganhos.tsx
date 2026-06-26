@@ -43,6 +43,7 @@ function GanhosPage() {
       bankId, paymentMethod,
     });
     notify(`Ganho de ${formatBRL(amt)} adicionado com sucesso!`);
+    playCashRegister();
     setForm({ ...form, amount: "", description: "", tag: "" });
   }
 
