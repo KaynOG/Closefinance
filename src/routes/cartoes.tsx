@@ -24,6 +24,7 @@ function CardsPage() {
   const [{ cards, transactions }, api] = useStore();
   useEffect(() => { api.awardMission("visit_cards"); }, []);
   const today = new Date();
+  const [openNew, setOpenNew] = useState(false);
 
   const [form, setForm] = useState({
     name: "", limit: "", usedManual: "", closingDay: "1", dueDay: "10", color: PALETTE[0],
