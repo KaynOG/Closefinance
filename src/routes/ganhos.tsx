@@ -7,6 +7,7 @@ import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
+import { playCashRegister } from "@/lib/sound";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
