@@ -161,13 +161,32 @@ function PerfilPage() {
       </section>
 
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <DatabaseBackup className="size-5 text-secondary" />
-          <h2 className="text-xl lg:text-2xl font-bold">Backup e restauração</h2>
-        </div>
-        <BackupContent />
+        <BackupCollapsible />
       </section>
     </AppShell>
+  );
+}
+
+function BackupCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassCard hideKey="perfil-backup" hideLabel="Backup e restauração">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><DatabaseBackup className="size-4" /></div>
+          <h2 className="text-base font-semibold">Backup e restauração</h2>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <BackupContent />
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
