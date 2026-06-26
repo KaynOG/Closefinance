@@ -52,27 +52,27 @@ const LESSONS = [
 function LessonCard({ l }: { l: typeof LESSONS[number] }) {
   const [open, setOpen] = useState(false);
   return (
-    <GlassCard className="relative overflow-hidden">
-      <div className="absolute -top-10 -right-10 size-32 rounded-full opacity-30 blur-2xl" style={{ background: l.color }} />
+    <GlassCard className="relative overflow-hidden !p-3">
+      <div className="absolute -top-8 -right-8 size-24 rounded-full opacity-25 blur-2xl" style={{ background: l.color }} />
       <div className="relative">
-        <div className="flex items-center justify-between mb-3">
-          <div className="size-11 rounded-xl grid place-items-center" style={{ background: l.color + "26", color: l.color }}>
-            <l.icon className="size-5" />
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center shrink-0" style={{ background: l.color + "26", color: l.color }}>
+            <l.icon className="size-4" />
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-wider rounded-md px-2 py-1" style={{ background: l.color + "1A", color: l.color }}>{l.tag}</span>
+          <h2 className="text-sm font-semibold leading-tight flex-1 truncate" title={l.title}>{l.title}</h2>
+          <button onClick={() => setOpen(o => !o)}
+            aria-label={open ? "Recolher" : "Expandir"}
+            className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95 shrink-0"
+            style={{ color: l.color, borderColor: l.color + "55" }}>
+            {open ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          </button>
         </div>
-        <h2 className="text-lg font-bold">{l.title}</h2>
-        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{l.summary}</p>
         <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0"}`}>
           <div className="overflow-hidden">
+            <p className="text-xs text-muted-foreground mb-1.5">{l.summary}</p>
             <p className="text-sm text-muted-foreground leading-relaxed">{l.body}</p>
           </div>
         </div>
-        <button onClick={() => setOpen(o => !o)}
-          className="mt-3 inline-flex items-center gap-1.5 text-xs font-mono rounded-lg border border-border px-3 py-1.5 hover:bg-white/5 transition active:scale-95"
-          style={{ color: l.color, borderColor: l.color + "55" }}>
-          {open ? <>Ler menos <ChevronUp className="size-3.5" /></> : <>Ler mais <ChevronDown className="size-3.5" /></>}
-        </button>
       </div>
     </GlassCard>
   );
@@ -83,13 +83,13 @@ function EduPage() {
   useEffect(() => { api.awardMission("visit_educacao"); }, []);
   return (
     <AppShell>
-      <header className="mb-8">
+      <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Aprenda enquanto controla</p>
         <h1 className="text-3xl lg:text-4xl font-bold">Educação <span className="text-gradient">financeira</span></h1>
-        <p className="text-muted-foreground mt-3 max-w-2xl">Pequenos conceitos, grandes mudanças. Toque em <span className="text-foreground font-semibold">Ler mais</span> em cada card para se aprofundar.</p>
+        <p className="text-muted-foreground mt-2 text-sm">Toque no ícone <ChevronDown className="inline size-3.5" /> para expandir cada card.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
         {LESSONS.map((l) => <LessonCard key={l.title} l={l} />)}
       </div>
     </AppShell>
