@@ -85,6 +85,11 @@ export function playSequence(voices: Voice[], spacingMs = 110) {
   voices.forEach((v, i) => setTimeout(() => playTone(v), i * spacingMs));
 }
 
+/** Som de caixa registradora — "ding!" curto seguido de moedas. */
+export function playCashRegister() {
+  playSequence(["chime", "coin", "coin", "coin"], 90);
+}
+
 let installed = false;
 /** Instala um listener global que toca tons aconchegantes em botões/links. */
 export function installGlobalClickSounds() {

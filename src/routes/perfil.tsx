@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff } from "lucide-react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff, ChevronDown, ChevronUp } from "lucide-react";
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -161,13 +161,32 @@ function PerfilPage() {
       </section>
 
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <DatabaseBackup className="size-5 text-secondary" />
-          <h2 className="text-xl lg:text-2xl font-bold">Backup e restauração</h2>
-        </div>
-        <BackupContent />
+        <BackupCollapsible />
       </section>
     </AppShell>
+  );
+}
+
+function BackupCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassCard hideKey="perfil-backup" hideLabel="Backup e restauração">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><DatabaseBackup className="size-4" /></div>
+          <h2 className="text-base font-semibold">Backup e restauração</h2>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <BackupContent />
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
@@ -211,6 +230,8 @@ function SecurityPanel() {
   const [resetMsg, setResetMsg] = useState<{ link: string; email: string } | null>(null);
   const [sound, setSound] = useState(true);
   const [popups, setPopups] = useState(true);
+  const [openPw, setOpenPw] = useState(false);
+  const [openEmail, setOpenEmail] = useState(false);
   useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); }, []);
 
   async function submit(e: React.FormEvent) {
@@ -230,46 +251,76 @@ function SecurityPanel() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <GlassCard hideKey="perfil-4" hideLabel="Alterar senha">
-        <SectionTitle title="Alterar senha" subtitle="mantenha sua conta segura" />
-        <form onSubmit={submit} className="space-y-3">
-          <Field label="Senha atual" icon={<Lock className="size-4" />}>
-            <input type="password" value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} className={input} />
-          </Field>
-          <Field label="Nova senha" icon={<Lock className="size-4" />}>
-            <input type="password" value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} className={input} />
-          </Field>
-          <Field label="Confirmar nova senha" icon={<Lock className="size-4" />}>
-            <input type="password" value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} className={input} />
-          </Field>
-          {msg && (
-            <p className={`text-sm font-mono ${msg.type === "ok" ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{msg.text}</p>
-          )}
-          <button type="submit" data-sound="success" className="rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm flex items-center gap-2 glow-violet">
-            <Save className="size-4" /> Salvar nova senha
-          </button>
-        </form>
-      </GlassCard>
-
-      <GlassCard hideKey="perfil-5" hideLabel="Recuperação por e-mail">
-        <SectionTitle title="Recuperação por e-mail" subtitle="enviamos um link de redefinição" />
-        <p className="text-sm text-muted-foreground">
-          Se você esquecer sua senha, podemos enviar um link de redefinição para <span className="text-foreground font-mono">{user?.email}</span>.
-        </p>
-        <button onClick={sendResetEmail} className="mt-4 rounded-xl border border-secondary/40 text-secondary px-4 py-2 text-sm flex items-center gap-2 hover:bg-secondary/10">
-          <KeyRound className="size-4" /> Enviar link de redefinição
-        </button>
-        {resetMsg && (
-          <div className="mt-4 rounded-xl border border-[#2BD9A1]/30 bg-[#2BD9A1]/10 p-3 text-xs font-mono space-y-2">
-            <p className="text-[#7DF2C5]">Instruções enviadas para <strong>{resetMsg.email}</strong>.</p>
-            <p className="text-muted-foreground">Link (válido por 30 min):</p>
-            <a href={resetMsg.link} className="block break-all text-secondary underline">{resetMsg.link}</a>
-            <p className="text-[10px] text-muted-foreground">Em produção, este link é entregue diretamente no seu e-mail. Configure o serviço de e-mail para envio automático.</p>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <GlassCard hideKey="perfil-4" hideLabel="Alterar senha">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary"><Lock className="size-4" /></div>
+              <h2 className="text-base font-semibold">Alterar senha</h2>
+            </div>
+            <button onClick={() => setOpenPw(o => !o)} aria-label={openPw ? "Recolher" : "Expandir"}
+              className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+              {openPw ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            </button>
           </div>
-        )}
+          <div className={`grid transition-all duration-300 ease-out ${openPw ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+            <div className="overflow-hidden">
+              <form onSubmit={submit} className="space-y-3">
+                <Field label="Senha atual" icon={<Lock className="size-4" />}>
+                  <input type="password" value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} className={input} />
+                </Field>
+                <Field label="Nova senha" icon={<Lock className="size-4" />}>
+                  <input type="password" value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} className={input} />
+                </Field>
+                <Field label="Confirmar nova senha" icon={<Lock className="size-4" />}>
+                  <input type="password" value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} className={input} />
+                </Field>
+                {msg && (
+                  <p className={`text-sm font-mono ${msg.type === "ok" ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{msg.text}</p>
+                )}
+                <button type="submit" data-sound="success" className="rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm flex items-center gap-2 glow-violet">
+                  <Save className="size-4" /> Salvar nova senha
+                </button>
+              </form>
+            </div>
+          </div>
+        </GlassCard>
 
-        <div className="mt-6 pt-5 border-t border-border space-y-4">
+        <GlassCard hideKey="perfil-5" hideLabel="Recuperação por e-mail">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><Mail className="size-4" /></div>
+              <h2 className="text-base font-semibold">Recuperação por e-mail</h2>
+            </div>
+            <button onClick={() => setOpenEmail(o => !o)} aria-label={openEmail ? "Recolher" : "Expandir"}
+              className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+              {openEmail ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            </button>
+          </div>
+          <div className={`grid transition-all duration-300 ease-out ${openEmail ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+            <div className="overflow-hidden">
+              <p className="text-sm text-muted-foreground">
+                Se você esquecer sua senha, podemos enviar um link de redefinição para <span className="text-foreground font-mono">{user?.email}</span>.
+              </p>
+              <button onClick={sendResetEmail} className="mt-4 rounded-xl border border-secondary/40 text-secondary px-4 py-2 text-sm flex items-center gap-2 hover:bg-secondary/10">
+                <KeyRound className="size-4" /> Enviar link de redefinição
+              </button>
+              {resetMsg && (
+                <div className="mt-4 rounded-xl border border-[#2BD9A1]/30 bg-[#2BD9A1]/10 p-3 text-xs font-mono space-y-2">
+                  <p className="text-[#7DF2C5]">Instruções enviadas para <strong>{resetMsg.email}</strong>.</p>
+                  <p className="text-muted-foreground">Link (válido por 30 min):</p>
+                  <a href={resetMsg.link} className="block break-all text-secondary underline">{resetMsg.link}</a>
+                  <p className="text-[10px] text-muted-foreground">Em produção, este link é entregue diretamente no seu e-mail. Configure o serviço de e-mail para envio automático.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+
+      <GlassCard hideKey="perfil-prefs" hideLabel="Preferências">
+        <div className="space-y-4">
           <div>
             <SectionTitle title="Sons da interface" subtitle="cliques e confirmações" />
             <button onClick={() => { const v = !sound; setSound(v); setSoundEnabled(v); if (v) playTone("success"); }}

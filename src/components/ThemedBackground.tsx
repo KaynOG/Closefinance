@@ -1,4 +1,4 @@
-import bgDark from "@/assets/bg-dark-green.jpg.asset.json";
+import bg from "@/assets/bg-geometric-glass.jpg.asset.json";
 
 export function ThemedBackground() {
   return (
@@ -6,7 +6,7 @@ export function ThemedBackground() {
       aria-hidden
       className="fixed inset-0 -z-10 pointer-events-none"
       style={{
-        backgroundImage: `url(${bgDark.url})`,
+        backgroundImage: `url(${bg.url})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -16,7 +16,7 @@ export function ThemedBackground() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--background) 55%, transparent), color-mix(in oklab, var(--background) 70%, transparent))",
+            "linear-gradient(180deg, color-mix(in oklab, var(--background) 60%, transparent), color-mix(in oklab, var(--background) 78%, transparent))",
         }}
       />
     </div>
