@@ -87,21 +87,27 @@ function GastosPage() {
     setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
+  // Lista completa de despesas (mantém as compras no crédito visíveis com badge)
   const expenses = transactions.filter(t => t.type === "expense").sort((a, b) => b.date.localeCompare(a.date));
-  const monthExp = expenses.filter(t => isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
-  const essential = expenses.filter(t => isSameMonth(t.date, today) && t.essential === "essential").reduce((s, t) => s + t.amount, 0);
+  // Totais: crédito NÃO conta como saída — vira fatura consolidada por cartão/mês.
+  const monthInvoices = useMemo(() => computeInvoicesForMonth(transactions, cards, today), [transactions, cards]);
+  const monthInvoicesTotal = monthInvoices.reduce((s, i) => s + i.amount, 0);
+  const monthExp = expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t)).reduce((s, t) => s + t.amount, 0) + monthInvoicesTotal;
+  const essential = expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t) && t.essential === "essential").reduce((s, t) => s + t.amount, 0);
 
   const series = useMemo(() => {
     const out = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      out.push({ month: d.toLocaleDateString("pt-BR", { month: "short" }), valor: expenses.filter(t => isSameMonth(t.date, d)).reduce((s, t) => s + t.amount, 0) });
+      const direct = expenses.filter(t => isSameMonth(t.date, d) && isCashFlowExpense(t)).reduce((s, t) => s + t.amount, 0);
+      const inv = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
+      out.push({ month: d.toLocaleDateString("pt-BR", { month: "short" }), valor: direct + inv });
     }
     return out;
-  }, [expenses]);
+  }, [expenses, transactions, cards]);
 
   const byCat = useMemo(() => {
-    return expenseCats.map(c => ({ name: c.name, valor: expenses.filter(t => isSameMonth(t.date, today) && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0), color: c.color })).filter(c => c.valor > 0).sort((a, b) => b.valor - a.valor);
+    return expenseCats.map(c => ({ name: c.name, valor: expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t) && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0), color: c.color })).filter(c => c.valor > 0).sort((a, b) => b.valor - a.valor);
   }, [expenses, expenseCats]);
 
   return (
