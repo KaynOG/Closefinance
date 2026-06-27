@@ -94,16 +94,19 @@ function DashboardPage() {
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, displayMonth));
+    const invoices = computeInvoicesForMonth(transactions, cards, displayMonth);
+    const invoicesTotal = invoices.reduce((s, i) => s + i.amount, 0);
     const income = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const directExpense = tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0);
+    const expense = directExpense + invoicesTotal;
     const essential = tx
-      .filter((t) => t.type === "expense" && t.essential === "essential")
+      .filter((t) => isCashFlowExpense(t) && t.essential === "essential")
       .reduce((s, t) => s + t.amount, 0);
     const nonEssential = tx
-      .filter((t) => t.type === "expense" && t.essential === "non_essential")
+      .filter((t) => isCashFlowExpense(t) && t.essential === "non_essential")
       .reduce((s, t) => s + t.amount, 0);
-    return { tx, income, expense, essential, nonEssential, balance: income - expense };
-  }, [transactions, displayMonth]);
+    return { tx, invoices, income, expense, essential, nonEssential, balance: income - expense };
+  }, [transactions, cards, displayMonth]);
 
   // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(
