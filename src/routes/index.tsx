@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import {
