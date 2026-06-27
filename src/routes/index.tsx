@@ -250,7 +250,7 @@ function DashboardPage() {
       c,
       total: transactions
         .filter((t) => {
-          if (t.type !== "expense" || t.categoryId !== c.id) return false;
+          if (!isCashFlowExpense(t) || t.categoryId !== c.id) return false;
           const d = new Date(t.date + "T00:00:00");
           const limit = new Date(today.getFullYear(), today.getMonth() - (catPeriod - 1), 1);
           return d >= limit;
