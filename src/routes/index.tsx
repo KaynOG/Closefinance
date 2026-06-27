@@ -273,7 +273,7 @@ function DashboardPage() {
       };
       for (const c of activeCats) {
         row[c.name] = transactions
-          .filter((t) => t.type === "expense" && t.categoryId === c.id && isSameMonth(t.date, d))
+          .filter((t) => isCashFlowExpense(t) && t.categoryId === c.id && isSameMonth(t.date, d))
           .reduce((s, t) => s + t.amount, 0);
       }
       out.push(row);
