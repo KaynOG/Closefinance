@@ -215,6 +215,60 @@ export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?
   return { cardId, userTag: userTag || undefined };
 }
 
+// ============= CRÉDITO / FATURA HELPERS =============
+// Compras no crédito (paymentMethod=credit) NÃO contam como saída direta —
+// elas se acumulam na "Fatura do {cartão} - {Mês}" do mês em que cada parcela cai.
+// Pagamentos reais de fatura (tag __pf__) continuam contando como saída normal.
+export function isCreditPurchase(t: Transaction): boolean {
+  return t.type === "expense" && t.paymentMethod === "credit" && !(t.tag ?? "").startsWith(INVOICE_PAYMENT_TAG_PREFIX);
+}
+export function isCashFlowExpense(t: Transaction): boolean {
+  return t.type === "expense" && !isCreditPurchase(t);
+}
+
+export interface VirtualInvoiceRow {
+  id: string;
+  type: "expense";
+  amount: number;
+  description: string;
+  date: string;
+  cardId: string;
+  virtual: true;
+}
+
+const MONTH_LABEL_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+export function computeInvoicesForMonth(transactions: Transaction[], cards: Card[], ref: Date): VirtualInvoiceRow[] {
+  const out: VirtualInvoiceRow[] = [];
+  for (const c of cards) {
+    const items = transactions.filter(t => isCreditPurchase(t) && t.cardId === c.id && isSameMonth(t.date, ref));
+    const amount = items.reduce((s, t) => s + t.amount, 0);
+    if (amount <= 0) continue;
+    const day = Math.min(28, c.closingDay);
+    const dateStr = new Date(ref.getFullYear(), ref.getMonth(), day).toISOString().slice(0, 10);
+    const label = `${MONTH_LABEL_PT[ref.getMonth()]}/${ref.getFullYear()}`;
+    out.push({
+      id: `__inv__:${c.id}:${ref.getFullYear()}-${ref.getMonth() + 1}`,
+      type: "expense",
+      amount,
+      description: `Fatura do ${c.name} - ${label}`,
+      date: dateStr,
+      cardId: c.id,
+      virtual: true,
+    });
+  }
+  return out;
+}
+
+export function monthExpenseTotal(transactions: Transaction[], cards: Card[], ref: Date): number {
+  const direct = transactions
+    .filter(t => isSameMonth(t.date, ref) && isCashFlowExpense(t))
+    .reduce((s, t) => s + t.amount, 0);
+  const invoices = computeInvoicesForMonth(transactions, cards, ref)
+    .reduce((s, i) => s + i.amount, 0);
+  return direct + invoices;
+}
+
 function clearAll() {
   memory = { ...EMPTY_STATE, loading: false };
   notify();
