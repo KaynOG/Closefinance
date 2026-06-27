@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -94,16 +94,19 @@ function DashboardPage() {
 
   const month = useMemo(() => {
     const tx = transactions.filter((t) => isSameMonth(t.date, displayMonth));
+    const invoices = computeInvoicesForMonth(transactions, cards, displayMonth);
+    const invoicesTotal = invoices.reduce((s, i) => s + i.amount, 0);
     const income = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const directExpense = tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0);
+    const expense = directExpense + invoicesTotal;
     const essential = tx
-      .filter((t) => t.type === "expense" && t.essential === "essential")
+      .filter((t) => isCashFlowExpense(t) && t.essential === "essential")
       .reduce((s, t) => s + t.amount, 0);
     const nonEssential = tx
-      .filter((t) => t.type === "expense" && t.essential === "non_essential")
+      .filter((t) => isCashFlowExpense(t) && t.essential === "non_essential")
       .reduce((s, t) => s + t.amount, 0);
-    return { tx, income, expense, essential, nonEssential, balance: income - expense };
-  }, [transactions, displayMonth]);
+    return { tx, invoices, income, expense, essential, nonEssential, balance: income - expense };
+  }, [transactions, cards, displayMonth]);
 
   // Dados de cartão puxados dos gastos (transactions)
   const cardUsage = useMemo(
@@ -194,10 +197,11 @@ function DashboardPage() {
     for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter((t) => isSameMonth(t.date, d));
+      const invTotal = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
       out.push({
         month: d.toLocaleDateString("pt-BR", { month: "short", year: periodMonths > 6 ? "2-digit" : undefined }),
         receitas: tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0),
-        despesas: tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0),
+        despesas: tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0) + invTotal,
       });
     }
     // Previsão: média dos últimos 3 meses (ignora meses zerados) + parcelas futuras já agendadas
@@ -209,7 +213,8 @@ function DashboardPage() {
       for (let i = 1; i <= forecastN; i++) {
         const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
         const tx = transactions.filter((t) => isSameMonth(t.date, d));
-        const scheduledDes = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const invTotal = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
+        const scheduledDes = tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0) + invTotal;
         const scheduledRec = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
         out.push({
           month: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }) + " ✦",
@@ -220,7 +225,7 @@ function DashboardPage() {
       }
     }
     return out;
-  }, [transactions, periodMonths, forecastN]);
+  }, [transactions, cards, periodMonths, forecastN]);
 
   const byCat = useMemo(
     () =>
@@ -228,7 +233,7 @@ function DashboardPage() {
         .map((c) => ({
           name: c.name,
           value: month.tx
-            .filter((t) => t.type === "expense" && t.categoryId === c.id)
+            .filter((t) => isCashFlowExpense(t) && t.categoryId === c.id)
             .reduce((s, t) => s + t.amount, 0),
           color: c.color,
         }))
@@ -245,7 +250,7 @@ function DashboardPage() {
       c,
       total: transactions
         .filter((t) => {
-          if (t.type !== "expense" || t.categoryId !== c.id) return false;
+          if (!isCashFlowExpense(t) || t.categoryId !== c.id) return false;
           const d = new Date(t.date + "T00:00:00");
           const limit = new Date(today.getFullYear(), today.getMonth() - (catPeriod - 1), 1);
           return d >= limit;
@@ -268,7 +273,7 @@ function DashboardPage() {
       };
       for (const c of activeCats) {
         row[c.name] = transactions
-          .filter((t) => t.type === "expense" && t.categoryId === c.id && isSameMonth(t.date, d))
+          .filter((t) => isCashFlowExpense(t) && t.categoryId === c.id && isSameMonth(t.date, d))
           .reduce((s, t) => s + t.amount, 0);
       }
       out.push(row);

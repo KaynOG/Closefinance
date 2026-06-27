@@ -1,60 +1,37 @@
+## O que muda
 
-## Visão geral
+### 1. Data das parcelas no crédito (nova regra)
+Hoje a 1ª parcela cai no dia da compra e as demais no dia de **vencimento**. Vou trocar para o dia de **fechamento** do cartão, com a seguinte lógica:
 
-Vou ativar o **Lovable Cloud** (backend gerenciado e seguro) para mover login e dados financeiros para a nuvem, e implementar todas as funcionalidades pedidas. Após a migração, o login local antigo deixa de funcionar — o usuário cria uma conta nova (ou usa Backup/Importar para subir dados antigos).
+- Se a compra acontece **antes ou no dia do fechamento** do mês corrente → 1ª parcela cai no fechamento **deste mês**.
+- Se a compra acontece **depois do fechamento** → 1ª parcela cai no fechamento do **mês seguinte** (entra na próxima fatura).
+- Parcelas seguintes: dia de fechamento dos meses consecutivos.
 
----
+### 2. Crédito não conta como "saída" no fluxo
+Hoje toda transação com `type=expense` (inclusive `payment_method=credit`) entra no total de gastos do mês em Dashboard, Transações, Calendário, etc. Vou filtrar `payment_method = "credit"` de TODAS as agregações de saída. As compras no crédito continuam visíveis nas listas (com tag clara de "no crédito") e continuam consumindo limite do cartão.
 
-## 1. Backend em nuvem (Lovable Cloud)
+### 3. Fatura mensal consolidada vira a "saída"
+Para cada cartão, em cada mês que tiver compras no crédito, vou gerar **dinamicamente** uma linha de fatura no fluxo do mês:
 
-**Tabelas (todas com RLS por `user_id = auth.uid()`):**
-- `profiles` — nome, data nasc., emprego, meta anual, gênero, avatar, total de pontos, prefs (som on/off)
-- `categories` — nome, cor, ícone, tipo (income/expense/both)
-- `cards` — nome, limite, dia de fechamento, vencimento, cor
-- `banks` — nome, cor, saldo guardado, conta corrente, observação
-- `transactions` — tipo, valor, descrição, data, category_id, card_id, bank_id, etiqueta, essencial, **payment_method** (credit/debit/cash/pix), **installment_no**, **installment_total**, **installment_group_id**
-- `mission_history` — data/hora, mission_id, pontos
+```text
+Fatura do {nome do cartão} - {Mês/Ano}
+valor = soma das parcelas daquele cartão com data dentro do mês
+```
 
-**Auth:** e-mail + senha (com validador de força já existente) + reset por e-mail real via Cloud. Trigger cria `profile` no signup. Roles em tabela separada `user_roles` (preparada para uso futuro, ainda sem painel admin).
+Essa linha entra como saída do mês (no Dashboard, Transações, Calendário). Não vou materializar no banco — calculo on-the-fly a partir das transações existentes (evita duplicação, edição em lote, descompasso). Aparece sempre que houver compras no crédito daquele cartão naquele mês.
 
-## 2. Edição de transações
-Botão de editar em cada linha (Ganhos, Gastos, Transações) abre modal com: data, descrição, categoria, etiqueta, valor, e — para gastos — método (crédito/débito/pix/dinheiro), cartão/banco, parcelas.
+Quando você pagar a fatura (fluxo já existente via tag `__pf__:<cardId>`), o pagamento permanece como hoje: debita do banco e libera limite. A fatura "virtual" e o pagamento real são coisas diferentes — uma representa o que entra na conta do mês, o outro o débito efetivo no banco.
 
-## 3. Parcelas no crédito (até 36x)
-Ao criar uma compra parcelada, gero **N transações** (uma por mês a partir da data da compra), todas com o mesmo `installment_group_id`. Ficam visíveis como "3/12" na lista. Editar/excluir uma parcela pergunta se aplica só à parcela ou ao grupo todo. Calendário, fatura e dashboard passam a refletir as parcelas futuras.
+## Pontos abertos (preciso confirmar antes de codar)
 
-## 4. Aba de Cartões — dashboard
-Em cada cartão mostro:
-- Limite total
-- **Usado no mês atual** (gastos do ciclo da fatura corrente)
-- **Limite disponível** (limite − total de parcelas futuras em aberto)
-- Barra de saúde já existente com observações ("gasto excessivo", "uso saudável", etc.)
+1. **"Banco do cartão"** — no app, cartões não têm banco vinculado (só nome e cor). O título da fatura vai usar o **nome do cartão** (`Fatura do Nubank Roxinho - Nov/2026`), não um banco. Confirma?
+2. **Quando aparece a fatura?** Proponho: aparece no mês da **data da parcela** (que agora é o fechamento). Ex.: compra dia 20/11 num cartão que fecha dia 25 → parcela 1 com data 25/11 → fatura "Nov/2026". Ok?
+3. **Compras antigas** já lançadas no crédito vão automaticamente parar de contar como saída e passar a aparecer dentro da fatura virtual do mês delas. Sem migração de dados. Ok?
 
-## 5. Nova aba **Bancos**
-Mesmo formato visual de Cartões. CRUD de bancos com cor personalizável. Cada card de banco mostra:
-- Saldo em conta (editável)
-- Valor guardado / poupado (editável)
-- Progresso em relação à **meta anual** do perfil (barra colorida, % atingido)
-- Observação opcional
+## Arquivos que vou tocar
 
-Manual — atualização pelo próprio usuário (conforme sua escolha).
+- `src/lib/store.ts` — nova regra de datas em `addTransaction` para crédito; helper `getMonthlyInvoices(month)` que devolve `[{cardId, cardName, monthLabel, amount, items[]}]`.
+- `src/routes/index.tsx` (dashboard), `src/routes/transacoes.tsx`, `src/routes/gastos.tsx`, `src/routes/calendario.tsx` — filtrar `payment_method=credit` dos totais de saída e injetar as linhas de fatura virtual no lugar.
+- `src/routes/cartoes.tsx` — sem mudança funcional, mas o "usado no mês" passa a refletir as parcelas com data no mês (já é o que faz hoje).
 
-## 6. Animações e sons
-- Transições suaves entre abas (fade + slide leve), hover em cards, "pop" ao concluir missão, contador animado de pontos.
-- Sons cozy adicionais: clique padrão (já existe), sucesso (salvar/missão), erro suave, abrir modal. Tudo respeita o toggle "Som da interface" do perfil.
-
----
-
-## Detalhes técnicos
-
-- **Stack:** mantém TanStack Start. Camada de dados nova em `src/lib/data/*.functions.ts` usando `createServerFn` + `requireSupabaseAuth`. `src/lib/store.ts` vira fachada que consome React Query, preservando os componentes atuais ao máximo.
-- **Migração:** ao primeiro login pós-Cloud, um botão no Perfil ("Importar dados do navegador") sobe o JSON local para o backend. Não migro automaticamente para evitar duplicação.
-- **Parcelas:** geração no servidor dentro de uma transação Postgres; `installment_group_id` permite editar/excluir em lote.
-- **Reset de senha:** rota pública `/reset-password` consumindo `supabase.auth.updateUser`.
-- **Animações:** Framer Motion (`bun add framer-motion`).
-- **Sons novos:** estendo `src/lib/sound.ts` com osciladores Web Audio (sem novos assets).
-
-## Fora deste escopo (posso fazer em seguida se quiser)
-- Importar extrato bancário (OFX/CSV).
-- Notificações push de vencimento de fatura.
-- Compartilhamento de orçamento entre usuários.
+Confirma os 3 pontos abertos? Posso ajustar (1) para incluir um campo "banco" no cartão se preferir.

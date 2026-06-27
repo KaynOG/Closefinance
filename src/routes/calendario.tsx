@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, formatBRL } from "@/lib/store";
+import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, type VirtualInvoiceRow } from "@/lib/store";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Bell, AlertTriangle } from "lucide-react";
 import { notify } from "@/lib/notify";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/calendario")({
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 function CalendarPage() {
-  const [{ transactions, categories }] = useStore();
+  const [{ transactions, categories, cards }] = useStore();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selected, setSelected] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
@@ -40,34 +40,57 @@ function CalendarPage() {
     return cells;
   }, [cursor]);
 
+  // Faturas virtuais do mês visível + 1 mês p/ frente (cobre week-ahead)
+  const virtualInvoices = useMemo<VirtualInvoiceRow[]>(() => {
+    const a = computeInvoicesForMonth(transactions, cards, cursor);
+    const next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    const b = computeInvoicesForMonth(transactions, cards, next);
+    const prev = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+    const c = computeInvoicesForMonth(transactions, cards, prev);
+    return [...a, ...b, ...c];
+  }, [transactions, cards, cursor]);
+
+  type DayItem = typeof transactions[number] | VirtualInvoiceRow;
   const byDay = useMemo(() => {
-    const map = new Map<string, { income: number; expense: number; items: typeof transactions }>();
+    const map = new Map<string, { income: number; expense: number; items: DayItem[] }>();
     for (const t of transactions) {
       const m = map.get(t.date) ?? { income: 0, expense: 0, items: [] };
-      if (t.type === "income") m.income += t.amount; else m.expense += t.amount;
+      if (t.type === "income") m.income += t.amount;
+      else if (isCashFlowExpense(t)) m.expense += t.amount;
+      // compras no crédito não somam como saída de caixa do dia (entram via fatura)
       m.items.push(t);
       map.set(t.date, m);
     }
+    for (const inv of virtualInvoices) {
+      const m = map.get(inv.date) ?? { income: 0, expense: 0, items: [] };
+      m.expense += inv.amount;
+      m.items.push(inv);
+      map.set(inv.date, m);
+    }
     return map;
-  }, [transactions]);
+  }, [transactions, virtualInvoices]);
 
-  const selectedItems = selected ? (byDay.get(selected)?.items ?? []) : [];
+  const selectedItems: DayItem[] = selected ? (byDay.get(selected)?.items ?? []) : [];
 
   const weekAhead = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const end = new Date(today); end.setDate(end.getDate() + 7);
-    const inRange = transactions.filter(t => {
+    const inRangeTx = transactions.filter(t => {
       const d = new Date(t.date + "T00:00:00");
       return d >= today && d <= end;
     });
-    const incomes = inRange.filter(t => t.type === "income");
-    const expenses = inRange.filter(t => t.type === "expense");
+    const inRangeInv = virtualInvoices.filter(inv => {
+      const d = new Date(inv.date + "T00:00:00");
+      return d >= today && d <= end;
+    });
+    const incomes = inRangeTx.filter(t => t.type === "income");
+    const expenses: DayItem[] = [...inRangeTx.filter(isCashFlowExpense), ...inRangeInv];
     return {
       incomes, expenses,
       totalIn: incomes.reduce((s, t) => s + t.amount, 0),
       totalOut: expenses.reduce((s, t) => s + t.amount, 0),
     };
-  }, [transactions]);
+  }, [transactions, virtualInvoices]);
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -176,7 +199,9 @@ function CalendarPage() {
           ) : (
             <ul className="space-y-2">
               {selectedItems.map((t) => {
-                const cat = categories.find(c => c.id === t.categoryId);
+                const isInv = "virtual" in t && t.virtual;
+                const cat = !isInv ? categories.find(c => c.id === (t as { categoryId?: string }).categoryId) : undefined;
+                const essential = !isInv ? (t as { essential?: string }).essential : undefined;
                 return (
                   <li key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5">
                     <div className="min-w-0">
@@ -184,7 +209,7 @@ function CalendarPage() {
                         {cat && <span className="size-2 rounded-full" style={{ background: cat.color }} />}
                         <p className="text-sm font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
                       </div>
-                      <p className="text-[11px] font-mono text-muted-foreground">{cat?.name ?? "Sem categoria"} · {t.essential === "essential" ? "essencial" : t.essential === "non_essential" ? "não essencial" : "—"}</p>
+                      <p className="text-[11px] font-mono text-muted-foreground">{isInv ? "Fatura consolidada" : `${cat?.name ?? "Sem categoria"} · ${essential === "essential" ? "essencial" : essential === "non_essential" ? "não essencial" : "—"}`}</p>
                     </div>
                     <p className={`font-mono text-sm ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
                       {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}

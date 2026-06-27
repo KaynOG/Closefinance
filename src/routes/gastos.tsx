@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
@@ -87,21 +87,27 @@ function GastosPage() {
     setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
+  // Lista completa de despesas (mantém as compras no crédito visíveis com badge)
   const expenses = transactions.filter(t => t.type === "expense").sort((a, b) => b.date.localeCompare(a.date));
-  const monthExp = expenses.filter(t => isSameMonth(t.date, today)).reduce((s, t) => s + t.amount, 0);
-  const essential = expenses.filter(t => isSameMonth(t.date, today) && t.essential === "essential").reduce((s, t) => s + t.amount, 0);
+  // Totais: crédito NÃO conta como saída — vira fatura consolidada por cartão/mês.
+  const monthInvoices = useMemo(() => computeInvoicesForMonth(transactions, cards, today), [transactions, cards]);
+  const monthInvoicesTotal = monthInvoices.reduce((s, i) => s + i.amount, 0);
+  const monthExp = expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t)).reduce((s, t) => s + t.amount, 0) + monthInvoicesTotal;
+  const essential = expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t) && t.essential === "essential").reduce((s, t) => s + t.amount, 0);
 
   const series = useMemo(() => {
     const out = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      out.push({ month: d.toLocaleDateString("pt-BR", { month: "short" }), valor: expenses.filter(t => isSameMonth(t.date, d)).reduce((s, t) => s + t.amount, 0) });
+      const direct = expenses.filter(t => isSameMonth(t.date, d) && isCashFlowExpense(t)).reduce((s, t) => s + t.amount, 0);
+      const inv = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
+      out.push({ month: d.toLocaleDateString("pt-BR", { month: "short" }), valor: direct + inv });
     }
     return out;
-  }, [expenses]);
+  }, [expenses, transactions, cards]);
 
   const byCat = useMemo(() => {
-    return expenseCats.map(c => ({ name: c.name, valor: expenses.filter(t => isSameMonth(t.date, today) && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0), color: c.color })).filter(c => c.valor > 0).sort((a, b) => b.valor - a.valor);
+    return expenseCats.map(c => ({ name: c.name, valor: expenses.filter(t => isSameMonth(t.date, today) && isCashFlowExpense(t) && t.categoryId === c.id).reduce((s, t) => s + t.amount, 0), color: c.color })).filter(c => c.valor > 0).sort((a, b) => b.valor - a.valor);
   }, [expenses, expenseCats]);
 
   return (
@@ -116,6 +122,29 @@ function GastosPage() {
         <Stat label="Essenciais" value={formatBRL(essential)} accent="teal" sub={monthExp ? `${Math.round((essential / monthExp) * 100)}% do total` : "—"} />
         <Stat label="Não essenciais" value={formatBRL(monthExp - essential)} accent="yellow" sub="onde dá pra cortar" />
       </section>
+
+      {monthInvoices.length > 0 && (
+        <GlassCard hideKey="gastos-invoices" hideLabel="Faturas do mês" className="mb-6">
+          <SectionTitle title="Faturas do mês (crédito consolidado)" subtitle="cada compra no crédito vira fatura mensal por cartão · esse valor é a saída real do mês" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {monthInvoices.map(inv => {
+              const card = cards.find(c => c.id === inv.cardId);
+              return (
+                <div key={inv.id} className="rounded-2xl border border-border bg-white/5 p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="size-2.5 rounded-full shrink-0" style={{ background: card?.color ?? "#FF6B1A" }} />
+                    <div className="min-w-0">
+                      <p className="text-sm truncate">{inv.description}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground">vence/fecha {new Date(inv.date + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+                    </div>
+                  </div>
+                  <p className="font-mono text-sm whitespace-nowrap" style={{ color: ORANGE }}>-{formatBRL(inv.amount)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </GlassCard>
+      )}
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <GlassCard hideKey="gastos-1" hideLabel="Evolução dos gastos" className="lg:col-span-2">
