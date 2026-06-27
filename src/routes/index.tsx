@@ -233,7 +233,7 @@ function DashboardPage() {
         .map((c) => ({
           name: c.name,
           value: month.tx
-            .filter((t) => t.type === "expense" && t.categoryId === c.id)
+            .filter((t) => isCashFlowExpense(t) && t.categoryId === c.id)
             .reduce((s, t) => s + t.amount, 0),
           color: c.color,
         }))
