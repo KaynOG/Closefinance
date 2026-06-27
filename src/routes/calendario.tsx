@@ -40,34 +40,57 @@ function CalendarPage() {
     return cells;
   }, [cursor]);
 
+  // Faturas virtuais do mês visível + 1 mês p/ frente (cobre week-ahead)
+  const virtualInvoices = useMemo<VirtualInvoiceRow[]>(() => {
+    const a = computeInvoicesForMonth(transactions, cards, cursor);
+    const next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    const b = computeInvoicesForMonth(transactions, cards, next);
+    const prev = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+    const c = computeInvoicesForMonth(transactions, cards, prev);
+    return [...a, ...b, ...c];
+  }, [transactions, cards, cursor]);
+
+  type DayItem = typeof transactions[number] | VirtualInvoiceRow;
   const byDay = useMemo(() => {
-    const map = new Map<string, { income: number; expense: number; items: typeof transactions }>();
+    const map = new Map<string, { income: number; expense: number; items: DayItem[] }>();
     for (const t of transactions) {
       const m = map.get(t.date) ?? { income: 0, expense: 0, items: [] };
-      if (t.type === "income") m.income += t.amount; else m.expense += t.amount;
+      if (t.type === "income") m.income += t.amount;
+      else if (isCashFlowExpense(t)) m.expense += t.amount;
+      // compras no crédito não somam como saída de caixa do dia (entram via fatura)
       m.items.push(t);
       map.set(t.date, m);
     }
+    for (const inv of virtualInvoices) {
+      const m = map.get(inv.date) ?? { income: 0, expense: 0, items: [] };
+      m.expense += inv.amount;
+      m.items.push(inv);
+      map.set(inv.date, m);
+    }
     return map;
-  }, [transactions]);
+  }, [transactions, virtualInvoices]);
 
-  const selectedItems = selected ? (byDay.get(selected)?.items ?? []) : [];
+  const selectedItems: DayItem[] = selected ? (byDay.get(selected)?.items ?? []) : [];
 
   const weekAhead = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const end = new Date(today); end.setDate(end.getDate() + 7);
-    const inRange = transactions.filter(t => {
+    const inRangeTx = transactions.filter(t => {
       const d = new Date(t.date + "T00:00:00");
       return d >= today && d <= end;
     });
-    const incomes = inRange.filter(t => t.type === "income");
-    const expenses = inRange.filter(t => t.type === "expense");
+    const inRangeInv = virtualInvoices.filter(inv => {
+      const d = new Date(inv.date + "T00:00:00");
+      return d >= today && d <= end;
+    });
+    const incomes = inRangeTx.filter(t => t.type === "income");
+    const expenses: DayItem[] = [...inRangeTx.filter(isCashFlowExpense), ...inRangeInv];
     return {
       incomes, expenses,
       totalIn: incomes.reduce((s, t) => s + t.amount, 0),
       totalOut: expenses.reduce((s, t) => s + t.amount, 0),
     };
-  }, [transactions]);
+  }, [transactions, virtualInvoices]);
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
