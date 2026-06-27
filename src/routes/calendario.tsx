@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, formatBRL } from "@/lib/store";
+import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, type VirtualInvoiceRow } from "@/lib/store";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Bell, AlertTriangle } from "lucide-react";
 import { notify } from "@/lib/notify";
