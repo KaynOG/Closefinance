@@ -199,7 +199,9 @@ function CalendarPage() {
           ) : (
             <ul className="space-y-2">
               {selectedItems.map((t) => {
-                const cat = categories.find(c => c.id === t.categoryId);
+                const isInv = "virtual" in t && t.virtual;
+                const cat = !isInv ? categories.find(c => c.id === (t as { categoryId?: string }).categoryId) : undefined;
+                const essential = !isInv ? (t as { essential?: string }).essential : undefined;
                 return (
                   <li key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5">
                     <div className="min-w-0">
@@ -207,7 +209,7 @@ function CalendarPage() {
                         {cat && <span className="size-2 rounded-full" style={{ background: cat.color }} />}
                         <p className="text-sm font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
                       </div>
-                      <p className="text-[11px] font-mono text-muted-foreground">{cat?.name ?? "Sem categoria"} · {t.essential === "essential" ? "essencial" : t.essential === "non_essential" ? "não essencial" : "—"}</p>
+                      <p className="text-[11px] font-mono text-muted-foreground">{isInv ? "Fatura consolidada" : `${cat?.name ?? "Sem categoria"} · ${essential === "essential" ? "essencial" : essential === "non_essential" ? "não essencial" : "—"}`}</p>
                     </div>
                     <p className={`font-mono text-sm ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
                       {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
