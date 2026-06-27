@@ -197,10 +197,11 @@ function DashboardPage() {
     for (let i = periodMonths - 1; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const tx = transactions.filter((t) => isSameMonth(t.date, d));
+      const invTotal = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
       out.push({
         month: d.toLocaleDateString("pt-BR", { month: "short", year: periodMonths > 6 ? "2-digit" : undefined }),
         receitas: tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0),
-        despesas: tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0),
+        despesas: tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0) + invTotal,
       });
     }
     // Previsão: média dos últimos 3 meses (ignora meses zerados) + parcelas futuras já agendadas
@@ -212,7 +213,8 @@ function DashboardPage() {
       for (let i = 1; i <= forecastN; i++) {
         const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
         const tx = transactions.filter((t) => isSameMonth(t.date, d));
-        const scheduledDes = tx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const invTotal = computeInvoicesForMonth(transactions, cards, d).reduce((s, x) => s + x.amount, 0);
+        const scheduledDes = tx.filter(isCashFlowExpense).reduce((s, t) => s + t.amount, 0) + invTotal;
         const scheduledRec = tx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
         out.push({
           month: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }) + " ✦",
@@ -223,7 +225,7 @@ function DashboardPage() {
       }
     }
     return out;
-  }, [transactions, periodMonths, forecastN]);
+  }, [transactions, cards, periodMonths, forecastN]);
 
   const byCat = useMemo(
     () =>
