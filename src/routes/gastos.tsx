@@ -123,6 +123,29 @@ function GastosPage() {
         <Stat label="Não essenciais" value={formatBRL(monthExp - essential)} accent="yellow" sub="onde dá pra cortar" />
       </section>
 
+      {monthInvoices.length > 0 && (
+        <GlassCard hideKey="gastos-invoices" hideLabel="Faturas do mês" className="mb-6">
+          <SectionTitle title="Faturas do mês (crédito consolidado)" subtitle="cada compra no crédito vira fatura mensal por cartão · esse valor é a saída real do mês" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {monthInvoices.map(inv => {
+              const card = cards.find(c => c.id === inv.cardId);
+              return (
+                <div key={inv.id} className="rounded-2xl border border-border bg-white/5 p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="size-2.5 rounded-full shrink-0" style={{ background: card?.color ?? "#FF6B1A" }} />
+                    <div className="min-w-0">
+                      <p className="text-sm truncate">{inv.description}</p>
+                      <p className="text-[10px] font-mono text-muted-foreground">vence/fecha {new Date(inv.date + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+                    </div>
+                  </div>
+                  <p className="font-mono text-sm whitespace-nowrap" style={{ color: ORANGE }}>-{formatBRL(inv.amount)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </GlassCard>
+      )}
+
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <GlassCard hideKey="gastos-1" hideLabel="Evolução dos gastos" className="lg:col-span-2">
           <SectionTitle title="Evolução dos gastos" subtitle="últimos 12 meses" />
