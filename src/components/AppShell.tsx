@@ -11,8 +11,7 @@ import {
   Menu,
   X,
   LogOut,
-  User,
-  Activity as UserIcon,
+  User as UserIcon,
   Trophy,
   Landmark,
 } from "lucide-react";
