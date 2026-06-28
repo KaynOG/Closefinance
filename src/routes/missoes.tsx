@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, MISSIONS_CATALOG } from "@/lib/store";
+import { useStore, MISSIONS_CATALOG, type MissionState } from "@/lib/store";
 import { RANKS, getRank } from "@/lib/ranks";
-import { useMemo } from "react";
-import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp } from "lucide-react";
+
 
 export const Route = createFileRoute("/missoes")({
   head: () => ({ meta: [{ title: "Missões — CloseFinance" }, { name: "description", content: "Acompanhe suas missões diárias e pontuação." }] }),
