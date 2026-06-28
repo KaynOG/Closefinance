@@ -123,41 +123,67 @@ function MissoesPage() {
       </section>
 
       <GlassCard>
-        <SectionTitle title="Histórico de pontuação" subtitle="data e hora de cada conclusão" />
-        {missions.history.length === 0 ? (
-          <p className="text-sm text-muted-foreground flex items-center gap-2"><Sparkles className="size-4" /> Complete sua primeira missão para começar a pontuar!</p>
-        ) : (
-          <>
-            <ul className="space-y-2 mb-5">
-              {byDay.map(([day, pts]) => (
-                <li key={day} className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
-                  <span className="font-mono text-sm flex items-center gap-2">
-                    <Flame className="size-4 text-secondary" />
-                    {new Date(day + "T00:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}
-                  </span>
-                  <span className={`font-mono font-semibold ${pts >= 0 ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{pts >= 0 ? "+" : ""}{pts} pts</span>
-                </li>
-              ))}
-            </ul>
-            <SectionTitle title="Últimas conclusões" subtitle="data e hora exatas" />
-            <ul className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-              {missions.history.slice(0, 30).map((h, i) => {
-                const m = DAILY_MISSIONS.find(x => x.id === h.missionId);
-                const d = new Date(h.date);
-                return (
-                  <li key={i} className="flex items-center justify-between text-xs font-mono rounded-lg bg-white/[0.03] px-3 py-2">
-                    <span className="truncate">
-                      <span className="text-foreground">{m?.title ?? h.missionId}</span>
-                      <span className="text-muted-foreground"> · {d.toLocaleDateString("pt-BR")} {d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-                    </span>
-                    <span className={`shrink-0 ${h.points >= 0 ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{h.points >= 0 ? "+" : ""}{h.points}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )}
+        <HistoryBlock missions={missions} byDay={byDay} />
       </GlassCard>
     </AppShell>
+  );
+}
+
+function HistoryBlock({ missions, byDay }: { missions: MissionState; byDay: [string, number][] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><Flame className="size-4" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Histórico de pontuação</h2>
+            <p className="text-[11px] font-mono text-muted-foreground">data e hora de cada conclusão</p>
+          </div>
+        </div>
+        <button onClick={() => setOpen(o => !o)}
+          aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          {missions.history.length === 0 ? (
+            <p className="text-sm text-muted-foreground flex items-center gap-2"><Sparkles className="size-4" /> Complete sua primeira missão para começar a pontuar!</p>
+          ) : (
+            <>
+              <ul className="space-y-2 mb-5">
+                {byDay.map(([day, pts]) => (
+                  <li key={day} className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
+                    <span className="font-mono text-sm flex items-center gap-2">
+                      <Flame className="size-4 text-secondary" />
+                      {new Date(day + "T00:00:00").toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}
+                    </span>
+                    <span className={`font-mono font-semibold ${pts >= 0 ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{pts >= 0 ? "+" : ""}{pts} pts</span>
+                  </li>
+                ))}
+              </ul>
+              <SectionTitle title="Últimas conclusões" subtitle="data e hora exatas" />
+              <ul className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                {missions.history.slice(0, 30).map((h, i) => {
+                  const m = DAILY_MISSIONS.find(x => x.id === h.missionId);
+                  const d = new Date(h.date);
+                  return (
+                    <li key={i} className="flex items-center justify-between text-xs font-mono rounded-lg bg-white/[0.03] px-3 py-2">
+                      <span className="truncate">
+                        <span className="text-foreground">{m?.title ?? h.missionId}</span>
+                        <span className="text-muted-foreground"> · {d.toLocaleDateString("pt-BR")} {d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                      </span>
+                      <span className={`shrink-0 ${h.points >= 0 ? "text-[#7DF2C5]" : "text-[#FF8FA3]"}`}>{h.points >= 0 ? "+" : ""}{h.points}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
