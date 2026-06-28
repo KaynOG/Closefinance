@@ -25,7 +25,7 @@ const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/ganhos", label: "Ganhos", icon: TrendingUp },
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
-  { to: "/transacoes", label: "Transações", icon: UserIcon },
+  { to: "/transacoes", label: "Transações", icon: FinanceIcon },
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/bancos", label: "Bancos", icon: Landmark },
