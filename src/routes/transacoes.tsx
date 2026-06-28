@@ -137,8 +137,9 @@ function TxPage() {
           ) : (
             <ul className="divide-y divide-white/5">
               {filtered.map((t) => {
-                const isInv = "virtual" in t && t.virtual;
-                const cat = !isInv ? categories.find(c => c.id === t.categoryId) : undefined;
+                const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
+                const tx = isInv ? null : (t as (typeof transactions)[number]);
+                const cat = tx ? categories.find(c => c.id === tx.categoryId) : undefined;
                 const card = cards.find(c => c.id === t.cardId);
                 const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
                 const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
@@ -154,7 +155,7 @@ function TxPage() {
                         {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
                         {isInv
                           ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
-                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${t.essential ? ` · ${t.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
+                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${tx?.essential ? ` · ${tx.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
                       </p>
                     </div>
                     <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
