@@ -1,7 +1,19 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Calendar, TrendingUp, TrendingDown, CreditCard, Tags, BookOpen, Menu, X, LogOut, User as UserIcon, Trophy, Landmark,
+  LayoutDashboard,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
+  Tags,
+  BookOpen,
+  Menu,
+  X,
+  LogOut,
+  User as UserIcon,
+  Trophy,
+  Landmark,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Logo } from "./Logo";
@@ -13,6 +25,7 @@ const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/ganhos", label: "Ganhos", icon: TrendingUp },
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
+  { to: "/transacoes", label: "Transações", icon: UserIcon },
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/bancos", label: "Bancos", icon: Landmark },
@@ -29,14 +42,20 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); installGlobalClickSounds(); initTheme(); }, []);
+  useEffect(() => {
+    setMounted(true);
+    installGlobalClickSounds();
+    initTheme();
+  }, []);
   useEffect(() => {
     if (mounted && !state.loading && !user && pathname !== "/auth") {
       navigate({ to: "/auth" });
     }
   }, [mounted, state.loading, user, pathname, navigate]);
   useEffect(() => {
-    if (user) { api.awardMission("daily_login"); }
+    if (user) {
+      api.awardMission("daily_login");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -56,10 +75,15 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           {nav.map((n) => {
             const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
             return (
-              <Link key={n.to} to={n.to}
+              <Link
+                key={n.to}
+                to={n.to}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
-                  active ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-violet)]" : "hover:bg-white/5 hover:translate-x-0.5 text-foreground/80 hover:text-foreground"
-                }`}>
+                  active
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-violet)]"
+                    : "hover:bg-white/5 hover:translate-x-0.5 text-foreground/80 hover:text-foreground"
+                }`}
+              >
                 <n.icon className="size-4" />
                 {n.label}
               </Link>
@@ -69,13 +93,26 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         <div className="mt-auto space-y-2">
           <Link to="/perfil" className="rounded-2xl p-3 glass flex items-center gap-3 hover:bg-white/5 transition">
             <div className="size-9 rounded-full bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold overflow-hidden">
-              {user.avatar ? <img src={user.avatar} alt={user.name} className="size-full object-cover" /> : user.name.charAt(0).toUpperCase()}
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+              ) : (
+                user.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
             </div>
-            <button onClick={(e) => { e.preventDefault(); api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground" aria-label="Sair">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                api.logout();
+                sessionStorage.removeItem("closefinance:greeting");
+                navigate({ to: "/auth" });
+              }}
+              className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground"
+              aria-label="Sair"
+            >
               <LogOut className="size-4" />
             </button>
           </Link>
@@ -90,33 +127,55 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       </div>
 
       {open && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setOpen(false)}>
-          <div className="absolute right-3 top-3 bottom-3 w-72 glass-strong rounded-3xl p-5 animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="absolute right-3 top-3 bottom-3 w-72 glass-strong rounded-3xl p-5 animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <Brand compact />
-              <button onClick={() => setOpen(false)} className="rounded-xl p-2 hover:bg-white/10"><X className="size-5" /></button>
+              <button onClick={() => setOpen(false)} className="rounded-xl p-2 hover:bg-white/10">
+                <X className="size-5" />
+              </button>
             </div>
             <nav className="mt-6 flex flex-col gap-1">
               {nav.map((n) => {
                 const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
                 return (
-                  <Link key={n.to} to={n.to} onClick={() => setOpen(false)}
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setOpen(false)}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-95 ${
                       active ? "bg-primary text-primary-foreground" : "hover:bg-white/5 text-foreground/80"
-                    }`}>
+                    }`}
+                  >
                     <n.icon className="size-4" /> {n.label}
                   </Link>
                 );
               })}
             </nav>
-            <button onClick={() => { api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm hover:bg-white/5">
+            <button
+              onClick={() => {
+                api.logout();
+                sessionStorage.removeItem("closefinance:greeting");
+                navigate({ to: "/auth" });
+              }}
+              className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm hover:bg-white/5"
+            >
               <LogOut className="size-4" /> Sair
             </button>
           </div>
         </div>
       )}
 
-      <main key={pathname} className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <main
+        key={pathname}
+        className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 animate-in fade-in slide-in-from-bottom-2 duration-300"
+      >
         {children ?? <Outlet />}
       </main>
       <ConsentModal />
@@ -133,7 +192,9 @@ function Brand({ compact = false }: { compact?: boolean }) {
       {!compact ? (
         <div>
           <p className="font-display font-bold leading-none text-lg">CloseFinance</p>
-          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">Bolso fechado, financeiro guardado</p>
+          <p className="font-mono text-[10px] text-muted-foreground leading-none mt-1">
+            Bolso fechado, financeiro guardado
+          </p>
         </div>
       ) : (
         <p className="font-display font-bold text-lg">CloseFinance</p>
