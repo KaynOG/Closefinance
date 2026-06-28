@@ -137,28 +137,36 @@ function TxPage() {
           ) : (
             <ul className="divide-y divide-white/5">
               {filtered.map((t) => {
-                const cat = categories.find(c => c.id === t.categoryId);
+                const isInv = "virtual" in t && t.virtual;
+                const cat = !isInv ? categories.find(c => c.id === t.categoryId) : undefined;
                 const card = cards.find(c => c.id === t.cardId);
+                const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
+                const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
                 return (
                   <li key={t.id} className="flex items-center gap-3 py-3">
                     <div className="size-9 rounded-xl grid place-items-center"
-                      style={{ background: (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3")) + "22", color: cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF") }}>
-                      {t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
+                      style={{ background: iconBg + "22", color: iconFg }}>
+                      {isInv ? <Receipt className="size-4" /> : t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
                       <p className="text-[11px] font-mono text-muted-foreground">
-                        {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")} · {cat?.name ?? "Sem categoria"}
-                        {card ? ` · ${card.name}` : ""}
-                        {t.essential ? ` · ${t.essential === "essential" ? "essencial" : "não essencial"}` : ""}
+                        {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                        {isInv
+                          ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
+                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${t.essential ? ` · ${t.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
                       </p>
                     </div>
                     <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
                       {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
                     </p>
-                    <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
-                      <Trash2 className="size-4" />
-                    </button>
+                    {!isInv ? (
+                      <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
+                        <Trash2 className="size-4" />
+                      </button>
+                    ) : (
+                      <div className="shrink-0 w-8" />
+                    )}
                   </li>
                 );
               })}
