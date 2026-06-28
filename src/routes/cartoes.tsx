@@ -48,11 +48,20 @@ function CardsPage() {
     const todayStr = today.toISOString().slice(0, 10);
     const enriched = cards.map((c) => {
       const invoiceTag = `${INVOICE_PAYMENT_TAG_PREFIX}${c.id}`;
-      const usedTx = transactions.filter(t => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, today) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX)).reduce((s, t) => s + t.amount, 0);
+      // Compras no crédito (todas as parcelas, qualquer data) consomem limite
+      // até que a fatura correspondente seja paga (tag __pf__:<cardId>).
+      const creditOutstanding = transactions
+        .filter(t => t.cardId === c.id && t.type === "expense" && t.paymentMethod === "credit" && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
+        .reduce((s, t) => s + t.amount, 0);
+      // Demais lançamentos no cartão (débito/etc) só contam no mês corrente
+      const otherThisMonth = transactions
+        .filter(t => t.cardId === c.id && t.type === "expense" && t.paymentMethod !== "credit" && isSameMonth(t.date, today) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
+        .reduce((s, t) => s + t.amount, 0);
+      const usedTx = creditOutstanding + otherThisMonth;
       const released = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
       const pending = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date > todayStr).reduce((s, t) => s + t.amount, 0);
       const manual = Math.max(0, (c.usedManual ?? 0) - released);
-      const used = usedTx + manual;
+      const used = Math.max(0, usedTx + manual - released);
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
       return { ...c, usedTx, usedManualVal: manual, released, pending, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
