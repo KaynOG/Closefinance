@@ -9,6 +9,7 @@ import {
   Tags,
   BookOpen,
   Menu,
+  Activity,
   X,
   LogOut,
   User as UserIcon,
