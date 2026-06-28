@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, formatBRL, type TxType, type Essential } from "@/lib/store";
-import { useState } from "react";
-import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { useStore, formatBRL, computeInvoicesForMonth, type TxType, type Essential, type VirtualInvoiceRow } from "@/lib/store";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt } from "lucide-react";
 import { notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/transacoes")({
