@@ -46,7 +46,18 @@ function TxPage() {
     setForm({ ...form, amount: "", description: "" });
   }
 
-  const filtered = transactions
+  type ListItem = (typeof transactions)[number] | VirtualInvoiceRow;
+  const invoices = useMemo<VirtualInvoiceRow[]>(() => {
+    const now = new Date();
+    const out: VirtualInvoiceRow[] = [];
+    for (let i = -2; i <= 11; i++) {
+      const ref = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      out.push(...computeInvoicesForMonth(transactions, cards, ref));
+    }
+    return out;
+  }, [transactions, cards]);
+
+  const filtered: ListItem[] = ([...transactions, ...(filter === "income" ? [] : invoices)] as ListItem[])
     .filter(t => filter === "all" ? true : t.type === filter)
     .sort((a, b) => b.date.localeCompare(a.date));
 
