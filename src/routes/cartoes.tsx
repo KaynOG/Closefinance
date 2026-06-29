@@ -175,8 +175,24 @@ function CardsPage() {
                     </div>
                     <CC className="size-6 opacity-70" />
                   </div>
-                  <p className="mt-6 font-mono text-xs text-muted-foreground">Limite total</p>
-                  <p className="text-2xl font-bold">{formatBRL(c.limit)}</p>
+                  <div className="mt-6 flex items-end justify-between gap-2">
+                    <div>
+                      <p className="font-mono text-xs text-muted-foreground">Limite total</p>
+                      <p className="text-2xl font-bold">{formatBRL(c.limit)}</p>
+                    </div>
+                    <label className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+                      <span className="uppercase tracking-wider">editar</span>
+                      <input
+                        type="number" min={0} step="0.01"
+                        defaultValue={c.limit}
+                        onBlur={(e) => {
+                          const v = parseFloat(e.target.value);
+                          if (!isNaN(v) && v > 0 && v !== c.limit) api.updateCard(c.id, { limit: v });
+                        }}
+                        className="w-24 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"
+                      />
+                    </label>
+                  </div>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, ${c.status.color})` }} />
                   </div>

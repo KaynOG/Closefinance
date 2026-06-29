@@ -11,9 +11,11 @@ export const Route = createFileRoute("/transacoes")({
   component: TxPage,
 });
 
+type TxFilter = "all" | TxType | "invoices";
+
 function TxPage() {
   const [{ transactions, categories, cards }, api] = useStore();
-  const [filter, setFilter] = useState<"all" | TxType>("all");
+  const [filter, setFilter] = useState<TxFilter>("all");
 
   const [form, setForm] = useState({
     type: "expense" as TxType,
@@ -57,9 +59,22 @@ function TxPage() {
     return out;
   }, [transactions, cards]);
 
-  const filtered: ListItem[] = ([...transactions, ...(filter === "income" ? [] : invoices)] as ListItem[])
-    .filter(t => filter === "all" ? true : t.type === filter)
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const currentInvoices = useMemo<VirtualInvoiceRow[]>(() => {
+    return computeInvoicesForMonth(transactions, cards, new Date());
+  }, [transactions, cards]);
+  const currentInvoicesTotal = currentInvoices.reduce((s, i) => s + i.amount, 0);
+
+  const filtered: ListItem[] = (() => {
+    if (filter === "invoices") {
+      return [...invoices].sort((a, b) => b.date.localeCompare(a.date));
+    }
+    const base: ListItem[] = [...transactions, ...(filter === "income" ? [] : invoices)] as ListItem[];
+    return base
+      .filter(t => filter === "all" ? true : t.type === filter)
+      .sort((a, b) => b.date.localeCompare(a.date));
+  })();
+
+  const nowLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
   return (
     <AppShell>
@@ -68,7 +83,99 @@ function TxPage() {
         <h1 className="text-3xl font-bold">Transações</h1>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
+      {/* Fatura atual */}
+      <GlassCard className="mb-4">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-lg grid place-items-center bg-[#FF6B1A]/15 text-[#FF6B1A]"><Receipt className="size-4" /></div>
+            <div>
+              <h2 className="text-base font-semibold">Fatura atual</h2>
+              <p className="text-[11px] font-mono text-muted-foreground capitalize">{nowLabel}</p>
+            </div>
+          </div>
+          <p className="font-mono text-lg" style={{ color: "#FF8FA3" }}>{formatBRL(currentInvoicesTotal)}</p>
+        </div>
+        {currentInvoices.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem gastos no crédito neste mês ainda.</p>
+        ) : (
+          <ul className="divide-y divide-white/5">
+            {currentInvoices.map(inv => {
+              const card = cards.find(c => c.id === inv.cardId);
+              return (
+                <li key={inv.id} className="flex items-center gap-3 py-2.5">
+                  <div className="size-8 rounded-lg grid place-items-center" style={{ background: (card?.color ?? "#FF6B1A") + "22", color: card?.color ?? "#FF6B1A" }}>
+                    <Receipt className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{inv.description}</p>
+                    <p className="text-[11px] font-mono text-muted-foreground">Fecha {new Date(inv.date + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+                  </div>
+                  <p className="font-mono text-sm shrink-0" style={{ color: "#FF8FA3" }}>{formatBRL(inv.amount)}</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </GlassCard>
+
+      <div className="space-y-4">
+        <GlassCard>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 className="font-bold text-lg">Histórico</h2>
+            <div className="flex gap-1 rounded-xl bg-white/5 p-1 text-xs font-mono">
+              {(["all","income","expense","invoices"] as const).map(k => (
+                <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1.5 rounded-lg transition ${filter === k ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                  {k === "all" ? "Todas" : k === "income" ? "Entradas" : k === "expense" ? "Gastos" : "Faturas"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {filter === "invoices" ? "Nenhuma fatura gerada — registre gastos no crédito para começar." : "Nenhuma transação ainda. Comece adicionando uma abaixo."}
+            </p>
+          ) : (
+            <ul className="divide-y divide-white/5">
+              {filtered.map((t) => {
+                const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
+                const tx = isInv ? null : (t as (typeof transactions)[number]);
+                const cat = tx ? categories.find(c => c.id === tx.categoryId) : undefined;
+                const card = cards.find(c => c.id === t.cardId);
+                const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
+                const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
+                return (
+                  <li key={t.id} className="flex items-center gap-3 py-3">
+                    <div className="size-9 rounded-xl grid place-items-center"
+                      style={{ background: iconBg + "22", color: iconFg }}>
+                      {isInv ? <Receipt className="size-4" /> : t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
+                      <p className="text-[11px] font-mono text-muted-foreground">
+                        {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                        {isInv
+                          ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
+                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${tx?.essential ? ` · ${tx.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
+                      </p>
+                    </div>
+                    <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
+                      {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
+                    </p>
+                    {!isInv ? (
+                      <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
+                        <Trash2 className="size-4" />
+                      </button>
+                    ) : (
+                      <div className="shrink-0 w-8" />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </GlassCard>
+
         <GlassCard>
           <SectionTitle title="Novo lançamento" subtitle="entrada ou gasto" />
           <form onSubmit={submit} className="space-y-3">
@@ -118,61 +225,6 @@ function TxPage() {
               <Plus className="size-4 inline mr-1.5" /> Adicionar
             </button>
           </form>
-        </GlassCard>
-
-        <GlassCard>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-lg">Histórico</h2>
-            <div className="flex gap-1 rounded-xl bg-white/5 p-1 text-xs font-mono">
-              {(["all","income","expense"] as const).map(k => (
-                <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1.5 rounded-lg transition ${filter === k ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
-                  {k === "all" ? "Todas" : k === "income" ? "Entradas" : "Gastos"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma transação ainda. Comece adicionando uma ao lado.</p>
-          ) : (
-            <ul className="divide-y divide-white/5">
-              {filtered.map((t) => {
-                const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
-                const tx = isInv ? null : (t as (typeof transactions)[number]);
-                const cat = tx ? categories.find(c => c.id === tx.categoryId) : undefined;
-                const card = cards.find(c => c.id === t.cardId);
-                const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
-                const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
-                return (
-                  <li key={t.id} className="flex items-center gap-3 py-3">
-                    <div className="size-9 rounded-xl grid place-items-center"
-                      style={{ background: iconBg + "22", color: iconFg }}>
-                      {isInv ? <Receipt className="size-4" /> : t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
-                      <p className="text-[11px] font-mono text-muted-foreground">
-                        {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
-                        {isInv
-                          ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
-                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${tx?.essential ? ` · ${tx.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
-                      </p>
-                    </div>
-                    <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
-                      {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
-                    </p>
-                    {!isInv ? (
-                      <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
-                        <Trash2 className="size-4" />
-                      </button>
-                    ) : (
-                      <div className="shrink-0 w-8" />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </GlassCard>
       </div>
     </AppShell>
