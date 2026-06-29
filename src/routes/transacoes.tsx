@@ -121,60 +121,71 @@ function TxPage() {
 
       <div className="space-y-4">
         <GlassCard>
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="font-bold text-lg">Histórico</h2>
-            <div className="flex gap-1 rounded-xl bg-white/5 p-1 text-xs font-mono">
-              {(["all","income","expense","invoices"] as const).map(k => (
-                <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1.5 rounded-lg transition ${filter === k ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
-                  {k === "all" ? "Todas" : k === "income" ? "Entradas" : k === "expense" ? "Gastos" : "Faturas"}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <button type="button" onClick={() => setHistoryOpen(o => !o)} className="flex items-center gap-2 text-left">
+              <h2 className="font-bold text-lg">Histórico</h2>
+              <span className="size-7 rounded-lg grid place-items-center bg-white/5 hover:bg-white/10 transition">
+                {historyOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+              </span>
+            </button>
+            {historyOpen && (
+              <div className="flex gap-1 rounded-xl bg-white/5 p-1 text-xs font-mono">
+                {(["all","income","expense","invoices"] as const).map(k => (
+                  <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1.5 rounded-lg transition ${filter === k ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                    {k === "all" ? "Todas" : k === "income" ? "Entradas" : k === "expense" ? "Gastos" : "Faturas"}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {filter === "invoices" ? "Nenhuma fatura gerada — registre gastos no crédito para começar." : "Nenhuma transação ainda. Comece adicionando uma abaixo."}
-            </p>
-          ) : (
-            <ul className="divide-y divide-white/5">
-              {filtered.map((t) => {
-                const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
-                const tx = isInv ? null : (t as (typeof transactions)[number]);
-                const cat = tx ? categories.find(c => c.id === tx.categoryId) : undefined;
-                const card = cards.find(c => c.id === t.cardId);
-                const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
-                const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
-                return (
-                  <li key={t.id} className="flex items-center gap-3 py-3">
-                    <div className="size-9 rounded-xl grid place-items-center"
-                      style={{ background: iconBg + "22", color: iconFg }}>
-                      {isInv ? <Receipt className="size-4" /> : t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
-                      <p className="text-[11px] font-mono text-muted-foreground">
-                        {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
-                        {isInv
-                          ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
-                          : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${tx?.essential ? ` · ${tx.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
-                      </p>
-                    </div>
-                    <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
-                      {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
-                    </p>
-                    {!isInv ? (
-                      <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
-                        <Trash2 className="size-4" />
-                      </button>
-                    ) : (
-                      <div className="shrink-0 w-8" />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <div className={`grid transition-all duration-300 ease-out ${historyOpen ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+            <div className="overflow-hidden">
+              {filtered.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {filter === "invoices" ? "Nenhuma fatura gerada — registre gastos no crédito para começar." : "Nenhuma transação ainda. Comece adicionando uma abaixo."}
+                </p>
+              ) : (
+                <ul className="divide-y divide-white/5">
+                  {filtered.map((t) => {
+                    const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
+                    const tx = isInv ? null : (t as (typeof transactions)[number]);
+                    const cat = tx ? categories.find(c => c.id === tx.categoryId) : undefined;
+                    const card = cards.find(c => c.id === t.cardId);
+                    const iconBg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#540BD3"));
+                    const iconFg = isInv ? "#FF6B1A" : (cat?.color ?? (t.type === "income" ? "#2BD9A1" : "#B388FF"));
+                    return (
+                      <li key={t.id} className="flex items-center gap-3 py-3">
+                        <div className="size-9 rounded-xl grid place-items-center"
+                          style={{ background: iconBg + "22", color: iconFg }}>
+                          {isInv ? <Receipt className="size-4" /> : t.type === "income" ? <ArrowDownCircle className="size-4" /> : <ArrowUpCircle className="size-4" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
+                          <p className="text-[11px] font-mono text-muted-foreground">
+                            {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                            {isInv
+                              ? ` · fatura consolidada${card ? ` · ${card.name}` : ""} · não soma ao mês`
+                              : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}${tx?.essential ? ` · ${tx.essential === "essential" ? "essencial" : "não essencial"}` : ""}`}
+                          </p>
+                        </div>
+                        <p className={`font-mono text-sm shrink-0 ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
+                          {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
+                        </p>
+                        {!isInv ? (
+                          <button onClick={() => api.removeTransaction(t.id)} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5">
+                            <Trash2 className="size-4" />
+                          </button>
+                        ) : (
+                          <div className="shrink-0 w-8" />
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
         </GlassCard>
 
         <GlassCard>
