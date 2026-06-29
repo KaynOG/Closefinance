@@ -16,6 +16,7 @@ type TxFilter = "all" | TxType | "invoices";
 function TxPage() {
   const [{ transactions, categories, cards }, api] = useStore();
   const [filter, setFilter] = useState<TxFilter>("all");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const [form, setForm] = useState({
     type: "expense" as TxType,
