@@ -11,9 +11,11 @@ export const Route = createFileRoute("/transacoes")({
   component: TxPage,
 });
 
+type TxFilter = "all" | TxType | "invoices";
+
 function TxPage() {
   const [{ transactions, categories, cards }, api] = useStore();
-  const [filter, setFilter] = useState<"all" | TxType>("all");
+  const [filter, setFilter] = useState<TxFilter>("all");
 
   const [form, setForm] = useState({
     type: "expense" as TxType,
