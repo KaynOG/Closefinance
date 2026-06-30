@@ -330,6 +330,27 @@ function DashboardPage() {
         <ThemeToggle />
       </header>
 
+      {showTutorialNotice && (
+        <div className="mb-4 rounded-2xl border border-secondary/40 bg-secondary/10 p-4 flex items-center gap-3 flex-wrap">
+          <div className="size-10 rounded-xl grid place-items-center bg-secondary/20 text-secondary shrink-0">
+            <GraduationCap className="size-5" />
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold">Quer um guia rápido pelo CloseFinance?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Ative os tutoriais no <Link to="/perfil" className="text-secondary underline underline-offset-2">Perfil</Link> para receber dicas em Ganhos, Gastos, Categorias, Bancos e Cartões.
+            </p>
+          </div>
+          <Link to="/perfil" className="rounded-xl bg-secondary text-secondary-foreground font-semibold px-4 py-2 text-xs hover:opacity-90 transition">
+            Ir para Perfil
+          </Link>
+          <button onClick={() => { dismissTutorialNotice(); setShowTutorialNotice(false); }}
+            aria-label="Dispensar" className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5">
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+
       <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 
       <GlassCard hideKey="index-1" hideLabel="Seletor de mês" className="mb-4">
