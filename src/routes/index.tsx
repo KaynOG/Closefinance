@@ -34,8 +34,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  GraduationCap,
+  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,6 +74,12 @@ function DashboardPage() {
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
+  const [showTutorialNotice, setShowTutorialNotice] = useState(false);
+  useEffect(() => {
+    const update = () => setShowTutorialNotice(!areTutorialsEnabled() && !isTutorialNoticeDismissed());
+    update();
+    return onTutorialsChange(update);
+  }, []);
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -319,6 +329,27 @@ function DashboardPage() {
         </div>
         <ThemeToggle />
       </header>
+
+      {showTutorialNotice && (
+        <div className="mb-4 rounded-2xl border border-secondary/40 bg-secondary/10 p-4 flex items-center gap-3 flex-wrap">
+          <div className="size-10 rounded-xl grid place-items-center bg-secondary/20 text-secondary shrink-0">
+            <GraduationCap className="size-5" />
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold">Quer um guia rápido pelo CloseFinance?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Ative os tutoriais no <Link to="/perfil" className="text-secondary underline underline-offset-2">Perfil</Link> para receber dicas em Ganhos, Gastos, Categorias, Bancos e Cartões.
+            </p>
+          </div>
+          <Link to="/perfil" className="rounded-xl bg-secondary text-secondary-foreground font-semibold px-4 py-2 text-xs hover:opacity-90 transition">
+            Ir para Perfil
+          </Link>
+          <button onClick={() => { dismissTutorialNotice(); setShowTutorialNotice(false); }}
+            aria-label="Dispensar" className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5">
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       <ChartVisibilityBar hidden={hidden} onToggle={toggleHidden} />
 

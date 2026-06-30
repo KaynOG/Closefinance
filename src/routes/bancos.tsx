@@ -4,6 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, type Bank } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus } from "lucide-react";
+import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/bancos")({
   head: () => ({ meta: [{ title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
@@ -47,6 +48,20 @@ function BanksPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Patrimônio</p>
         <h1 className="text-3xl font-bold">Bancos e poupança</h1>
       </header>
+
+      <TutorialBox
+        storageKey="bancos"
+        title="Como usar Bancos e poupança"
+        steps={[
+          "Cadastre cada banco que você usa em 'Novo banco' (nome, cor, saldo atual).",
+          "Informe quanto está guardado (poupança) — entra no acompanhamento da meta anual.",
+          "Quando registrar um ganho ou gasto via Pix/Débito, escolha o banco: o saldo atualiza sozinho.",
+          "Use o botão '+' do banco para depositar/retirar manualmente quando precisar ajustar.",
+        ]}
+        tip="Mantenha o saldo igual ao do app do seu banco — assim seus relatórios refletem a realidade."
+      />
+
+
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <Stat label="Saldo em contas" value={formatBRL(totals.balance)} accent="teal" sub={`${banks.length} ${banks.length === 1 ? "banco" : "bancos"}`} />
