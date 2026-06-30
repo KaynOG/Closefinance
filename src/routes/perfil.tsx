@@ -4,12 +4,13 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff, ChevronDown, ChevronUp } from "lucide-react";
+import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff, ChevronDown, ChevronUp, GraduationCap } from "lucide-react";
 import { BackupContent } from "./backup";
 import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
+import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -230,9 +231,10 @@ function SecurityPanel() {
   const [resetMsg, setResetMsg] = useState<{ link: string; email: string } | null>(null);
   const [sound, setSound] = useState(true);
   const [popups, setPopups] = useState(true);
+  const [tutorials, setTutorials] = useState(false);
   const [openPw, setOpenPw] = useState(false);
   const [openEmail, setOpenEmail] = useState(false);
-  useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); }, []);
+  useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); setTutorials(areTutorialsEnabled()); }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -338,6 +340,15 @@ function SecurityPanel() {
               {popups ? "Pop-ups ativados" : "Pop-ups desativados"}
             </button>
           </div>
+          <div>
+            <SectionTitle title="Tutoriais para novos usuários" subtitle="dicas guiadas em Ganhos, Gastos, Categorias, Bancos e Cartões" />
+            <button onClick={() => { const v = !tutorials; setTutorials(v); setTutorialsEnabled(v); if (v) notify("Tutoriais ativados"); }}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono transition ${tutorials ? "border-secondary/50 bg-secondary/10 text-secondary" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+              <GraduationCap className="size-4" />
+              {tutorials ? "Tutoriais ativados" : "Tutoriais desativados"}
+            </button>
+          </div>
+
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Palette className="size-4 text-primary" />
