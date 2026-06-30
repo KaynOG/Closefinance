@@ -74,6 +74,12 @@ function DashboardPage() {
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
+  const [showTutorialNotice, setShowTutorialNotice] = useState(false);
+  useEffect(() => {
+    const update = () => setShowTutorialNotice(!areTutorialsEnabled() && !isTutorialNoticeDismissed());
+    update();
+    return onTutorialsChange(update);
+  }, []);
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
