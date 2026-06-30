@@ -118,6 +118,21 @@ function GastosPage() {
         <h1 className="text-3xl lg:text-4xl font-bold">Gastos <TrendingDown className="inline size-7" style={{ color: ORANGE }} /></h1>
       </header>
 
+      <TutorialBox
+        storageKey="gastos"
+        title="Como registrar seus gastos"
+        steps={[
+          "Em 'Novo gasto', informe o valor e uma descrição clara (ex: Mercado, Uber).",
+          "Escolha a categoria — ajuda a ver para onde o dinheiro está indo.",
+          "Marque como Essencial ou Não essencial para entender prioridades.",
+          "Selecione o método (Crédito, Débito, Pix, Dinheiro) e, se for cartão, escolha qual.",
+          "Para parcelar, ajuste o número de parcelas — cada uma cai no fechamento do cartão.",
+        ]}
+        tip="Compras no crédito não somam ao gasto do mês direto: elas viram a 'Fatura do cartão' do mês de fechamento."
+      />
+
+
+
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Stat label="Gasto este mês" value={formatBRL(monthExp)} accent="crimson" sub={`${expenses.filter(t => isSameMonth(t.date, today)).length} lançamentos`} />
         <Stat label="Essenciais" value={formatBRL(essential)} accent="teal" sub={monthExp ? `${Math.round((essential / monthExp) * 100)}% do total` : "—"} />

@@ -13,6 +13,7 @@ import {
   Coffee, IceCream, Gift, Book, Sun, Moon, ShoppingBag, ShoppingCart, Fuel, Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/categorias")({
   head: () => ({ meta: [{ title: "Categorias — CloseFinance" }, { name: "description", content: "Crie e personalize categorias de gastos." }] }),
