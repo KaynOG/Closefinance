@@ -4,6 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
+import { TutorialBox } from "@/components/TutorialBox";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
@@ -77,6 +78,20 @@ function GanhosPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Receitas</p>
         <h1 className="text-3xl lg:text-4xl font-bold">Ganhos <TrendingUp className="inline size-7" style={{ color: CYAN }} /></h1>
       </header>
+
+      <TutorialBox
+        storageKey="ganhos"
+        title="Como registrar seus ganhos"
+        steps={[
+          "Role até o bloco 'Novo ganho' e preencha o valor recebido.",
+          "Adicione uma descrição (ex: Salário, Freela) e a data em que o dinheiro entrou.",
+          "Se o valor caiu em uma conta, selecione o banco — o saldo é creditado automaticamente.",
+          "Clique em Adicionar. Pronto! O ganho aparece no histórico e nos gráficos.",
+        ]}
+        tip="Cadastre ganhos recorrentes (como salário) sempre na mesma data — facilita comparar meses."
+      />
+
+
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Stat label="Recebido este mês" value={formatBRL(monthIncome)} accent="teal" sub="entradas confirmadas" />

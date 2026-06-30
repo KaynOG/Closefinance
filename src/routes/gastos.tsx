@@ -7,6 +7,7 @@ import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
+import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
