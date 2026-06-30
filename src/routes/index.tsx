@@ -34,8 +34,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  GraduationCap,
+  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
+import { Link as RLink } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
