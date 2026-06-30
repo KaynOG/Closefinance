@@ -4,6 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
+import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/cartoes")({
   head: () => ({ meta: [{ title: "Cartões — CloseFinance" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
@@ -79,6 +80,21 @@ function CardsPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Crédito</p>
         <h1 className="text-3xl font-bold">Cartões e limites</h1>
       </header>
+
+      <TutorialBox
+        storageKey="cartoes"
+        title="Como gerenciar seus cartões"
+        steps={[
+          "Em 'Novo cartão', informe nome, limite total e os dias de fechamento e vencimento.",
+          "Se já tem dívida no cartão, preencha 'Limite já ocupado' para refletir o saldo real.",
+          "Cada compra no crédito consome limite até a fatura ser paga.",
+          "As compras se acumulam na 'Fatura do cartão' do mês de fechamento — essa fatura aparece como gasto do mês.",
+          "Acompanhe a barra de saúde: verde = ok, amarelo = atenção, vermelho = perto do estouro.",
+        ]}
+        tip="O dia de fechamento define em qual fatura cada compra entra. Compra após fechar → vai pra fatura do próximo mês."
+      />
+
+
 
       {/* Overview / dashboard dos cartões */}
       {cards.length > 0 && (

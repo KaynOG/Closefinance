@@ -80,6 +80,20 @@ function CategoriesPage() {
         </p>
       </header>
 
+      <TutorialBox
+        storageKey="categorias"
+        title="Como organizar suas categorias"
+        steps={[
+          "Em 'Nova categoria', dê um nome curto (ex: Mercado, Lazer, Saúde).",
+          "Escolha um ícone e uma cor — vai facilitar reconhecer nos gráficos.",
+          "Defina se essa categoria é só para gastos, só para ganhos, ou para ambos.",
+          "Use poucas categorias amplas no começo — você refina depois.",
+        ]}
+        tip="Categorias bem feitas viram insights: você descobre rápido o que mais pesa no orçamento."
+      />
+
+
+
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
         <GlassCard hideKey="categorias-1" hideLabel="Nova categoria">
           <SectionTitle title="Nova categoria" />

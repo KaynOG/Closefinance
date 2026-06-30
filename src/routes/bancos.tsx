@@ -49,6 +49,20 @@ function BanksPage() {
         <h1 className="text-3xl font-bold">Bancos e poupança</h1>
       </header>
 
+      <TutorialBox
+        storageKey="bancos"
+        title="Como usar Bancos e poupança"
+        steps={[
+          "Cadastre cada banco que você usa em 'Novo banco' (nome, cor, saldo atual).",
+          "Informe quanto está guardado (poupança) — entra no acompanhamento da meta anual.",
+          "Quando registrar um ganho ou gasto via Pix/Débito, escolha o banco: o saldo atualiza sozinho.",
+          "Use o botão '+' do banco para depositar/retirar manualmente quando precisar ajustar.",
+        ]}
+        tip="Mantenha o saldo igual ao do app do seu banco — assim seus relatórios refletem a realidade."
+      />
+
+
+
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <Stat label="Saldo em contas" value={formatBRL(totals.balance)} accent="teal" sub={`${banks.length} ${banks.length === 1 ? "banco" : "bancos"}`} />
         <Stat label="Guardado / poupado" value={formatBRL(totals.saved)} accent="success" sub="reserva acumulada" />
