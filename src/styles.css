@@ -294,8 +294,7 @@
   * {
     border-color: var(--color-border);
   }
-  html,
-  body {
+  html {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -303,13 +302,11 @@
     transition: background-color 320ms ease, color 320ms ease;
   }
   body {
-    background-image: var(--gradient-bg);
-    background-attachment: fixed;
+    background-color: transparent;
     min-height: 100vh;
   }
   main {
-    background-image: var(--gradient-screen);
-    background-attachment: fixed;
+    background-color: transparent;
   }
   h1,
   h2,
