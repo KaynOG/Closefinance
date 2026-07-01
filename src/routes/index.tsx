@@ -66,7 +66,14 @@ const DAILY_TIPS = [
   "Acompanhe pequenos gastos — eles somam mais do que parecem.",
   "Defina um teto mensal para lazer e respeite como uma conta fixa.",
   "Reserva de emergência primeiro, investimentos depois.",
+  "Invista em livros de finanças: 'Pai Rico, Pai Pobre' e 'Hábitos Atômicos' pagam a leitura em poucas semanas.",
+  "Reserve 30 min por semana para estudar investimentos — juros compostos começam com conhecimento.",
+  "Um curso ou certificação pode render mais que qualquer aplicação: invista em você.",
+  "Ouça um podcast de finanças no trajeto — educação financeira é hábito, não evento.",
+  "Antes de investir num ativo, aprenda a diferença entre ativo e passivo (Pai Rico, Pai Pobre).",
+  "Aplique a regra 1% de Hábitos Atômicos: melhore uma rotina financeira por dia.",
 ];
+
 
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
