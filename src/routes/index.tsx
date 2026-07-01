@@ -39,6 +39,9 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
+import { getRank } from "@/lib/ranks";
+import { Trophy } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/")({
