@@ -11,6 +11,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
+import { BACKGROUNDS, getBackgroundId, setBackgroundId, onBackgroundChange } from "@/lib/backgrounds";
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
