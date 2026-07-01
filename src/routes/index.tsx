@@ -85,11 +85,23 @@ function DashboardPage() {
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
   const [showTutorialNotice, setShowTutorialNotice] = useState(false);
+  const [rankUp, setRankUp] = useState<{ name: string; color: string } | null>(null);
   useEffect(() => {
     const update = () => setShowTutorialNotice(!areTutorialsEnabled() && !isTutorialNoticeDismissed());
     update();
     return onTutorialsChange(update);
   }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const r = getRank(missions.totalPoints, user.gender);
+    const key = `cf:lastRank:${user.id}`;
+    const prev = window.localStorage.getItem(key);
+    if (prev && prev !== r.current.id) {
+      setRankUp({ name: r.displayName, color: r.current.color });
+    }
+    window.localStorage.setItem(key, r.current.id);
+  }, [missions.totalPoints, user?.id]);
+
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
