@@ -359,7 +359,10 @@ function SecurityPanel() {
               <span className="text-[11px] font-mono text-muted-foreground">Modo claro / escuro</span>
             </div>
             <AccentPicker />
-          </div>
+            <div className="mt-4">
+              <BackgroundPicker />
+            </div>
+
         </div>
       </GlassCard>
     </div>
