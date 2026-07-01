@@ -362,6 +362,8 @@ function SecurityPanel() {
             <div className="mt-4">
               <BackgroundPicker />
             </div>
+          </div>
+
 
         </div>
       </GlassCard>
