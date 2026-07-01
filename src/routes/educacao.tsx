@@ -47,7 +47,18 @@ const LESSONS = [
     body: "Não coloque tudo em um lugar só: misture renda fixa (CDB, Tesouro), variável (ações, FIIs) e reserva líquida. Diversificação reduz risco sem cortar potencial." },
   { icon: Coins, color: "#FFCC00", tag: "Aumentar renda", title: "Venda o que não usa", summary: "Transforme objetos parados em dinheiro hoje.",
     body: "Roupas, eletrônicos parados, livros, móveis. Marketplaces transformam objetos esquecidos em dinheiro hoje — sem precisar trabalhar mais horas pra isso." },
+  { icon: Target, color: "#22C3CC", tag: "Hábitos", title: "1% melhor por dia (Hábitos Atômicos)", summary: "Pequenas melhorias financeiras compostas mudam tudo.",
+    body: "James Clear mostra que ganhos de 1% ao dia se acumulam em 37x no ano. Aplicado ao dinheiro: revise 1 gasto por dia, cancele 1 assinatura por semana, aumente 1% da sua taxa de poupança por mês. Consistência bate intensidade." },
+  { icon: Sparkles, color: "#B388FF", tag: "Hábitos", title: "Empilhamento de hábitos", summary: "Cole um hábito financeiro em outro que você já faz.",
+    body: "Fórmula de Hábitos Atômicos: 'Depois de [hábito atual], eu vou [novo hábito]'. Ex.: 'Depois do café da manhã, registro os gastos de ontem'. Ancorar em rotinas fortes é o jeito mais fácil de tornar o controle financeiro automático." },
+  { icon: PiggyBank, color: "#2BD9A1", tag: "Mindset", title: "Pague-se primeiro (O Homem Mais Rico da Babilônia)", summary: "Guarde 10% antes de qualquer despesa.",
+    body: "A lição milenar de George S. Clason: uma parte do que você ganha é sua para guardar. Automatize a transferência de 10% assim que a renda cai — trate como se fosse a conta mais importante do mês, porque é." },
+  { icon: BookOpen, color: "#FF6B1A", tag: "Investir", title: "Ativos vs passivos (Pai Rico, Pai Pobre)", summary: "Compre coisas que colocam dinheiro no bolso.",
+    body: "Robert Kiyosaki define: ativo é o que traz dinheiro para você (aluguel, dividendos, royalties); passivo é o que tira (carro financiado, cartão rotativo). Antes de comprar, pergunte: 'Isso é ativo ou passivo?'. Enriquecer é acumular ativos." },
+  { icon: HeartPulse, color: "#FFD700", tag: "Mindset", title: "Independência financeira (Pai Rico)", summary: "Quando a renda de ativos cobre suas despesas, você é livre.",
+    body: "A meta não é ser rico — é ser livre. Calcule seu 'número de liberdade': gasto mensal essencial × 12 × 25. Cada real investido em ativos que rendem te aproxima do dia em que trabalhar vira opção, não obrigação." },
 ];
+
 
 function LessonCard({ l }: { l: typeof LESSONS[number] }) {
   const [open, setOpen] = useState(false);

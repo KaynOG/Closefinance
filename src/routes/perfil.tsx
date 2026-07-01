@@ -11,6 +11,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
+import { BACKGROUNDS, getBackgroundId, setBackgroundId, onBackgroundChange } from "@/lib/backgrounds";
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
@@ -359,7 +361,12 @@ function SecurityPanel() {
               <span className="text-[11px] font-mono text-muted-foreground">Modo claro / escuro</span>
             </div>
             <AccentPicker />
+            <div className="mt-4">
+              <BackgroundPicker />
+            </div>
           </div>
+
+
         </div>
       </GlassCard>
     </div>
@@ -394,6 +401,41 @@ function AccentPicker() {
     </div>
   );
 }
+
+function BackgroundPicker() {
+  const [id, setId] = useState<string>("glass");
+  useEffect(() => { setId(getBackgroundId()); return onBackgroundChange(() => setId(getBackgroundId())); }, []);
+  return (
+    <div>
+      <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Plano de fundo</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {BACKGROUNDS.map(opt => {
+          const active = id === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              data-sound="soft"
+              onClick={() => setBackgroundId(opt.id)}
+              title={opt.name}
+              className={`group relative rounded-xl border overflow-hidden transition active:scale-95 ${active ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"}`}
+            >
+              <div
+                className="h-20 w-full"
+                style={{ backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              />
+              <div className="px-2 py-1.5 bg-background/70 backdrop-blur">
+                <span className="block text-[10px] font-mono text-center truncate">{opt.name}</span>
+              </div>
+              {active && <span className="absolute top-1 right-1 text-[9px] font-mono text-primary bg-background/80 rounded px-1">●</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 const input = "w-full rounded-xl bg-white/5 border border-border pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
 

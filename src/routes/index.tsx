@@ -39,6 +39,9 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
+import { getRank } from "@/lib/ranks";
+import { Trophy } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/")({
@@ -66,7 +69,14 @@ const DAILY_TIPS = [
   "Acompanhe pequenos gastos — eles somam mais do que parecem.",
   "Defina um teto mensal para lazer e respeite como uma conta fixa.",
   "Reserva de emergência primeiro, investimentos depois.",
+  "Invista em livros de finanças: 'Pai Rico, Pai Pobre' e 'Hábitos Atômicos' pagam a leitura em poucas semanas.",
+  "Reserve 30 min por semana para estudar investimentos — juros compostos começam com conhecimento.",
+  "Um curso ou certificação pode render mais que qualquer aplicação: invista em você.",
+  "Ouça um podcast de finanças no trajeto — educação financeira é hábito, não evento.",
+  "Antes de investir num ativo, aprenda a diferença entre ativo e passivo (Pai Rico, Pai Pobre).",
+  "Aplique a regra 1% de Hábitos Atômicos: melhore uma rotina financeira por dia.",
 ];
+
 
 function DashboardPage() {
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
@@ -75,11 +85,23 @@ function DashboardPage() {
   const [monthOffset, setMonthOffset] = useState(0);
   const [forecastN, setForecastN] = useState<0 | 3 | 6>(0);
   const [showTutorialNotice, setShowTutorialNotice] = useState(false);
+  const [rankUp, setRankUp] = useState<{ name: string; color: string } | null>(null);
   useEffect(() => {
     const update = () => setShowTutorialNotice(!areTutorialsEnabled() && !isTutorialNoticeDismissed());
     update();
     return onTutorialsChange(update);
   }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const r = getRank(missions.totalPoints, user.gender);
+    const key = `cf:lastRank:${user.id}`;
+    const prev = window.localStorage.getItem(key);
+    if (prev && prev !== r.current.id) {
+      setRankUp({ name: r.displayName, color: r.current.color });
+    }
+    window.localStorage.setItem(key, r.current.id);
+  }, [missions.totalPoints, user?.id]);
+
   const [periodMonths, setPeriodMonths] = useState<3 | 6 | 12>(6);
   const [catPeriod, setCatPeriod] = useState<3 | 6 | 12>(3);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -329,6 +351,28 @@ function DashboardPage() {
         </div>
         <ThemeToggle />
       </header>
+
+      {rankUp && (
+        <div className="mb-4 rounded-2xl border p-4 flex items-center gap-3 flex-wrap animate-in fade-in slide-in-from-top-2"
+          style={{ borderColor: rankUp.color + "66", background: rankUp.color + "12" }}>
+          <div className="size-10 rounded-xl grid place-items-center shrink-0"
+            style={{ background: rankUp.color + "26", color: rankUp.color }}>
+            <Trophy className="size-5" />
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold">Parabéns! Você subiu de nível 🎉</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Sua saúde financeira evoluiu — agora você é <span className="font-semibold" style={{ color: rankUp.color }}>{rankUp.name}</span>. Continue com o mesmo ritmo!
+            </p>
+          </div>
+          <button onClick={() => setRankUp(null)}
+            aria-label="Dispensar" className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5">
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+
+
 
       {showTutorialNotice && (
         <div className="mb-4 rounded-2xl border border-secondary/40 bg-secondary/10 p-4 flex items-center gap-3 flex-wrap">
