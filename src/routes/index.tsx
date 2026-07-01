@@ -352,6 +352,28 @@ function DashboardPage() {
         <ThemeToggle />
       </header>
 
+      {rankUp && (
+        <div className="mb-4 rounded-2xl border p-4 flex items-center gap-3 flex-wrap animate-in fade-in slide-in-from-top-2"
+          style={{ borderColor: rankUp.color + "66", background: rankUp.color + "12" }}>
+          <div className="size-10 rounded-xl grid place-items-center shrink-0"
+            style={{ background: rankUp.color + "26", color: rankUp.color }}>
+            <Trophy className="size-5" />
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold">Parabéns! Você subiu de nível 🎉</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Sua saúde financeira evoluiu — agora você é <span className="font-semibold" style={{ color: rankUp.color }}>{rankUp.name}</span>. Continue com o mesmo ritmo!
+            </p>
+          </div>
+          <button onClick={() => setRankUp(null)}
+            aria-label="Dispensar" className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5">
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+
+
+
       {showTutorialNotice && (
         <div className="mb-4 rounded-2xl border border-secondary/40 bg-secondary/10 p-4 flex items-center gap-3 flex-wrap">
           <div className="size-10 rounded-xl grid place-items-center bg-secondary/20 text-secondary shrink-0">
