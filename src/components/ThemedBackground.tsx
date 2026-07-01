@@ -22,7 +22,7 @@ export function ThemedBackground() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--background) 20%, transparent), color-mix(in oklab, var(--background) 35%, transparent))",
+            "linear-gradient(180deg, color-mix(in oklab, var(--background) 40%, transparent), color-mix(in oklab, var(--background) 55%, transparent))",
         }}
       />
     </div>
