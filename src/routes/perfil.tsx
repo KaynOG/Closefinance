@@ -421,9 +421,13 @@ function BackgroundPicker() {
               className={`group relative rounded-xl border overflow-hidden transition active:scale-95 ${active ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"}`}
             >
               <div
-                className="h-20 w-full"
-                style={{ backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }}
-              />
+                className="h-20 w-full grid place-items-center text-[10px] font-mono text-muted-foreground"
+                style={opt.url
+                  ? { backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : { background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 8px, rgba(255,255,255,0.09) 8px 16px)" }}
+              >
+                {!opt.url && <span>sem fundo</span>}
+              </div>
               <div className="px-2 py-1.5 bg-background/70 backdrop-blur">
                 <span className="block text-[10px] font-mono text-center truncate">{opt.name}</span>
               </div>
