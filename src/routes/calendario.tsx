@@ -221,6 +221,101 @@ function CalendarPage() {
           )}
         </GlassCard>
       </div>
+
+      <WeekAheadDetails
+        incomes={weekAhead.incomes as (typeof transactions[number])[]}
+        expenses={weekAhead.expenses as DayItem[]}
+        totalIn={weekAhead.totalIn}
+        totalOut={weekAhead.totalOut}
+        categories={categories}
+        cards={cards}
+      />
     </AppShell>
+  );
+}
+
+type Cat = { id: string; name: string; color: string };
+type CardT = { id: string; name: string; color: string };
+
+function WeekAheadDetails({ incomes, expenses, totalIn, totalOut, categories, cards }:
+  { incomes: (import("@/lib/store").Transaction)[]; expenses: (import("@/lib/store").Transaction | VirtualInvoiceRow)[]; totalIn: number; totalOut: number; categories: Cat[]; cards: CardT[] }) {
+  const [open, setOpen] = useState(false);
+  const orderedIncomes = [...incomes].sort((a, b) => a.date.localeCompare(b.date));
+  const orderedExpenses = [...expenses].sort((a, b) => a.date.localeCompare(b.date));
+  return (
+    <GlassCard hideKey="cal-week-details" hideLabel="Detalhes dos próximos 7 dias" className="mt-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary"><Bell className="size-4" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Detalhes dos próximos 7 dias</h2>
+            <p className="text-[11px] font-mono text-muted-foreground">{incomes.length} entrada(s) · {expenses.length} saída(s)</p>
+          </div>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-mono uppercase tracking-wider text-[#7DF2C5] flex items-center gap-1.5"><ArrowDownCircle className="size-3.5" /> Ganhos previstos</p>
+                <p className="text-sm font-mono text-[#2BD9A1]">{formatBRL(totalIn)}</p>
+              </div>
+              {orderedIncomes.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum ganho previsto.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {orderedIncomes.map(t => {
+                    const cat = categories.find(c => c.id === t.categoryId);
+                    return (
+                      <li key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{t.description || "Entrada"}</p>
+                          <p className="text-[10px] font-mono text-muted-foreground">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")} · {cat?.name ?? "Sem categoria"}</p>
+                        </div>
+                        <p className="text-sm font-mono text-[#2BD9A1]">+{formatBRL(t.amount)}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-mono uppercase tracking-wider text-[#FF8FA3] flex items-center gap-1.5"><ArrowUpCircle className="size-3.5" /> Gastos e faturas</p>
+                <p className="text-sm font-mono text-[#FF8FA3]">{formatBRL(totalOut)}</p>
+              </div>
+              {orderedExpenses.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum gasto previsto.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {orderedExpenses.map(t => {
+                    const isInv = "virtual" in t && (t as VirtualInvoiceRow).virtual === true;
+                    const cat = !isInv ? categories.find(c => c.id === (t as import("@/lib/store").Transaction).categoryId) : undefined;
+                    const card = cards.find(c => c.id === (t as { cardId?: string }).cardId);
+                    return (
+                      <li key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{t.description || (isInv ? "Fatura" : "Gasto")}</p>
+                          <p className="text-[10px] font-mono text-muted-foreground">
+                            {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                            {isInv ? ` · fatura${card ? ` · ${card.name}` : ""}` : ` · ${cat?.name ?? "Sem categoria"}${card ? ` · ${card.name}` : ""}`}
+                          </p>
+                        </div>
+                        <p className="text-sm font-mono text-[#FF8FA3]">-{formatBRL(t.amount)}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
