@@ -156,11 +156,7 @@ function PerfilPage() {
       </section>
 
       <section className="mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <LifeBuoy className="size-5 text-secondary" />
-          <h2 className="text-xl lg:text-2xl font-bold">Suporte</h2>
-        </div>
-        <SupportPanel />
+        <SupportCollapsible />
       </section>
 
       <section>
