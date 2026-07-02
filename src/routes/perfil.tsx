@@ -116,40 +116,15 @@ function PerfilPage() {
           </button>
         </GlassCard>
 
-        <GlassCard hideKey="perfil-2" hideLabel="Dados pessoais">
-          <SectionTitle title="Dados pessoais" subtitle="atualize quando precisar" />
-          <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="Nome completo" icon={<UserIcon className="size-4" />}>
-              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={input} />
-            </Field>
-            <Field label="Data de nascimento" icon={<CalIcon className="size-4" />}>
-              <input type="date" value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className={input} />
-            </Field>
-            <Field label="Meta financeira anual (R$)" icon={<Target className="size-4" />}>
-              <input value={form.yearlyGoal} onChange={e => setForm({ ...form, yearlyGoal: e.target.value })} inputMode="decimal" placeholder="0,00" className={input} />
-            </Field>
-
-            <div className="md:col-span-2">
-              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Gênero</span>
-              <div className="mt-1.5 grid grid-cols-3 gap-2">
-                <GenderBtn current={form.gender} value="male" label="Homem" icon={<Mars className="size-4" />} onClick={(v) => setForm({ ...form, gender: v })} />
-                <GenderBtn current={form.gender} value="female" label="Mulher" icon={<Venus className="size-4" />} onClick={(v) => setForm({ ...form, gender: v })} />
-                <GenderBtn current={form.gender} value="other" label="Prefiro não dizer" icon={<CircleDot className="size-4" />} onClick={(v) => setForm({ ...form, gender: v })} />
-              </div>
-              <p className="mt-2 text-[11px] font-mono text-muted-foreground">As patentes serão exibidas no gênero correspondente (ex.: Mestre / Mestra).</p>
-            </div>
-
-            <div className="md:col-span-2 flex items-center gap-3 pt-2">
-              <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm flex items-center gap-2 glow-violet active:scale-[0.98] transition">
-                <Save className="size-4" /> Salvar alterações
-              </button>
-              {saved && (
-                <span className="text-sm text-[#7DF2C5] font-mono flex items-center gap-1.5 animate-in fade-in"><CheckCircle2 className="size-4" /> Perfil atualizado</span>
-              )}
-            </div>
-          </form>
-        </GlassCard>
+        <PersonalDataCollapsible
+          form={form}
+          setForm={setForm}
+          save={save}
+          saved={saved}
+        />
       </section>
+
+      {null}
 
       <section className="mb-6">
         <SecurityPanel />
