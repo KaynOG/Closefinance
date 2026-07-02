@@ -157,8 +157,39 @@ function BanksPage() {
         </div>
       </div>
 
+      {goal > 0 && <YearlyGoalCollapsible saved={totals.saved} goal={goal} pct={totals.goalPct} />}
+
       {editing && <EditBankModal bank={editing} onClose={() => setEditing(null)} onSave={async (patch) => { await api.updateBank(editing.id, patch); setEditing(null); }} />}
     </AppShell>
+  );
+}
+
+function YearlyGoalCollapsible({ saved, goal, pct }: { saved: number; goal: number; pct: number }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassCard hideKey="bancos-goal" hideLabel="Progresso da meta anual" className="mt-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary"><Target className="size-4" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Progresso da meta anual</h2>
+            <p className="text-[11px] font-mono text-muted-foreground">{formatBRL(saved)} de {formatBRL(goal)}</p>
+          </div>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <Minus className="size-4" /> : <Plus className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
+            <div className="h-full transition-all duration-700" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #22C3CC, #2BD9A1)" }} />
+          </div>
+          <p className="mt-2 text-xs font-mono text-muted-foreground">Some os valores guardados em cada banco — eles contam para sua meta financeira anual.</p>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
