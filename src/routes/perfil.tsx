@@ -124,8 +124,6 @@ function PerfilPage() {
         />
       </section>
 
-      {null}
-
       <section className="mb-6">
         <SecurityPanel />
       </section>
