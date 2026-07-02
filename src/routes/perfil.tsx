@@ -156,11 +156,7 @@ function PerfilPage() {
       </section>
 
       <section className="mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <LifeBuoy className="size-5 text-secondary" />
-          <h2 className="text-xl lg:text-2xl font-bold">Suporte</h2>
-        </div>
-        <SupportPanel />
+        <SupportCollapsible />
       </section>
 
       <section>
@@ -187,6 +183,29 @@ function BackupCollapsible() {
       <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
         <div className="overflow-hidden">
           <BackupContent />
+        </div>
+      </div>
+    </GlassCard>
+  );
+}
+
+function SupportCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassCard hideKey="perfil-support-wrap" hideLabel="Suporte">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><LifeBuoy className="size-4" /></div>
+          <h2 className="text-base font-semibold">Suporte</h2>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <SupportPanel />
         </div>
       </div>
     </GlassCard>
@@ -421,9 +440,13 @@ function BackgroundPicker() {
               className={`group relative rounded-xl border overflow-hidden transition active:scale-95 ${active ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"}`}
             >
               <div
-                className="h-20 w-full"
-                style={{ backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }}
-              />
+                className="h-20 w-full grid place-items-center text-[10px] font-mono text-muted-foreground"
+                style={opt.url
+                  ? { backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : { background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 8px, rgba(255,255,255,0.09) 8px 16px)" }}
+              >
+                {!opt.url && <span>sem fundo</span>}
+              </div>
               <div className="px-2 py-1.5 bg-background/70 backdrop-blur">
                 <span className="block text-[10px] font-mono text-center truncate">{opt.name}</span>
               </div>

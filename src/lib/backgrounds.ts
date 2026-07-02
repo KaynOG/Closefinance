@@ -8,6 +8,7 @@ import bgTealWaves from "@/assets/bg-teal-waves.png.asset.json";
 export type BgOption = { id: string; name: string; url: string };
 
 export const BACKGROUNDS: BgOption[] = [
+  { id: "none", name: "Sem fundo", url: "" },
   { id: "glass", name: "Glass geométrico", url: bgGlass.url },
   { id: "dark-green", name: "Verde profundo", url: bgDarkGreen.url },
   { id: "lime", name: "Lima listrado", url: bgLime.url },
