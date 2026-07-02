@@ -63,8 +63,8 @@ const LESSONS = [
 function LessonCard({ l }: { l: typeof LESSONS[number] }) {
   const [open, setOpen] = useState(false);
   return (
-    <GlassCard className="relative overflow-hidden !p-3">
-      <div className="absolute -top-8 -right-8 size-24 rounded-full opacity-25 blur-2xl" style={{ background: l.color }} />
+    <GlassCard className="relative overflow-hidden isolate !p-3">
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(55% 55% at 100% 0%, ${l.color}55, transparent 70%)` }} />
       <div className="relative">
         <div className="flex items-center gap-2.5">
           <div className="size-9 rounded-lg grid place-items-center shrink-0" style={{ background: l.color + "26", color: l.color }}>

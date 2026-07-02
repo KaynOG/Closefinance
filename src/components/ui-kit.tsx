@@ -40,20 +40,30 @@ export function Stat({ label, value, sub, accent = "violet", hideKey: _hk }: {
   hideKey?: string;
 }) {
   void _hk;
-  const accentMap: Record<string, string> = {
-    violet: "from-[#540BD3] to-[#B388FF]",
-    yellow: "from-[#f4fafe] to-[#f4fafe]",
-    teal: "from-[#006F77] to-[#22C3CC]",
-    crimson: "from-[#820432] to-[#D14B72]",
-    success: "from-[#2BD9A1] to-[#7DF2C5]",
-    danger: "from-[#FF4D6D] to-[#FF8FA3]",
+  // Uses theme tokens so the glow follows the active palette
+  const accentVar: Record<string, string> = {
+    violet: "var(--primary)",
+    yellow: "var(--secondary)",
+    teal: "var(--primary)",
+    crimson: "var(--destructive)",
+    success: "var(--success)",
+    danger: "var(--danger)",
   };
+  const color = accentVar[accent];
   return (
-    <div className="glass rounded-2xl p-5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-      <div className={cn("absolute -top-12 -right-12 size-32 rounded-full opacity-30 blur-2xl bg-gradient-to-br", accentMap[accent])} />
-      <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl lg:text-3xl font-bold">{value}</p>
-      {sub && <p className="mt-1 text-xs font-mono text-muted-foreground">{sub}</p>}
+    <div className="glass rounded-2xl p-5 relative overflow-hidden isolate animate-in fade-in zoom-in-95 duration-300">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(60% 60% at 100% 0%, color-mix(in oklab, ${color} 45%, transparent), transparent 70%)`,
+        }}
+      />
+      <div className="relative">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="mt-2 text-2xl lg:text-3xl font-bold">{value}</p>
+        {sub && <p className="mt-1 text-xs font-mono text-muted-foreground">{sub}</p>}
+      </div>
     </div>
   );
 }
