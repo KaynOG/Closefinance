@@ -69,15 +69,6 @@ function BanksPage() {
         <Stat label="Meta anual" value={goal > 0 ? formatBRL(goal) : "—"} accent="violet" sub={goal > 0 ? `${Math.round(totals.goalPct)}% atingido` : "defina no perfil"} />
       </section>
 
-      {goal > 0 && (
-        <GlassCard hideKey="bancos-1" hideLabel="Progresso da meta anual" className="mb-6">
-          <SectionTitle title="Progresso da meta anual" subtitle={`${formatBRL(totals.saved)} de ${formatBRL(goal)}`} />
-          <div className="h-3 w-full rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full transition-all duration-700" style={{ width: `${totals.goalPct}%`, background: "linear-gradient(90deg, #22C3CC, #2BD9A1)" }} />
-          </div>
-          <p className="mt-2 text-xs font-mono text-muted-foreground">Some os valores guardados em cada banco — eles contam para sua meta financeira anual.</p>
-        </GlassCard>
-      )}
 
       <CashBox cash={cash} onAdd={(v) => api.addCash(v)} onSet={(v) => api.setCash(v)} />
 
