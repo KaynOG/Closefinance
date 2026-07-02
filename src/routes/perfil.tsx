@@ -189,6 +189,29 @@ function BackupCollapsible() {
   );
 }
 
+function SupportCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassCard hideKey="perfil-support-wrap" hideLabel="Suporte">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-secondary/15 text-secondary"><LifeBuoy className="size-4" /></div>
+          <h2 className="text-base font-semibold">Suporte</h2>
+        </div>
+        <button onClick={() => setOpen(o => !o)} aria-label={open ? "Recolher" : "Expandir"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      <div className={`grid transition-all duration-300 ease-out ${open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <SupportPanel />
+        </div>
+      </div>
+    </GlassCard>
+  );
+}
+
 function SupportPanel() {
   const wpp = "5531993579103";
   const email = "filipewesley007@gmail.com";
