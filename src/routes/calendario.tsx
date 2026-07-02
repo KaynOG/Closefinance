@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, type VirtualInvoiceRow } from "@/lib/store";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Bell, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, AlertTriangle, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/calendario")({
