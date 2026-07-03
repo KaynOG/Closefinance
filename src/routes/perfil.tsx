@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, type Gender } from "@/lib/store";
+import { useStore, parseBRL, type Gender } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff, ChevronDown, ChevronUp, GraduationCap } from "lucide-react";
@@ -65,7 +65,7 @@ function PerfilPage() {
       name: form.name.trim(),
       birthdate: form.birthdate || undefined,
       job: form.job.trim() || undefined,
-      yearlyGoal: form.yearlyGoal ? parseFloat(form.yearlyGoal.replace(",", ".")) : undefined,
+      yearlyGoal: form.yearlyGoal ? parseBRL(form.yearlyGoal) : undefined,
       avatar: form.avatar || undefined,
       gender: form.gender,
     });

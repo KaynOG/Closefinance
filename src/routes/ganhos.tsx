@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -33,7 +33,7 @@ function GanhosPage() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
     const dest = form.destination;
     const bankId = dest && dest !== "none" && dest !== "cash" ? dest : undefined;
@@ -174,8 +174,8 @@ function GanhosPage() {
           <SectionTitle title="Planilha de ganhos" subtitle={`${incomes.length} lançamentos`} />
           {(() => {
             const monthsSet = Array.from(new Set(incomes.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
-            const minN = parseFloat(fMin.replace(",", "."));
-            const maxN = parseFloat(fMax.replace(",", "."));
+            const minN = parseBRL(fMin);
+            const maxN = parseBRL(fMax);
             const q = fSearch.trim().toLowerCase();
             const filtered = incomes.filter(t => {
               if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;

@@ -293,6 +293,24 @@ function ensureInit() {
 export function formatBRL(n: number) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+/** Parse Brazilian money strings: "4040,23", "4.040,23", "4040.23", "4,040.23". */
+export function parseBRL(v: string | number | null | undefined): number {
+  if (v === null || v === undefined) return NaN;
+  if (typeof v === "number") return v;
+  const s = String(v).trim().replace(/\s/g, "").replace(/R\$/i, "");
+  if (!s) return NaN;
+  const hasComma = s.includes(",");
+  const hasDot = s.includes(".");
+  let cleaned = s;
+  if (hasComma && hasDot) {
+    // último separador é o decimal
+    if (s.lastIndexOf(",") > s.lastIndexOf(".")) cleaned = s.replace(/\./g, "").replace(",", ".");
+    else cleaned = s.replace(/,/g, "");
+  } else if (hasComma) {
+    cleaned = s.replace(/\./g, "").replace(",", ".");
+  }
+  return parseFloat(cleaned);
+}
 export function isSameMonth(iso: string, ref: Date) {
   const d = new Date(iso + "T00:00:00");
   return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();

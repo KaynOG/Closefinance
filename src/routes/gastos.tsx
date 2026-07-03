@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
@@ -40,7 +40,7 @@ function GastosPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
 
     // Pagamento de fatura: registra o gasto (saída do banco/pix/dinheiro) e
@@ -264,7 +264,7 @@ function GastosPage() {
                     </select>
                   </Field>
                 )}
-                <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseFloat(form.amount.replace(",",".")) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
+                <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseBRL(form.amount) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
                   <div className="flex items-center gap-2">
                     <input type="range" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className="flex-1 accent-[var(--primary)]" />
                     <input type="number" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className={`${inputCls} w-16 text-center`} />
@@ -296,8 +296,8 @@ function GastosPage() {
           <SectionTitle title="Planilha de gastos" subtitle={`${expenses.length} lançamentos`} />
           {(() => {
             const monthsSet = Array.from(new Set(expenses.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
-            const minN = parseFloat(fMin.replace(",", "."));
-            const maxN = parseFloat(fMax.replace(",", "."));
+            const minN = parseBRL(fMin);
+            const maxN = parseBRL(fMax);
             const q = fSearch.trim().toLowerCase();
             const filtered = expenses.filter(t => {
               if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;

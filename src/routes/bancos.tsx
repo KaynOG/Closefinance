@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, type Bank } from "@/lib/store";
+import { useStore, formatBRL, parseBRL, type Bank } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -28,8 +28,8 @@ function BanksPage() {
     if (!form.name.trim()) return;
     await api.addBank({
       name: form.name.trim(), color: form.color,
-      accountBalance: parseFloat(form.accountBalance.replace(",", ".")) || 0,
-      savedAmount: parseFloat(form.savedAmount.replace(",", ".")) || 0,
+      accountBalance: parseBRL(form.accountBalance) || 0,
+      savedAmount: parseBRL(form.savedAmount) || 0,
       note: form.note.trim() || undefined,
     });
     setForm({ name: "", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
@@ -202,8 +202,8 @@ function EditBankModal({ bank, onClose, onSave }: { bank: Bank; onClose: () => v
     e.preventDefault();
     await onSave({
       name: form.name.trim(), color: form.color,
-      accountBalance: parseFloat(form.accountBalance.replace(",", ".")) || 0,
-      savedAmount: parseFloat(form.savedAmount.replace(",", ".")) || 0,
+      accountBalance: parseBRL(form.accountBalance) || 0,
+      savedAmount: parseBRL(form.savedAmount) || 0,
       note: form.note.trim() || undefined,
     });
   }
@@ -241,7 +241,7 @@ function QuickSaveInput({ bank, onAdd }: { bank: Bank; onAdd: (amount: number) =
   const [val, setVal] = useState("");
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const n = parseFloat(val.replace(",", "."));
+    const n = parseBRL(val);
     if (!Number.isFinite(n) || n === 0) return;
     await onAdd(n);
     setVal("");
@@ -273,7 +273,7 @@ function CashBox({ cash, onAdd, onSet }: { cash: number; onAdd: (v: number) => v
   const [editVal, setEditVal] = useState(String(cash));
 
   async function add(sign: 1 | -1) {
-    const n = parseFloat(val.replace(",", "."));
+    const n = parseBRL(val);
     if (!Number.isFinite(n) || n === 0) return;
     await onAdd(sign * n);
     setVal("");
@@ -281,7 +281,7 @@ function CashBox({ cash, onAdd, onSet }: { cash: number; onAdd: (v: number) => v
 
   async function saveSet(e: React.FormEvent) {
     e.preventDefault();
-    const n = parseFloat(editVal.replace(",", "."));
+    const n = parseBRL(editVal);
     if (!Number.isFinite(n) || n < 0) return;
     await onSet(n);
     setEditing(false);
