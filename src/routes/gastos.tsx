@@ -40,7 +40,7 @@ function GastosPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
 
     // Pagamento de fatura: registra o gasto (saída do banco/pix/dinheiro) e
@@ -296,8 +296,8 @@ function GastosPage() {
           <SectionTitle title="Planilha de gastos" subtitle={`${expenses.length} lançamentos`} />
           {(() => {
             const monthsSet = Array.from(new Set(expenses.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
-            const minN = parseFloat(fMin.replace(",", "."));
-            const maxN = parseFloat(fMax.replace(",", "."));
+            const minN = parseBRL(fMin);
+            const maxN = parseBRL(fMax);
             const q = fSearch.trim().toLowerCase();
             const filtered = expenses.filter(t => {
               if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;

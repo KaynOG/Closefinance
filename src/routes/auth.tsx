@@ -72,7 +72,7 @@ function AuthPage() {
         name: form.name, email: form.email, password: form.password,
         birthdate: form.birthdate || undefined,
         gender: form.gender,
-        yearlyGoal: form.yearlyGoal ? parseFloat(form.yearlyGoal.replace(/\./g, "").replace(",", ".")) : undefined,
+        yearlyGoal: form.yearlyGoal ? parseBRL(form.yearlyGoal) : undefined,
       });
       if (!r.ok) setError(r.error);
       else navigate({ to: "/" });

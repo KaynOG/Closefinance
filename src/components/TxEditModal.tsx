@@ -26,7 +26,7 @@ export function TxEditModal({ tx, categories, cards, banks, onSave, onClose }: T
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
     const patch: Partial<Transaction> = {
       date: form.date, description: form.description.trim(), amount: amt,

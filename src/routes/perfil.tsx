@@ -65,7 +65,7 @@ function PerfilPage() {
       name: form.name.trim(),
       birthdate: form.birthdate || undefined,
       job: form.job.trim() || undefined,
-      yearlyGoal: form.yearlyGoal ? parseFloat(form.yearlyGoal.replace(",", ".")) : undefined,
+      yearlyGoal: form.yearlyGoal ? parseBRL(form.yearlyGoal) : undefined,
       avatar: form.avatar || undefined,
       gender: form.gender,
     });

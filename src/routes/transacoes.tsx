@@ -30,7 +30,7 @@ function TxPage() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
     api.addTransaction({
       type: form.type,
