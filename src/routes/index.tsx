@@ -140,20 +140,28 @@ function DashboardPage() {
     return { tx, invoices, income, expense, essential, nonEssential, balance: income - expense };
   }, [transactions, cards, displayMonth]);
 
-  // Dados de cartão puxados dos gastos (transactions)
+  // Dados de cartão puxados dos gastos (transactions) — mesma lógica da aba Cartões
   const cardUsage = useMemo(
     () => {
       const todayStr = new Date().toISOString().slice(0, 10);
       return cards.map((c) => {
         const invoiceTag = `${INVOICE_PAYMENT_TAG_PREFIX}${c.id}`;
-        const usedTx = transactions
-          .filter((t) => t.cardId === c.id && t.type === "expense" && isSameMonth(t.date, displayMonth) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
+        // Compras no crédito em aberto (todas as parcelas até que a fatura seja paga)
+        const creditOutstanding = transactions
+          .filter((t) => t.cardId === c.id && t.type === "expense" && t.paymentMethod === "credit" && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
           .reduce((s, t) => s + t.amount, 0);
+        // Débito/etc no cartão só entram no mês em exibição
+        const otherThisMonth = transactions
+          .filter((t) => t.cardId === c.id && t.type === "expense" && t.paymentMethod !== "credit" && isSameMonth(t.date, displayMonth) && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX))
+          .reduce((s, t) => s + t.amount, 0);
+        const usedTx = creditOutstanding + otherThisMonth;
         const released = transactions
           .filter((t) => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr)
           .reduce((s, t) => s + t.amount, 0);
-        const manual = Math.max(0, (c.usedManual ?? 0) - released);
-        const used = usedTx + manual;
+        const manualRaw = c.usedManual ?? 0;
+        const totalOwed = usedTx + manualRaw;
+        const used = Math.max(0, totalOwed - released);
+        const manual = Math.max(0, manualRaw - Math.max(0, released - usedTx));
         return {
           ...c,
           usedTx,
@@ -166,6 +174,7 @@ function DashboardPage() {
     },
     [cards, transactions, displayMonth],
   );
+
 
   const totalLimit = cardUsage.reduce((s, c) => s + c.limit, 0);
   const totalUsed = cardUsage.reduce((s, c) => s + c.used, 0);
