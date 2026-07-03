@@ -61,8 +61,13 @@ function CardsPage() {
       const usedTx = creditOutstanding + otherThisMonth;
       const released = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
       const pending = transactions.filter(t => t.type === "expense" && t.tag?.startsWith(invoiceTag) && t.date > todayStr).reduce((s, t) => s + t.amount, 0);
-      const manual = Math.max(0, (c.usedManual ?? 0) - released);
-      const used = Math.max(0, usedTx + manual - released);
+      const manualRaw = c.usedManual ?? 0;
+      // Dívida total = compras no crédito em aberto + uso do mês + dívida manual.
+      // Pagamentos de fatura já efetivados liberam o limite (uma única subtração).
+      const totalOwed = usedTx + manualRaw;
+      const used = Math.max(0, totalOwed - released);
+      // Restante da dívida manual (pagamento consome primeiro o crédito em aberto)
+      const manual = Math.max(0, manualRaw - Math.max(0, released - usedTx));
       const pct = c.limit ? Math.min(100, (used / c.limit) * 100) : 0;
       return { ...c, usedTx, usedManualVal: manual, released, pending, used, available: Math.max(0, c.limit - used), pct, status: statusFromPct(pct) };
     });
