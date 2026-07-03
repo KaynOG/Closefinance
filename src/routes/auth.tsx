@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, parseBRL } from "@/lib/store";
 import { Logo } from "@/components/Logo";
 import bgLogin from "@/assets/bg-login.png.asset.json";
 import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft, Venus, Mars, CircleDot } from "lucide-react";

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { parseBRL } from "@/lib/store";
 import type { Transaction, Category, Card, Bank, PaymentMethod, TxType, Essential } from "@/lib/store";
 import { X, Save } from "lucide-react";
 
