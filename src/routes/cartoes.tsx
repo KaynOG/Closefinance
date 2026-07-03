@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -33,11 +33,11 @@ function CardsPage() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const lim = parseFloat(form.limit.replace(",", "."));
+    const lim = parseBRL(form.limit);
     if (!form.name.trim() || !lim) return;
     api.addCard({
       name: form.name.trim(), limit: lim,
-      usedManual: parseFloat(form.usedManual.replace(",", ".")) || 0,
+      usedManual: parseBRL(form.usedManual) || 0,
       closingDay: Math.max(1, Math.min(28, parseInt(form.closingDay) || 1)),
       dueDay: Math.max(1, Math.min(28, parseInt(form.dueDay) || 10)),
       color: form.color,
@@ -204,13 +204,13 @@ function CardsPage() {
                     <label className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
                       <span className="uppercase tracking-wider">editar</span>
                       <input
-                        type="number" min={0} step="0.01"
-                        defaultValue={c.limit}
+                        type="text" inputMode="decimal"
+                        defaultValue={c.limit.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         onBlur={(e) => {
-                          const v = parseFloat(e.target.value);
+                          const v = parseBRL(e.target.value);
                           if (!isNaN(v) && v > 0 && v !== c.limit) api.updateCard(c.id, { limit: v });
                         }}
-                        className="w-24 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"
+                        className="w-28 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"
                       />
                     </label>
                   </div>
@@ -234,10 +234,10 @@ function CardsPage() {
                     <label className="flex items-center justify-between gap-2">
                       <span className="text-muted-foreground">Limite já ocupado</span>
                       <input
-                        type="number" min={0} step="0.01"
-                        defaultValue={c.usedManualVal}
+                        type="text" inputMode="decimal"
+                        defaultValue={c.usedManualVal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         onBlur={(e) => {
-                          const v = parseFloat(e.target.value);
+                          const v = parseBRL(e.target.value);
                           if (!isNaN(v) && v !== c.usedManualVal) api.updateCard(c.id, { usedManual: Math.max(0, v) });
                         }}
                         className="w-28 rounded-lg bg-white/5 border border-border px-2 py-1 text-right text-foreground outline-none focus:border-primary"

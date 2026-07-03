@@ -264,7 +264,7 @@ function GastosPage() {
                     </select>
                   </Field>
                 )}
-                <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseFloat(form.amount.replace(",",".")) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
+                <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseBRL(form.amount) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
                   <div className="flex items-center gap-2">
                     <input type="range" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className="flex-1 accent-[var(--primary)]" />
                     <input type="number" min={1} max={36} value={form.installments} onChange={e => setForm({ ...form, installments: e.target.value })} className={`${inputCls} w-16 text-center`} />
