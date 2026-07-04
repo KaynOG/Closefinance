@@ -339,9 +339,15 @@ export function useStore() {
       const card = t.cardId ? memory.cards.find(c => c.id === t.cardId) : undefined;
       const rows = Array.from({ length: installmentsTotal }, (_, i) => {
         let d: Date;
-        if (t.paymentMethod === "credit") {
-          // Crédito: mantém o mês de cada parcela = mês da compra + i.
-          // A fatura de cada mês agrupa todas as compras feitas naquele mês.
+        if (t.paymentMethod === "credit" && card) {
+          // Crédito: aloca cada parcela na data de fechamento da fatura correspondente.
+          // Se a compra ocorrer até o dia de fechamento, entra na fatura do mês atual;
+          // caso contrário, vai para a fatura do próximo mês. Parcelas subsequentes
+          // seguem os fechamentos dos meses seguintes.
+          const closingDay = Math.min(28, card.closingDay);
+          const offset = baseDate.getDate() <= closingDay ? 0 : 1;
+          d = new Date(baseDate.getFullYear(), baseDate.getMonth() + offset + i, closingDay);
+        } else if (t.paymentMethod === "credit") {
           d = installmentsTotal > 1 ? addMonths(baseDate, i) : baseDate;
         } else if (installmentsTotal > 1 && i > 0 && card) {
           // Outras parcelas (não-crédito) — mantém comportamento legado: vencimento
