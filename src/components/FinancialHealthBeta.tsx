@@ -249,12 +249,9 @@ export function FinancialHealthBeta({
         </div>
       </div>
 
-      <div
-        className={`grid transition-all duration-300 ease-out ${
-          open ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        <div className="overflow-hidden space-y-5">
+      {open && (
+        <div className="mt-4 space-y-5">
+
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
             <MiniStat label="Ganhos" value={formatBRL(income)} tone="income" icon={<TrendingUp className="size-3" />} />
