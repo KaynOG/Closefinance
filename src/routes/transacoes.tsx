@@ -5,6 +5,7 @@ import { useStore, formatBRL, parseBRL, computeInvoicesForMonth, type TxType, ty
 import { useMemo, useState } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt, ChevronDown, ChevronUp } from "lucide-react";
 import { notify } from "@/lib/notify";
+import { FinancialHealthBeta } from "@/components/FinancialHealthBeta";
 
 export const Route = createFileRoute("/transacoes")({
   head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
@@ -120,6 +121,8 @@ function TxPage() {
       </GlassCard>
 
       <div className="space-y-4">
+        <FinancialHealthBeta transactions={transactions} categories={categories} cards={cards} />
+
         <GlassCard>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <button type="button" onClick={() => setHistoryOpen(o => !o)} className="flex items-center gap-2 text-left">
