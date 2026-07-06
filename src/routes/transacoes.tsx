@@ -5,6 +5,7 @@ import { useStore, formatBRL, parseBRL, computeInvoicesForMonth, type TxType, ty
 import { useMemo, useState } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt, ChevronDown, ChevronUp } from "lucide-react";
 import { notify } from "@/lib/notify";
+import { FinancialHealthBeta } from "@/components/FinancialHealthBeta";
 
 export const Route = createFileRoute("/transacoes")({
   head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
