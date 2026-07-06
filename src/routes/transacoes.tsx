@@ -121,6 +121,8 @@ function TxPage() {
       </GlassCard>
 
       <div className="space-y-4">
+        <FinancialHealthBeta transactions={transactions} categories={categories} cards={cards} />
+
         <GlassCard>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <button type="button" onClick={() => setHistoryOpen(o => !o)} className="flex items-center gap-2 text-left">
