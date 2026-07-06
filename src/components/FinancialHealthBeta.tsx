@@ -383,8 +383,9 @@ export function FinancialHealthBeta({
             </p>
           </div>
         </div>
-      </div>
+      )}
     </GlassCard>
+
   );
 }
 
