@@ -222,7 +222,7 @@ export function FinancialHealthBeta({
   return (
     <GlassCard>
       <div className="flex items-center justify-between gap-3">
-        <button type="button" onClick={() => setOpen(o => !o)} className="flex items-center gap-2 text-left">
+        <div className="flex items-center gap-2 text-left">
           <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary">
             <Activity className="size-4" />
           </div>
@@ -235,7 +235,7 @@ export function FinancialHealthBeta({
             </div>
             <p className="text-[11px] font-mono text-muted-foreground">análise + mapa de projeção</p>
           </div>
-        </button>
+        </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-[10px] font-mono uppercase text-muted-foreground">Score</p>
@@ -243,9 +243,15 @@ export function FinancialHealthBeta({
               {score}
             </p>
           </div>
-          <span className="size-7 rounded-lg grid place-items-center bg-white/5 hover:bg-white/10 transition">
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-label={open ? "Retrair" : "Expandir"}
+            aria-expanded={open}
+            className="size-8 rounded-lg grid place-items-center bg-white/5 hover:bg-white/10 transition"
+          >
             {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-          </span>
+          </button>
         </div>
       </div>
 
