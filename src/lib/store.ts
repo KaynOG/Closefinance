@@ -476,6 +476,16 @@ export function useStore() {
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
         }
+        // expense em dinheiro físico → devolve à caixa
+        if (transaction.type === "expense" && transaction.paymentMethod === "cash" && !transaction.bankId) {
+          const uid = memory.currentUserId; if (!uid) return;
+          const user = memory.users.find(u => u.id === uid);
+          if (user) {
+            const newCash = (user.cashAmount ?? 0) + transaction.amount;
+            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+          }
+        }
       };
 
       if (opts?.wholeGroup && tx?.installmentGroupId) {
