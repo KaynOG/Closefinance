@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Bank } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
-import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus } from "lucide-react";
+import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, PlusCircle, Banknote, Minus, ChevronDown, ChevronUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/bancos")({
@@ -363,17 +363,18 @@ function SyncBalancesBar({ banks, cash, onSync }: { banks: Bank[]; cash: number;
     <GlassCard hideKey="bancos-sync" hideLabel="Sincronizar saldos" className="mb-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Reconciliação</p>
           <h3 className="text-base font-semibold">Sincronizar saldos com as transações</h3>
-          <p className="text-[11px] font-mono text-muted-foreground mt-1">Recalcula o saldo de cada banco (e do dinheiro em caixa) somando ganhos e descontando gastos por débito/pix já registrados.</p>
         </div>
-        <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-secondary text-secondary-foreground font-mono text-xs font-semibold px-3 py-2 hover:opacity-90 active:scale-95">
-          {open ? "Fechar" : "Sincronizar"}
+        <button onClick={() => setOpen(o => !o)}
+          aria-label={open ? "Ocultar" : "Expandir"}
+          aria-expanded={open}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
         </button>
       </div>
       {open && (
         <div className="mt-4 space-y-3">
-          <p className="text-[11px] font-mono text-muted-foreground">Informe o <strong>saldo inicial</strong> de cada banco (antes das transações). Deixe 0 se prefere que o saldo reflita apenas o histórico registrado.</p>
+          <p className="text-[11px] font-mono text-muted-foreground">Recalcula o saldo de cada banco (e do dinheiro em caixa) somando ganhos e descontando gastos por débito/pix já registrados. Informe o <strong>saldo inicial</strong> de cada banco (antes das transações). Deixe 0 se prefere que o saldo reflita apenas o histórico registrado.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {banks.map(b => (
               <label key={b.id} className="block">
@@ -391,7 +392,7 @@ function SyncBalancesBar({ banks, cash, onSync }: { banks: Bank[]; cash: number;
           <div className="flex items-center justify-end gap-2">
             <button onClick={() => setOpen(false)} className="rounded-xl border border-border px-3 py-2 text-xs font-mono">Cancelar</button>
             <button onClick={run} disabled={busy} data-sound="success" className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-xs font-mono font-semibold disabled:opacity-50">
-              {busy ? "Sincronizando…" : "Aplicar reconciliação"}
+              {busy ? "Sincronizando…" : "Aplicar sincronização"}
             </button>
           </div>
         </div>
@@ -399,4 +400,5 @@ function SyncBalancesBar({ banks, cash, onSync }: { banks: Bank[]; cash: number;
     </GlassCard>
   );
 }
+
 
