@@ -406,6 +406,16 @@ export function useStore() {
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
         }
       }
+      // Gasto em dinheiro físico: desconta da caixa
+      if (t.type === "expense" && t.paymentMethod === "cash" && !t.bankId) {
+        const user = memory.users.find(u => u.id === uid);
+        if (user && appliedRows.length) {
+          const total = appliedRows.reduce((s, x) => s + x.amount, 0);
+          const newCash = Math.max(0, (user.cashAmount ?? 0) - total);
+          await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
+          set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+        }
+      }
 
       // Auto-award de missões pela ação realizada
       try {
