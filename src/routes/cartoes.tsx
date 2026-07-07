@@ -293,3 +293,93 @@ const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">{label}</span><div className="mt-1.5">{children}</div></label>;
 }
+
+function CardSyncBar() {
+  const [{ transactions }, api] = useStore();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const credit = transactions.filter(
+      t => t.type === "expense" && t.paymentMethod === "credit" && !t.tag?.startsWith(INVOICE_PAYMENT_TAG_PREFIX),
+    );
+    const inMonthsAgo = (t: { date: string }, monthsBack: number) => {
+      const d = new Date(t.date + "T00:00:00");
+      const start = new Date(y, m - monthsBack, 1);
+      const end = new Date(y, m, 1); // exclusive
+      return d >= start && d < end;
+    };
+    const isThisMonth = (t: { date: string }) => {
+      const d = new Date(t.date + "T00:00:00");
+      return d.getFullYear() === y && d.getMonth() === m;
+    };
+    const sum = (arr: typeof credit) => arr.reduce((s, t) => s + t.amount, 0);
+    const thisMonth = sum(credit.filter(isThisMonth));
+    const avg = (n: number) => sum(credit.filter(t => inMonthsAgo(t, n))) / n;
+    return { thisMonth, avg3: avg(3), avg6: avg(6), avg12: avg(12) };
+  }, [transactions]);
+
+  async function sync() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await api.refresh();
+      setMsg("Dados sincronizados. Limites atualizados a partir dos gastos e pagamentos.");
+    } catch {
+      setMsg("Falha ao sincronizar. Tente novamente.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <GlassCard hideKey="cartoes-sync" hideLabel="Sincronizar cartões" className="mb-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="text-base font-semibold">Sincronizar gastos e faturas</h3>
+        </div>
+        <button onClick={() => setOpen(o => !o)}
+          aria-label={open ? "Ocultar" : "Expandir"}
+          aria-expanded={open}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-4 space-y-4">
+          <p className="text-[11px] font-mono text-muted-foreground">
+            Recalcula os limites disponíveis dos cartões com base nos gastos no crédito e pagamentos de fatura registrados. Use após lançar novas compras ou pagar faturas.
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <MiniStat label="Gasto no mês" value={formatBRL(stats.thisMonth)} tone="#FF8FA3" />
+            <MiniStat label="Média · 3 meses" value={formatBRL(stats.avg3)} tone="#FFCC00" />
+            <MiniStat label="Média · 6 meses" value={formatBRL(stats.avg6)} tone="#2BD9A1" />
+            <MiniStat label="Média · 12 meses" value={formatBRL(stats.avg12)} tone="#B388FF" />
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
+            {msg && <span className="text-[11px] font-mono text-muted-foreground mr-auto">{msg}</span>}
+            <button onClick={sync} disabled={busy} data-sound="success" className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-xs font-mono font-semibold disabled:opacity-50">
+              {busy ? "Sincronizando…" : "Sincronizar limites"}
+            </button>
+          </div>
+        </div>
+      )}
+    </GlassCard>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white/5 p-3">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold mt-1" style={{ color: tone }}>{value}</p>
+    </div>
+  );
+}
+
