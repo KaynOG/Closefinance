@@ -20,8 +20,8 @@ export const BACKGROUNDS: BgOption[] = [
 const KEY = "closefinance:background";
 
 export function getBackgroundId(): string {
-  if (typeof window === "undefined") return "glass";
-  return window.localStorage.getItem(KEY) || "glass";
+  if (typeof window === "undefined") return "teal-orange";
+  return window.localStorage.getItem(KEY) || "teal-orange";
 }
 
 export function getBackgroundUrl(): string {
