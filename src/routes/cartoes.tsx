@@ -127,8 +127,11 @@ function CardsPage() {
               <p><span className="font-semibold" style={{ color: overview.status.color }}>{overview.status.label}.</span> {overview.status.note}</p>
             </div>
           </GlassCard>
+
+          <CardSyncBar />
         </>
       )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
         <GlassCard hideKey="cartoes-2" hideLabel="Novo cartão">
