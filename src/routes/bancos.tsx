@@ -61,6 +61,12 @@ function BanksPage() {
         tip="Mantenha o saldo igual ao do app do seu banco — assim seus relatórios refletem a realidade."
       />
 
+      <SyncBalancesBar banks={banks} cash={cash} onSync={async (initBanks, initCash) => {
+        await api.syncBankBalances({ initialBalances: initBanks, initialCash: initCash });
+      }} />
+
+
+
 
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -333,3 +339,64 @@ function CashBox({ cash, onAdd, onSet }: { cash: number; onAdd: (v: number) => v
     </GlassCard>
   );
 }
+
+function SyncBalancesBar({ banks, cash, onSync }: { banks: Bank[]; cash: number; onSync: (initBanks: Record<string, number>, initCash: number) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [initCash, setInitCash] = useState(String(cash));
+  const [initBanks, setInitBanks] = useState<Record<string, string>>(() =>
+    Object.fromEntries(banks.map(b => [b.id, String(b.accountBalance)])),
+  );
+
+  async function run() {
+    setBusy(true);
+    try {
+      const bMap: Record<string, number> = {};
+      for (const b of banks) bMap[b.id] = parseBRL(initBanks[b.id] ?? "0") || 0;
+      const c = parseBRL(initCash) || 0;
+      await onSync(bMap, c);
+      setOpen(false);
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <GlassCard hideKey="bancos-sync" hideLabel="Sincronizar saldos" className="mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Reconciliação</p>
+          <h3 className="text-base font-semibold">Sincronizar saldos com as transações</h3>
+          <p className="text-[11px] font-mono text-muted-foreground mt-1">Recalcula o saldo de cada banco (e do dinheiro em caixa) somando ganhos e descontando gastos por débito/pix já registrados.</p>
+        </div>
+        <button onClick={() => setOpen(o => !o)} className="rounded-xl bg-secondary text-secondary-foreground font-mono text-xs font-semibold px-3 py-2 hover:opacity-90 active:scale-95">
+          {open ? "Fechar" : "Sincronizar"}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-4 space-y-3">
+          <p className="text-[11px] font-mono text-muted-foreground">Informe o <strong>saldo inicial</strong> de cada banco (antes das transações). Deixe 0 se prefere que o saldo reflita apenas o histórico registrado.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {banks.map(b => (
+              <label key={b.id} className="block">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <span className="size-2.5 rounded-full" style={{ background: b.color }} /> {b.name} · saldo inicial
+                </span>
+                <input value={initBanks[b.id] ?? ""} onChange={e => setInitBanks({ ...initBanks, [b.id]: e.target.value })} inputMode="decimal" className={inp + " mt-1.5"} placeholder="0,00" />
+              </label>
+            ))}
+            <label className="block">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Dinheiro em caixa · inicial</span>
+              <input value={initCash} onChange={e => setInitCash(e.target.value)} inputMode="decimal" className={inp + " mt-1.5"} placeholder="0,00" />
+            </label>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button onClick={() => setOpen(false)} className="rounded-xl border border-border px-3 py-2 text-xs font-mono">Cancelar</button>
+            <button onClick={run} disabled={busy} data-sound="success" className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-xs font-mono font-semibold disabled:opacity-50">
+              {busy ? "Sincronizando…" : "Aplicar reconciliação"}
+            </button>
+          </div>
+        </div>
+      )}
+    </GlassCard>
+  );
+}
+

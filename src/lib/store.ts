@@ -406,6 +406,16 @@ export function useStore() {
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
         }
       }
+      // Gasto em dinheiro físico: desconta da caixa
+      if (t.type === "expense" && t.paymentMethod === "cash" && !t.bankId) {
+        const user = memory.users.find(u => u.id === uid);
+        if (user && appliedRows.length) {
+          const total = appliedRows.reduce((s, x) => s + x.amount, 0);
+          const newCash = Math.max(0, (user.cashAmount ?? 0) - total);
+          await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
+          set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+        }
+      }
 
       // Auto-award de missões pela ação realizada
       try {
@@ -462,6 +472,16 @@ export function useStore() {
           const user = memory.users.find(u => u.id === uid);
           if (user) {
             const newCash = Math.max(0, (user.cashAmount ?? 0) - transaction.amount);
+            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+          }
+        }
+        // expense em dinheiro físico → devolve à caixa
+        if (transaction.type === "expense" && transaction.paymentMethod === "cash" && !transaction.bankId) {
+          const uid = memory.currentUserId; if (!uid) return;
+          const user = memory.users.find(u => u.id === uid);
+          if (user) {
+            const newCash = (user.cashAmount ?? 0) + transaction.amount;
             supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
@@ -563,6 +583,30 @@ export function useStore() {
       if (error) return console.error(error);
       set({ banks: memory.banks.filter(x => x.id !== i) });
     },
+    // Recalcula o saldo em conta de cada banco (e o dinheiro em caixa) com base
+    // no histórico de transações aplicadas até hoje. Substitui o saldo atual pelo
+    // resultado líquido (soma de ganhos − soma de gastos débito/pix por banco).
+    syncBankBalances: async (opts?: { initialBalances?: Record<string, number>; initialCash?: number }) => {
+      const uid = memory.currentUserId; if (!uid) return;
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const applied = memory.transactions.filter(t => t.date <= todayStr);
+      for (const b of memory.banks) {
+        const income = applied.filter(t => t.type === "income" && t.bankId === b.id).reduce((s, t) => s + t.amount, 0);
+        const outflow = applied.filter(t => t.type === "expense" && (t.paymentMethod === "debit" || t.paymentMethod === "pix") && t.bankId === b.id).reduce((s, t) => s + t.amount, 0);
+        const base = opts?.initialBalances?.[b.id] ?? 0;
+        const newBalance = base + income - outflow;
+        await supabase.from("banks").update({ account_balance: newBalance }).eq("id", b.id);
+        set({ banks: memory.banks.map(x => x.id === b.id ? { ...x, accountBalance: newBalance } : x) });
+      }
+      const cashIn = applied.filter(t => t.type === "income" && t.paymentMethod === "cash" && !t.bankId).reduce((s, t) => s + t.amount, 0);
+      const cashOut = applied.filter(t => t.type === "expense" && t.paymentMethod === "cash" && !t.bankId).reduce((s, t) => s + t.amount, 0);
+      const baseCash = opts?.initialCash ?? 0;
+      const newCash = Math.max(0, baseCash + cashIn - cashOut);
+      await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
+      set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
+    },
+
+
 
     // ---------- AUTH ----------
     signup: async (data: { name: string; email: string; password: string; birthdate?: string; job?: string; yearlyGoal?: number; gender?: Gender }) => {
