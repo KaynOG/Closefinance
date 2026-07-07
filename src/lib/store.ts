@@ -606,6 +606,15 @@ export function useStore() {
       set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
     },
 
+    // Recarrega todos os dados do usuário (cartões, bancos, transações, etc.)
+    // Útil para sincronizar limites de cartão após pagamentos ou novos gastos.
+    refresh: async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) await loadAll(data.session.user);
+    },
+
+
+
 
 
     // ---------- AUTH ----------
