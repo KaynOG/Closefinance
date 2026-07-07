@@ -61,6 +61,12 @@ function BanksPage() {
         tip="Mantenha o saldo igual ao do app do seu banco — assim seus relatórios refletem a realidade."
       />
 
+      <SyncBalancesBar banks={banks} cash={cash} onSync={async (initBanks, initCash) => {
+        await api.syncBankBalances({ initialBalances: initBanks, initialCash: initCash });
+      }} />
+
+
+
 
 
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
