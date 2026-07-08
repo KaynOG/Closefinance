@@ -356,7 +356,7 @@ function DashboardPage() {
           <h1 className="text-3xl lg:text-4xl font-bold mt-1">
             <span className="text-gradient">{greeting}</span>
           </h1>
-          <p className="mt-2 font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado.</p>
+          
         </div>
         <ThemeToggle />
       </header>
