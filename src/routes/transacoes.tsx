@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, computeInvoicesForMonth, type TxType, type Essential, type VirtualInvoiceRow } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { FinancialHealthBeta } from "@/components/FinancialHealthBeta";
 
@@ -77,6 +77,16 @@ function TxPage() {
   })();
 
   const nowLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const [syncing, setSyncing] = useState(false);
+  async function syncInvoices() {
+    setSyncing(true);
+    try {
+      await api.refresh?.();
+      notify(`Fatura sincronizada — ${formatBRL(currentInvoicesTotal)} no mês.`);
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   return (
     <AppShell>
@@ -87,7 +97,7 @@ function TxPage() {
 
       {/* Fatura atual */}
       <GlassCard className="mb-4">
-        <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
           <div className="flex items-center gap-2.5">
             <div className="size-9 rounded-lg grid place-items-center bg-[#FF6B1A]/15 text-[#FF6B1A]"><Receipt className="size-4" /></div>
             <div>
@@ -95,7 +105,18 @@ function TxPage() {
               <p className="text-[11px] font-mono text-muted-foreground capitalize">{nowLabel}</p>
             </div>
           </div>
-          <p className="font-mono text-lg" style={{ color: "#FF8FA3" }}>{formatBRL(currentInvoicesTotal)}</p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={syncInvoices}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-border px-2.5 py-1.5 text-xs font-mono transition disabled:opacity-50"
+            >
+              <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} />
+              Sincronizar
+            </button>
+            <p className="font-mono text-lg" style={{ color: "#FF8FA3" }}>{formatBRL(currentInvoicesTotal)}</p>
+          </div>
         </div>
         {currentInvoices.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem gastos no crédito neste mês ainda.</p>
