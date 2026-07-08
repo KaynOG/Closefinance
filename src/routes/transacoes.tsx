@@ -41,6 +41,7 @@ function TxPage() {
       categoryId: form.categoryId || undefined,
       essential: form.type === "expense" ? form.essential : undefined,
       cardId: form.type === "expense" ? form.cardId || undefined : undefined,
+      paymentMethod: form.type === "expense" && form.cardId ? "credit" : undefined,
     });
     notify(
       form.type === "income"
