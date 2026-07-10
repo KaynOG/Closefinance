@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupaUser } from "@supabase/supabase-js";
+import { playMissionComplete } from "@/lib/sound";
+import { notify } from "@/lib/notify";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
