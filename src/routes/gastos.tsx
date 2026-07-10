@@ -8,6 +8,7 @@ import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tool
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
+import { playExpense } from "@/lib/sound";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
@@ -85,6 +86,7 @@ function GastosPage() {
       installmentTotal: inst > 1 ? inst : undefined,
     });
     notify(`Gasto de ${formatBRL(amtPerInst)}${inst > 1 ? ` (${inst}x)` : ""} registrado com sucesso!`);
+    playExpense();
     setForm({ ...form, amount: "", description: "", tag: "", installments: "1" });
   }
 
