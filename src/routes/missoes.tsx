@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, MISSIONS_CATALOG, type MissionState } from "@/lib/store";
+import { useStore, MISSIONS_CATALOG, getDailyMissions, type MissionState } from "@/lib/store";
 import { RANKS, getRank } from "@/lib/ranks";
 import { useMemo, useState } from "react";
 import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp } from "lucide-react";
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/missoes")({
   component: MissoesPage,
 });
 
-const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
+const DAILY_MISSIONS = getDailyMissions();
 
 function MissoesPage() {
   const [{ missions }, , user] = useStore();

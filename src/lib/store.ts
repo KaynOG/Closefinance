@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupaUser } from "@supabase/supabase-js";
 import { playMissionComplete } from "@/lib/sound";
-import { notify } from "@/lib/notify";
+import { notify as notifyToast } from "@/lib/notify";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
@@ -738,6 +738,10 @@ export function useStore() {
       const completed = memory.missions.completed.includes(missionId) ? memory.missions.completed : [...memory.missions.completed, missionId];
       await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
       set({ missions: { date: today, completed, totalPoints, history } });
+      try {
+        playMissionComplete();
+        notifyToast(`🏆 Missão concluída: ${def?.title ?? missionId} · +${points} pts`);
+      } catch { /* noop */ }
     },
     toggleMission: async (missionId: string) => {
       const uid = memory.currentUserId; if (!uid) return;
