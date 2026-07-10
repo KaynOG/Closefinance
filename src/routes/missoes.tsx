@@ -168,7 +168,7 @@ function HistoryBlock({ missions, byDay }: { missions: MissionState; byDay: [str
               <SectionTitle title="Últimas conclusões" subtitle="data e hora exatas" />
               <ul className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                 {missions.history.slice(0, 30).map((h, i) => {
-                  const m = DAILY_MISSIONS.find(x => x.id === h.missionId);
+                  const m = MISSIONS_CATALOG.find(x => x.id === h.missionId);
                   const d = new Date(h.date);
                   return (
                     <li key={i} className="flex items-center justify-between text-xs font-mono rounded-lg bg-white/[0.03] px-3 py-2">
