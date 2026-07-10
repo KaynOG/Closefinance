@@ -174,8 +174,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       )}
 
       <main
-        key={pathname}
-        className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 animate-in fade-in slide-in-from-bottom-2 duration-300"
+        className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8"
       >
         {children ?? <Outlet />}
       </main>
