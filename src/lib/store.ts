@@ -89,7 +89,34 @@ export const MISSIONS_CATALOG: MissionDef[] = [
   { id: "add_income", title: "Registre uma receita", desc: "Adicione uma entrada de dinheiro.", points: 10, auto: true },
   { id: "classify_essential", title: "Classifique um gasto", desc: "Marque um gasto como essencial ou não essencial.", points: 10, auto: true },
   { id: "save_money", title: "Guarde dinheiro", desc: "Acrescente algum valor poupado no banco ou na sua caixa.", points: 15, auto: true },
+  { id: "visit_transacoes", title: "Explore as Transações", desc: "Abra a aba Transações e revise os lançamentos.", points: 5, auto: true },
+  { id: "visit_calendario", title: "Cheque o Calendário", desc: "Veja o que entra e sai nos próximos dias.", points: 5, auto: true },
+  { id: "visit_categorias", title: "Organize categorias", desc: "Abra as Categorias e mantenha tudo no lugar.", points: 5, auto: true },
+  { id: "visit_missoes", title: "Visite Missões", desc: "Confira suas missões e sua patente atual.", points: 5, auto: true },
+  { id: "visit_perfil", title: "Atualize seu Perfil", desc: "Abra Perfil & Ajustes e revise seus dados.", points: 5, auto: true },
+  { id: "tag_transaction", title: "Use uma etiqueta", desc: "Adicione uma etiqueta livre em algum lançamento.", points: 10, auto: true },
+  { id: "pay_invoice", title: "Pague uma fatura", desc: "Registre um pagamento de fatura de cartão.", points: 15, auto: true },
+  { id: "pix_expense", title: "Registre um Pix", desc: "Lance um gasto pago via Pix.", points: 10, auto: true },
+  { id: "debit_expense", title: "Registre um débito", desc: "Lance um gasto pago no débito.", points: 10, auto: true },
+  { id: "cash_expense", title: "Registre um dinheiro físico", desc: "Lance um gasto pago em espécie.", points: 10, auto: true },
+  { id: "credit_expense", title: "Registre uma compra no crédito", desc: "Lance uma compra parcelada ou à vista no cartão.", points: 10, auto: true },
+  { id: "big_saver", title: "Poupe algo relevante", desc: "Guarde qualquer valor no banco — cada real conta.", points: 15, auto: true },
+  { id: "budget_review", title: "Reveja seu orçamento", desc: "Volte ao Dashboard e olhe para os essenciais.", points: 10, auto: true },
+  { id: "sync_data", title: "Sincronize seus saldos", desc: "Use a sincronização em Bancos ou Cartões.", points: 10, auto: true },
 ];
+
+/** Retorna as 5 missões diárias — rotaciona pelo dia do ano para variar. */
+export function getDailyMissions(date: Date = new Date()): MissionDef[] {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  // Sempre inclui daily_login como a primeira
+  const fixed = MISSIONS_CATALOG.filter(m => m.id === "daily_login");
+  const pool = MISSIONS_CATALOG.filter(m => m.id !== "daily_login");
+  // rotação estável por dia
+  const rotated = [...pool.slice(dayOfYear % pool.length), ...pool.slice(0, dayOfYear % pool.length)];
+  return [...fixed, ...rotated.slice(0, 4)];
+}
 
 export interface AppState {
   transactions: Transaction[];

@@ -90,6 +90,16 @@ export function playCashRegister() {
   playSequence(["chime", "coin", "coin", "coin"], 90);
 }
 
+/** Som de gasto — "boop" descendente com toque grave (sensação de saída). */
+export function playExpense() {
+  playSequence(["swoosh", "tap"], 60);
+}
+
+/** Som de missão concluída — arpejo brilhante ascendente. */
+export function playMissionComplete() {
+  playSequence(["pop", "chime", "complete"], 110);
+}
+
 let installed = false;
 /** Instala um listener global que toca tons aconchegantes em botões/links. */
 export function installGlobalClickSounds() {
