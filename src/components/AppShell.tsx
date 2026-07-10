@@ -21,6 +21,7 @@ import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
 import { initTheme } from "@/lib/theme";
 import { ConsentModal } from "./ConsentModal";
+import { SavingsMonitor } from "./SavingsMonitor";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -179,6 +180,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         {children ?? <Outlet />}
       </main>
       <ConsentModal />
+      <SavingsMonitor />
     </div>
   );
 }
