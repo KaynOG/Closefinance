@@ -1,0 +1,25 @@
+{
+  "name": "CloseFinance",
+  "short_name": "CloseFinance",
+  "description": "Bolso fechado, financeiro guardado.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1518",
+  "theme_color": "#0a1518",
+  "icons": [
+    {
+      "src": "/__l5e/assets-v1/227d95f0-c355-4f06-84c6-577cc0f71311/icone-app.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/__l5e/assets-v1/227d95f0-c355-4f06-84c6-577cc0f71311/icone-app.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

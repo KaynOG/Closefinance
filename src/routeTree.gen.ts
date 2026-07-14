@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransacoesRouteImport } from './routes/transacoes'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MissoesRouteImport } from './routes/missoes'
 import { Route as GastosRouteImport } from './routes/gastos'
@@ -19,6 +20,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CartoesRouteImport } from './routes/cartoes'
 import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as BancosRouteImport } from './routes/bancos'
 import { Route as BackupRouteImport } from './routes/backup'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,6 +28,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TransacoesRoute = TransacoesRouteImport.update({
   id: '/transacoes',
   path: '/transacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -73,6 +80,11 @@ const CalendarioRoute = CalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BancosRoute = BancosRouteImport.update({
+  id: '/bancos',
+  path: '/bancos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BackupRoute = BackupRouteImport.update({
   id: '/backup',
   path: '/backup',
@@ -93,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
+  '/bancos': typeof BancosRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -102,12 +115,14 @@ export interface FileRoutesByFullPath {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
+  '/bancos': typeof BancosRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -117,6 +132,7 @@ export interface FileRoutesByTo {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRoutesById {
@@ -124,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
+  '/bancos': typeof BancosRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -133,6 +150,7 @@ export interface FileRoutesById {
   '/gastos': typeof GastosRoute
   '/missoes': typeof MissoesRoute
   '/perfil': typeof PerfilRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/transacoes': typeof TransacoesRoute
 }
 export interface FileRouteTypes {
@@ -141,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/backup'
+    | '/bancos'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -150,12 +169,14 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/backup'
+    | '/bancos'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -165,12 +186,14 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/backup'
+    | '/bancos'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -180,6 +203,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/missoes'
     | '/perfil'
+    | '/reset-password'
     | '/transacoes'
   fileRoutesById: FileRoutesById
 }
@@ -187,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   BackupRoute: typeof BackupRoute
+  BancosRoute: typeof BancosRoute
   CalendarioRoute: typeof CalendarioRoute
   CartoesRoute: typeof CartoesRoute
   CategoriasRoute: typeof CategoriasRoute
@@ -196,6 +221,7 @@ export interface RootRouteChildren {
   GastosRoute: typeof GastosRoute
   MissoesRoute: typeof MissoesRoute
   PerfilRoute: typeof PerfilRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TransacoesRoute: typeof TransacoesRoute
 }
 
@@ -206,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/transacoes'
       fullPath: '/transacoes'
       preLoaderRoute: typeof TransacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -271,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bancos': {
+      id: '/bancos'
+      path: '/bancos'
+      fullPath: '/bancos'
+      preLoaderRoute: typeof BancosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backup': {
       id: '/backup'
       path: '/backup'
@@ -299,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   BackupRoute: BackupRoute,
+  BancosRoute: BancosRoute,
   CalendarioRoute: CalendarioRoute,
   CartoesRoute: CartoesRoute,
   CategoriasRoute: CategoriasRoute,
@@ -308,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   GastosRoute: GastosRoute,
   MissoesRoute: MissoesRoute,
   PerfilRoute: PerfilRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TransacoesRoute: TransacoesRoute,
 }
 export const routeTree = rootRouteImport

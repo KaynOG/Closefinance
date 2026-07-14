@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
+import { TutorialBox } from "@/components/TutorialBox";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TxEditModal } from "@/components/TxEditModal";
+import { notify } from "@/lib/notify";
+import { playCashRegister } from "@/lib/sound";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
@@ -15,17 +19,32 @@ const CYAN = "#22C3CC";
 const CYAN_DARK = "#006F77";
 
 function GanhosPage() {
-  const [{ transactions, categories }, api] = useStore();
+  const [{ transactions, categories, cards, banks }, api] = useStore();
+  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [fMonth, setFMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [fCategory, setFCategory] = useState("all");
+  const [fMin, setFMin] = useState("");
+  const [fMax, setFMax] = useState("");
+  const [fSearch, setFSearch] = useState("");
   const today = new Date();
   const incomeCats = categories.filter(c => c.kind !== "expense");
 
-  const [form, setForm] = useState({ amount: "", description: "", date: today.toISOString().slice(0, 10), categoryId: incomeCats[0]?.id ?? "", tag: "" });
+  const [form, setForm] = useState({ amount: "", description: "", date: today.toISOString().slice(0, 10), categoryId: incomeCats[0]?.id ?? "", tag: "", destination: "none" });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = parseFloat(form.amount.replace(",", "."));
+    const amt = parseBRL(form.amount);
     if (!amt || amt <= 0) return;
-    api.addTransaction({ type: "income", amount: amt, description: form.description.trim(), date: form.date, categoryId: form.categoryId || undefined, tag: form.tag.trim() || undefined });
+    const dest = form.destination;
+    const bankId = dest && dest !== "none" && dest !== "cash" ? dest : undefined;
+    const paymentMethod = dest === "cash" ? "cash" as const : undefined;
+    api.addTransaction({
+      type: "income", amount: amt, description: form.description.trim(), date: form.date,
+      categoryId: form.categoryId || undefined, tag: form.tag.trim() || undefined,
+      bankId, paymentMethod,
+    });
+    notify(`Ganho de ${formatBRL(amt)} adicionado com sucesso!`);
+    playCashRegister();
     setForm({ ...form, amount: "", description: "", tag: "" });
   }
 
@@ -60,6 +79,20 @@ function GanhosPage() {
         <h1 className="text-3xl lg:text-4xl font-bold">Ganhos <TrendingUp className="inline size-7" style={{ color: CYAN }} /></h1>
       </header>
 
+      <TutorialBox
+        storageKey="ganhos"
+        title="Como registrar seus ganhos"
+        steps={[
+          "Role até o bloco 'Novo ganho' e preencha o valor recebido.",
+          "Adicione uma descrição (ex: Salário, Freela) e a data em que o dinheiro entrou.",
+          "Se o valor caiu em uma conta, selecione o banco — o saldo é creditado automaticamente.",
+          "Clique em Adicionar. Pronto! O ganho aparece no histórico e nos gráficos.",
+        ]}
+        tip="Cadastre ganhos recorrentes (como salário) sempre na mesma data — facilita comparar meses."
+      />
+
+
+
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <Stat label="Recebido este mês" value={formatBRL(monthIncome)} accent="teal" sub="entradas confirmadas" />
         <Stat label="Média (6 meses)" value={formatBRL(avg6)} accent="success" sub="renda média mensal" />
@@ -67,7 +100,7 @@ function GanhosPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <GlassCard className="lg:col-span-2">
+        <GlassCard hideKey="ganhos-1" hideLabel="Evolução dos ganhos" className="lg:col-span-2">
           <SectionTitle title="Evolução dos ganhos" subtitle="últimos 12 meses" />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -88,7 +121,7 @@ function GanhosPage() {
           </div>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard hideKey="ganhos-2" hideLabel="Ganhos por categoria">
           <SectionTitle title="Por categoria" subtitle="mês atual" />
           <div className="h-72">
             {byCat.length === 0 ? <p className="text-sm text-muted-foreground">Sem ganhos categorizados este mês.</p> : (
@@ -108,7 +141,7 @@ function GanhosPage() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
-        <GlassCard>
+        <GlassCard hideKey="ganhos-3" hideLabel="Novo ganho">
           <SectionTitle title="Novo ganho" />
           <form onSubmit={submit} className="space-y-3">
             <Field label="Valor (R$)"><input required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0,00" inputMode="decimal" className={inputCls} /></Field>
@@ -120,6 +153,14 @@ function GanhosPage() {
                 {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </Field>
+            <Field label="Recebido em">
+              <select value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className={inputCls}>
+                <option value="none">Não informar</option>
+                <option value="cash">💵 Dinheiro físico (caixa)</option>
+                {banks.length > 0 && <option disabled>— Bancos —</option>}
+                {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </Field>
             <Field label="Etiqueta (parâmetro livre)">
               <input value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} placeholder="Ex: bônus-Q4, projeto-X" className={inputCls} />
             </Field>
@@ -129,43 +170,96 @@ function GanhosPage() {
           </form>
         </GlassCard>
 
-        <GlassCard>
+        <GlassCard hideKey="ganhos-4" hideLabel="Planilha de ganhos">
           <SectionTitle title="Planilha de ganhos" subtitle={`${incomes.length} lançamentos`} />
-          {incomes.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum ganho ainda.</p> : (
-            <div className="overflow-x-auto -mx-3">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/10">
-                    <th className="py-2 px-3">Data</th>
-                    <th className="py-2 px-3">Descrição</th>
-                    <th className="py-2 px-3">Categoria</th>
-                    <th className="py-2 px-3">Etiqueta</th>
-                    <th className="py-2 px-3 text-right">Valor</th>
-                    <th className="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incomes.map(t => {
-                    const cat = categories.find(c => c.id === t.categoryId);
-                    return (
-                      <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
-                        <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
-                        <td className="py-2.5 px-3">{t.description || "—"}</td>
-                        <td className="py-2.5 px-3">
-                          {cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}
-                        </td>
-                        <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
-                        <td className="py-2.5 px-3 font-mono text-right" style={{ color: CYAN }}>+{formatBRL(t.amount)}</td>
-                        <td className="py-2.5 px-3"><button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {(() => {
+            const monthsSet = Array.from(new Set(incomes.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+            const minN = parseBRL(fMin);
+            const maxN = parseBRL(fMax);
+            const q = fSearch.trim().toLowerCase();
+            const filtered = incomes.filter(t => {
+              if (fMonth !== "all" && t.date.slice(0, 7) !== fMonth) return false;
+              if (fCategory !== "all" && (t.categoryId || "none") !== fCategory) return false;
+              if (!isNaN(minN) && t.amount < minN) return false;
+              if (!isNaN(maxN) && t.amount > maxN) return false;
+              if (q && !(t.description ?? "").toLowerCase().includes(q)) return false;
+              return true;
+            });
+            const cleared = fMonth !== "all" || fCategory !== "all" || fMin || fMax || fSearch;
+            return (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+                  <input value={fSearch} onChange={e => setFSearch(e.target.value)} placeholder="Buscar descrição..." className={inputCls + " md:col-span-2"} />
+                  <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
+                    <option value="all">Todos os meses</option>
+                    {monthsSet.map(m => {
+                      const [y, mm] = m.split("-");
+                      const label = new Date(parseInt(y), parseInt(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                      return <option key={m} value={m}>{label}</option>;
+                    })}
+                  </select>
+                  <select value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
+                    <option value="all">Todas as categorias</option>
+                    <option value="none">Sem categoria</option>
+                    {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <input value={fMin} onChange={e => setFMin(e.target.value)} placeholder="Valor mín." inputMode="decimal" className={inputCls} />
+                  <input value={fMax} onChange={e => setFMax(e.target.value)} placeholder="Valor máx." inputMode="decimal" className={inputCls} />
+                  <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); setFSearch(""); }}
+                    disabled={!cleared}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5 disabled:opacity-40 md:col-span-2">
+                    Limpar filtros
+                  </button>
+                </div>
+                <p className="text-[11px] font-mono text-muted-foreground mb-2">
+                  {filtered.length} de {incomes.length} · total {formatBRL(filtered.reduce((s, t) => s + t.amount, 0))}
+                </p>
+                {filtered.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum ganho encontrado para os filtros.</p> : (
+                  <div className="overflow-x-auto -mx-3">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/10">
+                          <th className="py-2 px-3">Data</th>
+                          <th className="py-2 px-3">Descrição</th>
+                          <th className="py-2 px-3">Categoria</th>
+                          <th className="py-2 px-3">Etiqueta</th>
+                          <th className="py-2 px-3 text-right">Valor</th>
+                          <th className="py-2 px-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map(t => {
+                          const cat = categories.find(c => c.id === t.categoryId);
+                          return (
+                            <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                              <td className="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}</td>
+                              <td className="py-2.5 px-3">{t.description || "—"}</td>
+                              <td className="py-2.5 px-3">
+                                {cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}
+                              </td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                              <td className="py-2.5 px-3 font-mono text-right" style={{ color: CYAN }}>+{formatBRL(t.amount)}</td>
+                              <td className="py-2.5 px-3 whitespace-nowrap">
+                                <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
+                                <button onClick={() => api.removeTransaction(t.id)} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </GlassCard>
       </section>
+      {editing && (
+        <TxEditModal tx={editing} categories={categories} cards={cards} banks={banks}
+          onSave={async (patch) => { await api.updateTransaction(editing.id, patch); }}
+          onClose={() => setEditing(null)} />
+      )}
     </AppShell>
   );
 }

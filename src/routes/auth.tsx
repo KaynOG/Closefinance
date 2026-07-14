@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, parseBRL } from "@/lib/store";
 import { Logo } from "@/components/Logo";
-import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Briefcase, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
+import bgLogin from "@/assets/bg-teal-orange.png.asset.json";
+import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft, Venus, Mars, CircleDot } from "lucide-react";
+import type { Gender } from "@/lib/store";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar — CloseFinance" }, { name: "description", content: "Acesse sua conta CloseFinance e assuma o controle das suas finanças." }] }),
@@ -46,18 +48,19 @@ function AuthPage() {
   const [info, setInfo] = useState<{ link: string; email: string } | null>(null);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({
-    name: "", email: "", password: "", birthdate: "", job: "", yearlyGoal: "",
+    name: "", email: "", password: "", birthdate: "", yearlyGoal: "",
+    gender: "other" as Gender,
   });
 
   useEffect(() => { if (user) navigate({ to: "/" }); }, [user, navigate]);
 
   const pw = useMemo(() => scorePassword(form.password), [form.password]);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setInfo(null);
     if (mode === "login") {
-      const r = api.login(form.email, form.password);
+      const r = await api.login(form.email, form.password);
       if (!r.ok) setError(r.error);
       else navigate({ to: "/" });
     } else if (mode === "signup") {
@@ -65,34 +68,40 @@ function AuthPage() {
         setError("Preencha nome e e-mail."); return;
       }
       if (pw.score < 2) { setError("Sua senha está fraca. Atinja pelo menos o nível Média."); return; }
-      const r = api.signup({
+      const r = await api.signup({
         name: form.name, email: form.email, password: form.password,
-        birthdate: form.birthdate || undefined, job: form.job || undefined,
-        yearlyGoal: form.yearlyGoal ? parseFloat(form.yearlyGoal.replace(",", ".")) : undefined,
+        birthdate: form.birthdate || undefined,
+        gender: form.gender,
+        yearlyGoal: form.yearlyGoal ? parseBRL(form.yearlyGoal) : undefined,
       });
       if (!r.ok) setError(r.error);
       else navigate({ to: "/" });
     } else {
-      const r = api.requestPasswordReset(form.email);
+      const r = await api.requestPasswordReset(form.email);
       if (!r.ok) setError(r.error);
       else setInfo({ link: r.link, email: r.email });
     }
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-60" style={{ background: "var(--gradient-bg)" }} />
-        <div className="absolute -top-32 -left-32 size-96 rounded-full blur-3xl opacity-30 bg-primary animate-pulse" />
-        <div className="absolute bottom-0 right-0 size-96 rounded-full blur-3xl opacity-20 bg-secondary" />
+    <div className="min-h-screen grid lg:grid-cols-2 relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${bgLogin.url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/40" />
 
-        <div className="relative flex items-center gap-3 animate-in fade-in slide-in-from-top duration-500">
-          <Logo size={56} />
-          <div>
-            <p className="font-display font-bold text-2xl">CloseFinance</p>
-            <p className="font-mono text-xs text-muted-foreground">Bolso fechado, financeiro guardado</p>
-          </div>
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
+        <div className="relative animate-in fade-in slide-in-from-top duration-500">
+          <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.3em]">CloseFinance</p>
+          <p className="font-mono text-xs text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
         </div>
+
 
         <div className="relative animate-in fade-in slide-in-from-left duration-700">
           <h1 className="text-5xl font-bold leading-tight">
@@ -121,15 +130,13 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Logo size={44} />
-            <div>
-              <p className="font-display font-bold text-xl leading-none">CloseFinance</p>
-              <p className="font-mono text-[10px] text-muted-foreground mt-1">Bolso fechado, financeiro guardado</p>
-            </div>
-          </div>
-
           <div className="glass-strong rounded-3xl p-6 lg:p-8">
+            <div className="flex flex-col items-center text-center mb-6">
+              <Logo size={56} />
+              <p className="mt-3 font-display font-bold text-lg leading-none">CloseFinance</p>
+              <p className="font-mono text-[10px] text-muted-foreground mt-1.5 tracking-wider">Bolso fechado, financeiro guardado</p>
+            </div>
+
             {mode !== "forgot" ? (
               <div className="flex gap-1 p-1 rounded-2xl bg-white/5 mb-6">
                 {(["login", "signup"] as const).map(m => (
@@ -193,14 +200,44 @@ function AuthPage() {
               )}
 
               {mode === "signup" && (
-                <div className="space-y-3 pt-2 border-t border-white/10">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground pt-2">Perfil</p>
-                  <IconField icon={<CalIcon className="size-4" />} placeholder="Data de nascimento" type="date"
-                    value={form.birthdate} onChange={v => setForm({ ...form, birthdate: v })} />
-                  <IconField icon={<Briefcase className="size-4" />} placeholder="Emprego atual"
-                    value={form.job} onChange={v => setForm({ ...form, job: v })} />
-                  <IconField icon={<Target className="size-4" />} placeholder="Meta financeira anual (R$)"
-                    value={form.yearlyGoal} onChange={v => setForm({ ...form, yearlyGoal: v })} inputMode="decimal" />
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Data de nascimento</span>
+                    <div className="mt-1.5">
+                      <IconField icon={<CalIcon className="size-4" />} placeholder="dd/mm/aaaa" type="date"
+                        value={form.birthdate} onChange={v => setForm({ ...form, birthdate: v })} />
+                    </div>
+                  </div>
+
+
+
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Gênero</span>
+                    <div className="mt-1.5 grid grid-cols-3 gap-2">
+                      <GBtn current={form.gender} value="male" label="Homem" icon={<Mars className="size-3.5" />} onClick={(v) => setForm({ ...form, gender: v })} />
+                      <GBtn current={form.gender} value="female" label="Mulher" icon={<Venus className="size-3.5" />} onClick={(v) => setForm({ ...form, gender: v })} />
+                      <GBtn current={form.gender} value="other" label="Outro" icon={<CircleDot className="size-3.5" />} onClick={(v) => setForm({ ...form, gender: v })} />
+                    </div>
+                  </div>
+
+                  <label className="relative block">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground flex items-center gap-1.5">
+                      <Target className="size-4" />
+                      <span className="text-xs font-mono font-semibold text-foreground">R$</span>
+                    </span>
+                    <input
+                      value={form.yearlyGoal}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        if (!digits) { setForm({ ...form, yearlyGoal: "" }); return; }
+                        const num = parseInt(digits, 10) / 100;
+                        setForm({ ...form, yearlyGoal: num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
+                      }}
+                      placeholder="Meta financeira anual"
+                      inputMode="decimal"
+                      className="w-full rounded-xl bg-white/5 border border-border pl-16 pr-3 py-3 text-sm font-mono outline-none focus:border-primary focus:bg-white/10 transition"
+                    />
+                  </label>
                 </div>
               )}
 
@@ -264,5 +301,15 @@ function IconField({ icon, value, onChange, placeholder, type, inputMode }: Icon
         className="w-full rounded-xl bg-white/5 border border-border pl-10 pr-3 py-3 text-sm font-mono outline-none focus:border-primary focus:bg-white/10 transition"
       />
     </label>
+  );
+}
+
+function GBtn({ current, value, label, icon, onClick }: { current: Gender; value: Gender; label: string; icon: React.ReactNode; onClick: (v: Gender) => void }) {
+  const active = current === value;
+  return (
+    <button type="button" onClick={() => onClick(value)}
+      className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-mono transition ${active ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}>
+      {icon}{label}
+    </button>
   );
 }

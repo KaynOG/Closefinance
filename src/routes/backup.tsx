@@ -114,10 +114,10 @@ function BackupBody() {
     }
   }
 
-  function confirmImport() {
+  async function confirmImport() {
     if (!preview) return;
     if (mode === "replace" && !confirm("Substituir TODOS os seus dados pelos do arquivo? Isso não pode ser desfeito.")) return;
-    const r = api.importData(preview.raw, mode);
+    const r = await api.importData(preview.raw, mode);
     if (r.ok) {
       setToast({ kind: "ok", msg: `Importação concluída: ${r.counts.transactions} transações, ${r.counts.categories} categorias, ${r.counts.cards} cartões.` });
       setPreview(null);
