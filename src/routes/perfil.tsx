@@ -12,6 +12,7 @@ import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/li
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
 import { BACKGROUNDS, getBackgroundId, setBackgroundId, onBackgroundChange } from "@/lib/backgrounds";
+import { InstallAppCard } from "@/components/InstallAppCard";
 
 
 export const Route = createFileRoute("/perfil")({
@@ -126,6 +127,10 @@ function PerfilPage() {
 
       <section className="mb-6">
         <SecurityPanel />
+      </section>
+
+      <section className="mb-6">
+        <InstallAppCard />
       </section>
 
       <section className="mb-6">
