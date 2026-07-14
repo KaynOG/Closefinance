@@ -10,13 +10,13 @@
   "theme_color": "#0a1518",
   "icons": [
     {
-      "src": "/__l5e/assets-v1/ca9a02b1-ecb8-4a3b-9693-410a2b19d2da/logo-closefinance-v2.png",
+      "src": "/__l5e/assets-v1/227d95f0-c355-4f06-84c6-577cc0f71311/icone-app.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/__l5e/assets-v1/ca9a02b1-ecb8-4a3b-9693-410a2b19d2da/logo-closefinance-v2.png",
+      "src": "/__l5e/assets-v1/227d95f0-c355-4f06-84c6-577cc0f71311/icone-app.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
