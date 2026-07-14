@@ -179,14 +179,11 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       )}
 
       <main
-        className="flex-1 min-w-0 p-4 lg:p-8 lg:pt-8"
-        style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 5rem)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
-        }}
+        className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 safe-area-main"
       >
         {children ?? <Outlet />}
       </main>
+
 
       <ConsentModal />
       <SavingsMonitor />
