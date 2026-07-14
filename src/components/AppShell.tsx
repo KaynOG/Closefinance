@@ -121,12 +121,16 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="lg:hidden fixed top-0 inset-x-0 z-40 glass-strong px-4 py-3 flex items-center justify-between m-3 rounded-2xl">
+      <div
+        className="lg:hidden fixed top-0 inset-x-0 z-40 glass-strong px-4 py-3 flex items-center justify-between mx-3 rounded-2xl"
+        style={{ marginTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+      >
         <Brand compact />
         <button onClick={() => setOpen(true)} className="rounded-xl p-2 hover:bg-white/10 active:scale-95 transition">
           <Menu className="size-5" />
         </button>
       </div>
+
 
       {open && (
         <div
