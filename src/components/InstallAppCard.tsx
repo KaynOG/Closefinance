@@ -15,7 +15,7 @@ function detectPlatform(): Platform {
 }
 
 export function InstallAppCard() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [copied, setCopied] = useState(false);
 
