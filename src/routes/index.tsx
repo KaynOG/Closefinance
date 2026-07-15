@@ -37,7 +37,7 @@ import {
   GraduationCap,
   X,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+// ThemeToggle agora é fixo no AppShell — não precisa importar aqui
 import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
 import { getRank } from "@/lib/ranks";
 import { Trophy } from "lucide-react";
@@ -348,17 +348,13 @@ function DashboardPage() {
 
   return (
     <AppShell>
-      <header className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-            {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-          </p>
-          <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-            <span className="text-gradient">{greeting}</span>
-          </h1>
-          
-        </div>
-        <ThemeToggle />
+      <header className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+          {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+        </p>
+        <h1 className="text-3xl lg:text-4xl font-bold mt-1">
+          <span className="text-gradient">{greeting}</span>
+        </h1>
       </header>
 
       {rankUp && (
