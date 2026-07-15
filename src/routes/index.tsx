@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -26,8 +26,6 @@ import {
   CreditCard,
   Target,
   Lightbulb,
-  CheckCircle2,
-  Circle,
   BarChart3,
   Eye,
   EyeOff,
@@ -37,7 +35,7 @@ import {
   GraduationCap,
   X,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+// ThemeToggle agora é fixo no AppShell — não precisa importar aqui
 import { areTutorialsEnabled, isTutorialNoticeDismissed, dismissTutorialNotice, onTutorialsChange } from "@/lib/tutorials";
 import { getRank } from "@/lib/ranks";
 import { Trophy } from "lucide-react";
@@ -60,7 +58,7 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
+
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
@@ -348,17 +346,13 @@ function DashboardPage() {
 
   return (
     <AppShell>
-      <header className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-            {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-          </p>
-          <h1 className="text-3xl lg:text-4xl font-bold mt-1">
-            <span className="text-gradient">{greeting}</span>
-          </h1>
-          
-        </div>
-        <ThemeToggle />
+      <header className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+          {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+        </p>
+        <h1 className="text-3xl lg:text-4xl font-bold mt-1">
+          <span className="text-gradient">{greeting}</span>
+        </h1>
       </header>
 
       {rankUp && (
@@ -472,56 +466,65 @@ function DashboardPage() {
         />
       </section>
 
-      {/* Missions + Tip + Goal */}
+      {/* Limite dos cartões (resumo) + Dica + Meta */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <GlassCard hideKey="index-2" hideLabel="Missões de hoje" className="lg:col-span-2">
+        <GlassCard hideKey="index-2" hideLabel="Limite dos cartões" className="lg:col-span-2">
           <SectionTitle
-            title="Missões de hoje"
-            subtitle={`${missions.totalPoints} pts acumulados · +10 por missão`}
+            title="Limite dos cartões"
+            subtitle={cards.length === 0 ? "cadastre um cartão para começar" : `${cards.length} cartão(ões) · ${Math.round(totalCardPct)}% do limite total`}
             action={
-              <Link to="/missoes" className="text-xs font-mono text-secondary hover:underline">
-                ver tudo →
+              <Link to="/cartoes" className="text-xs font-mono text-secondary hover:underline">
+                ver todos →
               </Link>
             }
           />
-          <ul className="space-y-2">
-            {DAILY_MISSIONS.map((m) => {
-              const done = missions.completed.includes(m.id);
-              return (
-                <li key={m.id}>
-                  <div
-                    className={`w-full flex items-start gap-3 text-left rounded-2xl p-3 border transition-all duration-200 ${done ? "bg-[#2BD9A1]/10 border-[#2BD9A1]/40" : "border-border"}`}
-                  >
-                    {done ? (
-                      <CheckCircle2 className="size-5 text-[#2BD9A1] shrink-0 mt-0.5" />
-                    ) : (
-                      <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`font-semibold text-sm ${done ? "line-through text-muted-foreground" : ""}`}>
-                          {m.title}
-                        </p>
-                        <span className="font-mono text-[10px] rounded-md px-2 py-0.5 bg-secondary/20 text-secondary shrink-0">
-                          +{m.points} pts
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
+          {cards.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum cartão cadastrado ainda. Vá em{" "}
+              <Link to="/cartoes" className="text-secondary underline">Cartões</Link> para adicionar.
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="rounded-2xl bg-white/5 border border-border p-3">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Limite total</p>
+                  <p className="text-lg font-bold font-mono mt-1">{formatBRL(totalLimit)}</p>
+                </div>
+                <div className="rounded-2xl bg-white/5 border border-border p-3">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Usado</p>
+                  <p className="text-lg font-bold font-mono mt-1" style={{ color: "#FF6B1A" }}>{formatBRL(totalUsed)}</p>
+                </div>
+                <div className="rounded-2xl bg-white/5 border border-border p-3">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Disponível</p>
+                  <p className="text-lg font-bold font-mono mt-1" style={{ color: "#2BD9A1" }}>{formatBRL(totalAvailable)}</p>
+                </div>
+              </div>
+              <div className="h-2.5 rounded-full bg-white/10 overflow-hidden mb-4">
+                <div
+                  className="h-full transition-all duration-700"
+                  style={{ width: `${totalCardPct}%`, background: "linear-gradient(90deg, #540BD3, #FFCC00)" }}
+                />
+              </div>
+              <ul className="space-y-2.5">
+                {cardUsage.slice(0, 3).map((c) => (
+                  <li key={c.id}>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-2 font-medium">
+                        <span className="size-2 rounded-full" style={{ background: c.color }} />
+                        {c.name}
+                      </span>
+                      <span className="font-mono text-muted-foreground">
+                        {formatBRL(c.used)} / {formatBRL(c.limit)}
+                      </span>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full transition-all duration-700"
-              style={{
-                width: `${(missions.completed.length / DAILY_MISSIONS.length) * 100}%`,
-                background: "linear-gradient(90deg, #540BD3, #FFCC00)",
-              }}
-            />
-          </div>
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full transition-all duration-700" style={{ width: `${c.pct}%`, background: c.color }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </GlassCard>
 
         <div className="space-y-4">
@@ -559,6 +562,40 @@ function DashboardPage() {
           </GlassCard>
         </div>
       </section>
+
+      {/* Essenciais vs Não essenciais — logo após os cartões, mais destaque */}
+      {!hidden.essentials && (
+        <section className="mb-6">
+          <GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
+            <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo este mês" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+              <div className="space-y-5">
+                <Bar
+                  label="Essenciais"
+                  value={month.essential}
+                  total={month.expense || 1}
+                  color="#006F77"
+                  icon={<TrendingDown className="size-4" />}
+                />
+                <Bar
+                  label="Não essenciais"
+                  value={month.nonEssential}
+                  total={month.expense || 1}
+                  color="#820432"
+                  icon={<TrendingUp className="size-4" />}
+                />
+              </div>
+              <div className="rounded-2xl bg-white/5 p-4 border border-border">
+                <p className="font-mono text-xs text-muted-foreground">Insight</p>
+                <p className="text-sm mt-1 leading-relaxed">
+                  Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do total ajuda a poupar mais e melhora sua saúde financeira.
+                </p>
+              </div>
+            </div>
+          </GlassCard>
+        </section>
+      )}
+
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
         <GlassCard hideKey="index-5" hideLabel="Saúde financeira" className="lg:col-span-1">
@@ -882,81 +919,57 @@ function DashboardPage() {
         </GlassCard>
       </section>)}
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {!hidden.catPie && (<GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
-          <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
-          <div className="h-64">
-            {byCat.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={byCat}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    animationDuration={700}
-                  >
-                    {byCat.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "#14062E",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      borderRadius: 12,
-                      color: "#fff",
-                    }}
-                    labelStyle={{ color: "#fff" }}
-                    itemStyle={{ color: "#fff" }}
-                    formatter={(v: number) => formatBRL(v)}
-                  />
-                  <Legend
-                    wrapperStyle={{ fontSize: 12, color: "#fff" }}
-                    formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </GlassCard>)}
-
-        {!hidden.essentials && (<GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
-          <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo" />
-          <div className="space-y-5 mt-2">
-            <Bar
-              label="Essenciais"
-              value={month.essential}
-              total={month.expense || 1}
-              color="#006F77"
-              icon={<TrendingDown className="size-4" />}
-            />
-            <Bar
-              label="Não essenciais"
-              value={month.nonEssential}
-              total={month.expense || 1}
-              color="#820432"
-              icon={<TrendingUp className="size-4" />}
-            />
-            <div className="rounded-2xl bg-white/5 p-4 mt-4 border border-border">
-              <p className="font-mono text-xs text-muted-foreground">Insight</p>
-              <p className="text-sm mt-1">
-                Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do
-                total ajuda a poupar mais e melhora sua saúde financeira.
-              </p>
+      {!hidden.catPie && (
+        <section className="mb-8">
+          <GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
+            <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
+            <div className="h-64">
+              {byCat.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={byCat}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      animationDuration={700}
+                    >
+                      {byCat.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "#14062E",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        borderRadius: 12,
+                        color: "#fff",
+                      }}
+                      labelStyle={{ color: "#fff" }}
+                      itemStyle={{ color: "#fff" }}
+                      formatter={(v: number) => formatBRL(v)}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 12, color: "#fff" }}
+                      formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
-          </div>
-        </GlassCard>)}
-      </section>
+          </GlassCard>
+        </section>
+      )}
     </AppShell>
   );
 }
+
 
 function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boolean>; onToggle: (k: string) => void }) {
   const items = [
