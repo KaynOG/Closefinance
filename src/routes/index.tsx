@@ -921,81 +921,57 @@ function DashboardPage() {
         </GlassCard>
       </section>)}
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {!hidden.catPie && (<GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
-          <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
-          <div className="h-64">
-            {byCat.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={byCat}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    animationDuration={700}
-                  >
-                    {byCat.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "#14062E",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      borderRadius: 12,
-                      color: "#fff",
-                    }}
-                    labelStyle={{ color: "#fff" }}
-                    itemStyle={{ color: "#fff" }}
-                    formatter={(v: number) => formatBRL(v)}
-                  />
-                  <Legend
-                    wrapperStyle={{ fontSize: 12, color: "#fff" }}
-                    formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </GlassCard>)}
-
-        {!hidden.essentials && (<GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
-          <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo" />
-          <div className="space-y-5 mt-2">
-            <Bar
-              label="Essenciais"
-              value={month.essential}
-              total={month.expense || 1}
-              color="#006F77"
-              icon={<TrendingDown className="size-4" />}
-            />
-            <Bar
-              label="Não essenciais"
-              value={month.nonEssential}
-              total={month.expense || 1}
-              color="#820432"
-              icon={<TrendingUp className="size-4" />}
-            />
-            <div className="rounded-2xl bg-white/5 p-4 mt-4 border border-border">
-              <p className="font-mono text-xs text-muted-foreground">Insight</p>
-              <p className="text-sm mt-1">
-                Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do
-                total ajuda a poupar mais e melhora sua saúde financeira.
-              </p>
+      {!hidden.catPie && (
+        <section className="mb-8">
+          <GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
+            <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
+            <div className="h-64">
+              {byCat.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={byCat}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      animationDuration={700}
+                    >
+                      {byCat.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "#14062E",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        borderRadius: 12,
+                        color: "#fff",
+                      }}
+                      labelStyle={{ color: "#fff" }}
+                      itemStyle={{ color: "#fff" }}
+                      formatter={(v: number) => formatBRL(v)}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 12, color: "#fff" }}
+                      formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </div>
-          </div>
-        </GlassCard>)}
-      </section>
+          </GlassCard>
+        </section>
+      )}
     </AppShell>
   );
 }
+
 
 function ChartVisibilityBar({ hidden, onToggle }: { hidden: Record<string, boolean>; onToggle: (k: string) => void }) {
   const items = [
