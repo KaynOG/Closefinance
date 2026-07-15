@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, MISSIONS_CATALOG, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -26,8 +26,6 @@ import {
   CreditCard,
   Target,
   Lightbulb,
-  CheckCircle2,
-  Circle,
   BarChart3,
   Eye,
   EyeOff,
@@ -60,7 +58,7 @@ export const Route = createFileRoute("/")({
 const CYAN = "#22C3CC";
 const ORANGE = "#FF6B1A";
 
-const DAILY_MISSIONS = MISSIONS_CATALOG.slice(0, 5);
+
 
 const DAILY_TIPS = [
   "Pague-se primeiro: separe 10% da renda assim que ela cair.",
