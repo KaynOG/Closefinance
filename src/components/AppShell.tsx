@@ -22,6 +22,8 @@ import { installGlobalClickSounds } from "@/lib/sound";
 import { initTheme } from "@/lib/theme";
 import { ConsentModal } from "./ConsentModal";
 import { SavingsMonitor } from "./SavingsMonitor";
+import { OnboardingModal } from "./OnboardingModal";
+import { ThemeToggle } from "./ThemeToggle";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -185,8 +187,19 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       </main>
 
 
+      {/* Botão fixo de alternar tema — mesmo lugar em todas as abas */}
+      <div
+        className="fixed z-40 right-4 lg:right-6"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+      >
+        <div className="glass-strong rounded-2xl p-1 shadow-lg">
+          <ThemeToggle />
+        </div>
+      </div>
+
       <ConsentModal />
       <SavingsMonitor />
+      <OnboardingModal />
     </div>
   );
 }
