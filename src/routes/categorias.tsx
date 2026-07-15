@@ -82,15 +82,17 @@ function CategoriesPage() {
 
       <TutorialBox
         storageKey="categorias"
-        title="Como organizar suas categorias"
+        title="Comece por aqui — antes de lançar ganhos e gastos"
         steps={[
-          "Em 'Nova categoria', dê um nome curto (ex: Mercado, Lazer, Saúde).",
-          "Escolha um ícone e uma cor — vai facilitar reconhecer nos gráficos.",
-          "Defina se essa categoria é só para gastos, só para ganhos, ou para ambos.",
-          "Use poucas categorias amplas no começo — você refina depois.",
+          "Antes de registrar qualquer ganho ou gasto, crie primeiro as categorias que você mais usa: Aluguel/Moradia, Comida, Contas básicas (luz, água, internet), Transporte, Lazer, Saúde.",
+          "Em 'Nova categoria', dê um nome curto e escolha um ícone + cor — vai facilitar reconhecer nos gráficos.",
+          "Marque se a categoria é para gastos, ganhos ou ambos. Ex: Salário → ganhos; Mercado → gastos.",
+          "Comece com 5 a 8 categorias amplas. Você pode refinar depois quando notar padrões.",
+          "Feito isso, vá em Bancos, depois Cartões, e só então em Gastos/Ganhos começar a lançar.",
         ]}
-        tip="Categorias bem feitas viram insights: você descobre rápido o que mais pesa no orçamento."
+        tip="Sem categorias bem feitas, seus gráficos ficam vazios e você perde o insight de onde o dinheiro está indo."
       />
+
 
 
 
