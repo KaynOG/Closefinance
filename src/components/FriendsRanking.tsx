@@ -13,7 +13,7 @@ interface Friend {
   friend_code: string;
 }
 
-export function FriendsRanking() {
+export function FriendsRanking({ myPoints }: { myPoints: number }) {
   const [, , user] = useStore();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,38 +169,32 @@ export function FriendsRanking() {
           );
         })}
         {/* Sempre mostra o próprio usuário para referência */}
-        {myEntry && (
-          <li className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 p-3">
-            <div className="w-6 text-center font-mono text-xs text-primary shrink-0">•</div>
-            <div
-              className="size-10 rounded-full overflow-hidden border-2 bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold shrink-0"
-              style={{ borderColor: getRank(myPoints(user)).current.color }}
-            >
-              {user!.avatar ? <img src={user!.avatar} alt={user!.name} className="size-full object-cover" /> : user!.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{myEntry.name}</p>
-              <p className="text-[11px] font-mono text-muted-foreground">
-                {getRank(myPoints(user), user!.gender).displayName}
-              </p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="font-mono font-bold text-sm flex items-center gap-1 justify-end">
-                <Trophy className="size-3.5 text-secondary" /> {myPoints(user)}
-              </p>
-              <p className="text-[10px] font-mono text-muted-foreground">pontos</p>
-            </div>
-          </li>
-        )}
+        {myEntry && (() => {
+          const myRank = getRank(myPoints, user!.gender);
+          return (
+            <li className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 p-3">
+              <div className="w-6 text-center font-mono text-xs text-primary shrink-0">•</div>
+              <div
+                className="size-10 rounded-full overflow-hidden border-2 bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold shrink-0"
+                style={{ borderColor: myRank.current.color }}
+              >
+                {user!.avatar ? <img src={user!.avatar} alt={user!.name} className="size-full object-cover" /> : user!.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate">{myEntry.name}</p>
+                <p className="text-[11px] font-mono text-muted-foreground">{myRank.displayName}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="font-mono font-bold text-sm flex items-center gap-1 justify-end">
+                  <Trophy className="size-3.5 text-secondary" /> {myPoints}
+                </p>
+                <p className="text-[10px] font-mono text-muted-foreground">pontos</p>
+              </div>
+            </li>
+          );
+        })()}
       </ul>
     </GlassCard>
   );
 }
 
-function myPoints(_user: unknown): number {
-  // Placeholder — actual points are read from the store's missions.totalPoints
-  // via useStore() where this is embedded. We look it up lazily to avoid prop drilling.
-  return _myPointsCache;
-}
-let _myPointsCache = 0;
-export function setMyPointsCache(n: number) { _myPointsCache = n; }
