@@ -45,7 +45,6 @@ function MissoesPage() {
       }} />
 
       <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Gamificação</p>
         <h1 className="text-3xl lg:text-4xl font-bold flex items-center gap-3">Missões <Trophy className="size-8 text-secondary" /></h1>
       </header>
 
