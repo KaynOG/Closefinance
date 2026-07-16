@@ -113,6 +113,27 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mission_history: {
         Row: {
           day: string
@@ -147,6 +168,7 @@ export type Database = {
           cash_amount: number
           created_at: string
           email: string | null
+          friend_code: string | null
           gender: string | null
           id: string
           job: string | null
@@ -162,6 +184,7 @@ export type Database = {
           cash_amount?: number
           created_at?: string
           email?: string | null
+          friend_code?: string | null
           gender?: string | null
           id: string
           job?: string | null
@@ -177,6 +200,7 @@ export type Database = {
           cash_amount?: number
           created_at?: string
           email?: string | null
+          friend_code?: string | null
           gender?: string | null
           id?: string
           job?: string | null
@@ -272,7 +296,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_profile_by_friend_code: {
+        Args: { _code: string }
+        Returns: {
+          avatar: string
+          friend_code: string
+          id: string
+          name: string
+          total_points: number
+        }[]
+      }
+      gen_friend_code: { Args: never; Returns: string }
+      get_my_friends_ranking: {
+        Args: never
+        Returns: {
+          avatar: string
+          friend_code: string
+          id: string
+          name: string
+          total_points: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
