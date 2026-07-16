@@ -17,6 +17,7 @@ import {
   Landmark,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { getRank } from "@/lib/ranks";
 import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
 import { initTheme } from "@/lib/theme";
@@ -96,13 +97,21 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </nav>
         <div className="mt-auto space-y-2">
           <Link to="/perfil" className="rounded-2xl p-3 glass flex items-center gap-3 hover:bg-white/5 transition">
-            <div className="size-9 rounded-full bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold overflow-hidden">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="size-full object-cover" />
-              ) : (
-                user.name.charAt(0).toUpperCase()
-              )}
-            </div>
+            {(() => {
+              const r = getRank(state.missions.totalPoints, user.gender);
+              return (
+                <div
+                  className="size-9 rounded-full bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold overflow-hidden border-2"
+                  style={{ borderColor: r.current.color, boxShadow: `0 0 10px ${r.current.color}80` }}
+                >
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="size-full object-cover" />
+                  ) : (
+                    user.name.charAt(0).toUpperCase()
+                  )}
+                </div>
+              );
+            })()}
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
