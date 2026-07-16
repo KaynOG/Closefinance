@@ -123,6 +123,10 @@ function MissoesPage() {
         </GlassCard>
       </section>
 
+      <section className="mb-6">
+        <FriendsRanking myPoints={missions.totalPoints} />
+      </section>
+
       <GlassCard>
         <HistoryBlock missions={missions} byDay={byDay} />
       </GlassCard>
