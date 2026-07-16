@@ -85,7 +85,10 @@ function PerfilPage() {
           <SectionTitle title="Foto de perfil" />
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <div className="size-32 rounded-full overflow-hidden border-2 border-primary/50 bg-[image:var(--gradient-primary)] grid place-items-center text-4xl font-display font-bold">
+              <div
+                className="size-32 rounded-full overflow-hidden border-[3px] bg-[image:var(--gradient-primary)] grid place-items-center text-4xl font-display font-bold transition-shadow"
+                style={{ borderColor: rank.current.color, boxShadow: `0 0 24px ${rank.current.color}66, inset 0 0 0 2px rgba(255,255,255,0.15)` }}
+              >
                 {form.avatar ? <img src={form.avatar} alt={form.name} className="size-full object-cover" /> : form.name.charAt(0).toUpperCase()}
               </div>
               {/* Rank badge ao lado do avatar */}
