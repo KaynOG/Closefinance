@@ -77,7 +77,6 @@ function PerfilPage() {
   return (
     <AppShell>
       <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Sua conta</p>
         <h1 className="text-3xl lg:text-4xl font-bold">Perfil & Ajustes</h1>
       </header>
 
@@ -86,7 +85,10 @@ function PerfilPage() {
           <SectionTitle title="Foto de perfil" />
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <div className="size-32 rounded-full overflow-hidden border-2 border-primary/50 bg-[image:var(--gradient-primary)] grid place-items-center text-4xl font-display font-bold">
+              <div
+                className="size-32 rounded-full overflow-hidden border-[3px] bg-[image:var(--gradient-primary)] grid place-items-center text-4xl font-display font-bold transition-shadow"
+                style={{ borderColor: rank.current.color, boxShadow: `0 0 24px ${rank.current.color}66, inset 0 0 0 2px rgba(255,255,255,0.15)` }}
+              >
                 {form.avatar ? <img src={form.avatar} alt={form.name} className="size-full object-cover" /> : form.name.charAt(0).toUpperCase()}
               </div>
               {/* Rank badge ao lado do avatar */}
@@ -111,6 +113,17 @@ function PerfilPage() {
             <p>E-mail: <span className="text-foreground">{user.email}</span></p>
             {age !== null && <p>Idade: <span className="text-foreground">{age} anos</span></p>}
             <p>Pontos: <span className="text-foreground">{missions.totalPoints}</span></p>
+            {user.friendCode && (
+              <p className="flex items-center gap-2">
+                Código de amigo:
+                <span className="text-foreground font-mono tracking-wider">{user.friendCode}</span>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard?.writeText(user.friendCode!); }}
+                  className="text-primary hover:underline text-[10px]"
+                >copiar</button>
+              </p>
+            )}
           </div>
           <button onClick={async () => { await api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
             <LogOut className="size-4" /> Sair da conta

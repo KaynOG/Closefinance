@@ -97,7 +97,7 @@ function EduPage() {
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Aprenda enquanto controla</p>
         <h1 className="text-3xl lg:text-4xl font-bold">Educação <span className="text-gradient">financeira</span></h1>
-        <p className="text-muted-foreground mt-2 text-sm">Toque no ícone <ChevronDown className="inline size-3.5" /> para expandir cada card.</p>
+        
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">

@@ -5,6 +5,7 @@ import { useStore, MISSIONS_CATALOG, getDailyMissions, type MissionState } from 
 import { RANKS, getRank } from "@/lib/ranks";
 import { useMemo, useState } from "react";
 import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { FriendsRanking } from "@/components/FriendsRanking";
 
 
 export const Route = createFileRoute("/missoes")({
@@ -44,7 +45,6 @@ function MissoesPage() {
       }} />
 
       <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Gamificação</p>
         <h1 className="text-3xl lg:text-4xl font-bold flex items-center gap-3">Missões <Trophy className="size-8 text-secondary" /></h1>
       </header>
 
@@ -121,6 +121,10 @@ function MissoesPage() {
             })}
           </ul>
         </GlassCard>
+      </section>
+
+      <section className="mb-6">
+        <FriendsRanking myPoints={missions.totalPoints} />
       </section>
 
       <GlassCard>
