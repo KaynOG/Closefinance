@@ -5,6 +5,7 @@ import { useStore, MISSIONS_CATALOG, getDailyMissions, type MissionState } from 
 import { RANKS, getRank } from "@/lib/ranks";
 import { useMemo, useState } from "react";
 import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { FriendsRanking } from "@/components/FriendsRanking";
 
 
 export const Route = createFileRoute("/missoes")({
