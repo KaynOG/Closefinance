@@ -64,6 +64,7 @@ export interface User {
   avatar?: string;
   gender?: Gender;
   cashAmount?: number;
+  friendCode?: string;
   createdAt: string;
 }
 
@@ -188,6 +189,7 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
     avatar: (p.avatar as string) ?? undefined,
     gender: ((p.gender as Gender) ?? "other"),
     cashAmount: p.cash_amount != null ? Number(p.cash_amount) : 0,
+    friendCode: (p.friend_code as string) ?? undefined,
     createdAt: (p.created_at as string) ?? supa.created_at,
   };
 }
