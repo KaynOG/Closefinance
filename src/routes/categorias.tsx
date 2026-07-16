@@ -73,7 +73,6 @@ function CategoriesPage() {
   return (
     <AppShell>
       <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Personalização</p>
         <h1 className="text-3xl font-bold">Categorias</h1>
         <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
           Defina rótulos com ícones para classificar gastos. Cada gasto também tem um segundo parâmetro: <span className="text-secondary">essencial</span> ou <span className="text-secondary">não essencial</span>.
