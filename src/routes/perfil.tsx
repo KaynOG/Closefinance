@@ -113,6 +113,17 @@ function PerfilPage() {
             <p>E-mail: <span className="text-foreground">{user.email}</span></p>
             {age !== null && <p>Idade: <span className="text-foreground">{age} anos</span></p>}
             <p>Pontos: <span className="text-foreground">{missions.totalPoints}</span></p>
+            {user.friendCode && (
+              <p className="flex items-center gap-2">
+                Código de amigo:
+                <span className="text-foreground font-mono tracking-wider">{user.friendCode}</span>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard?.writeText(user.friendCode!); }}
+                  className="text-primary hover:underline text-[10px]"
+                >copiar</button>
+              </p>
+            )}
           </div>
           <button onClick={async () => { await api.logout(); sessionStorage.removeItem("closefinance:greeting"); navigate({ to: "/auth" }); }} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl border border-[#FF4D6D]/40 text-[#FF8FA3] py-2.5 text-sm hover:bg-[#FF4D6D]/10">
             <LogOut className="size-4" /> Sair da conta
