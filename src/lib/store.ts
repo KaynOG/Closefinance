@@ -167,6 +167,7 @@ function mapTx(row: Record<string, unknown>): Transaction {
     installmentNo: (row.installment_no as number) ?? undefined,
     installmentTotal: (row.installment_total as number) ?? undefined,
     installmentGroupId: (row.installment_group_id as string) ?? undefined,
+    appliedToBalance: row.applied_to_balance == null ? true : Boolean(row.applied_to_balance),
   };
 }
 function mapCat(row: Record<string, unknown>): Category {
