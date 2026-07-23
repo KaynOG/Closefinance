@@ -23,6 +23,7 @@ export interface Transaction {
   installmentNo?: number;
   installmentTotal?: number;
   installmentGroupId?: string;
+  appliedToBalance?: boolean;
 }
 
 export interface Category {
