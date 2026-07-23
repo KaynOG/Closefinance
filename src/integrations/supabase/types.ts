@@ -215,6 +215,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          applied_to_balance: boolean
           bank_id: string | null
           card_id: string | null
           category_id: string | null
@@ -233,6 +234,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          applied_to_balance?: boolean
           bank_id?: string | null
           card_id?: string | null
           category_id?: string | null
@@ -251,6 +253,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          applied_to_balance?: boolean
           bank_id?: string | null
           card_id?: string | null
           category_id?: string | null

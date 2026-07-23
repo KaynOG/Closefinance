@@ -23,6 +23,7 @@ export interface Transaction {
   installmentNo?: number;
   installmentTotal?: number;
   installmentGroupId?: string;
+  appliedToBalance?: boolean;
 }
 
 export interface Category {
@@ -167,6 +168,7 @@ function mapTx(row: Record<string, unknown>): Transaction {
     installmentNo: (row.installment_no as number) ?? undefined,
     installmentTotal: (row.installment_total as number) ?? undefined,
     installmentGroupId: (row.installment_group_id as string) ?? undefined,
+    appliedToBalance: row.applied_to_balance == null ? true : Boolean(row.applied_to_balance),
   };
 }
 function mapCat(row: Record<string, unknown>): Category {
@@ -224,14 +226,36 @@ async function loadAll(supaUser: SupaUser) {
     if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
   }
 
+  const loadedTx = (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>));
+  let loadedBanks = (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>));
+
+  // Auto-crédito: ganhos com banco que já venceram (data <= hoje) e ainda não foram aplicados
+  const pendingIncome = loadedTx.filter(
+    t => t.type === "income" && t.bankId && t.date <= today && t.appliedToBalance === false,
+  );
+  if (pendingIncome.length) {
+    const perBank = new Map<string, number>();
+    for (const t of pendingIncome) perBank.set(t.bankId!, (perBank.get(t.bankId!) ?? 0) + t.amount);
+    for (const [bankId, delta] of perBank) {
+      const bank = loadedBanks.find(b => b.id === bankId);
+      if (!bank) continue;
+      const newBalance = bank.accountBalance + delta;
+      await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bankId);
+      loadedBanks = loadedBanks.map(b => b.id === bankId ? { ...b, accountBalance: newBalance } : b);
+    }
+    const ids = pendingIncome.map(t => t.id);
+    await supabase.from("transactions").update({ applied_to_balance: true }).in("id", ids);
+    for (const t of pendingIncome) t.appliedToBalance = true;
+  }
+
   set({
     loading: false,
     currentUserId: uid,
     users: [user],
     categories: cats,
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
-    banks: (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>)),
-    transactions: (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>)),
+    banks: loadedBanks,
+    transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
 }
@@ -405,6 +429,7 @@ export function useStore() {
       // Apenas lançamentos com data até hoje impactam o saldo atual
       const todayStr = new Date().toISOString().slice(0, 10);
       const appliedRows = inserted.filter(x => x.date <= todayStr);
+      const appliedIds = appliedRows.map(x => x.id);
 
       // Débito/Pix em banco: desconta automaticamente do saldo em conta
       if (t.type === "expense" && (t.paymentMethod === "debit" || t.paymentMethod === "pix") && t.bankId) {
@@ -417,7 +442,7 @@ export function useStore() {
         }
       }
 
-      // Ganho recebido em banco: credita no saldo em conta
+      // Ganho recebido em banco: credita no saldo em conta (somente parcelas com data até hoje)
       if (t.type === "income" && t.bankId) {
         const bank = memory.banks.find(b => b.id === t.bankId);
         if (bank && appliedRows.length) {
@@ -446,6 +471,12 @@ export function useStore() {
           await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
         }
+      }
+
+      // Marca as parcelas já aplicadas ao saldo (evita reaplicação futura pelo auto-crédito)
+      if (appliedIds.length) {
+        await supabase.from("transactions").update({ applied_to_balance: true }).in("id", appliedIds);
+        set({ transactions: memory.transactions.map(x => appliedIds.includes(x.id) ? { ...x, appliedToBalance: true } : x) });
       }
 
       // Auto-award de missões pela ação realizada

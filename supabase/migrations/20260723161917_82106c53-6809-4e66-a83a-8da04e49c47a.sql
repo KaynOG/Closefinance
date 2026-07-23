@@ -1,0 +1,2 @@
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS applied_to_balance boolean NOT NULL DEFAULT false;
+UPDATE public.transactions SET applied_to_balance = true WHERE date <= current_date AND applied_to_balance = false;
