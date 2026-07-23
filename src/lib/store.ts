@@ -407,6 +407,7 @@ export function useStore() {
       // Apenas lançamentos com data até hoje impactam o saldo atual
       const todayStr = new Date().toISOString().slice(0, 10);
       const appliedRows = inserted.filter(x => x.date <= todayStr);
+      const appliedIds = appliedRows.map(x => x.id);
 
       // Débito/Pix em banco: desconta automaticamente do saldo em conta
       if (t.type === "expense" && (t.paymentMethod === "debit" || t.paymentMethod === "pix") && t.bankId) {
@@ -419,7 +420,7 @@ export function useStore() {
         }
       }
 
-      // Ganho recebido em banco: credita no saldo em conta
+      // Ganho recebido em banco: credita no saldo em conta (somente parcelas com data até hoje)
       if (t.type === "income" && t.bankId) {
         const bank = memory.banks.find(b => b.id === t.bankId);
         if (bank && appliedRows.length) {
@@ -448,6 +449,12 @@ export function useStore() {
           await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
           set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
         }
+      }
+
+      // Marca as parcelas já aplicadas ao saldo (evita reaplicação futura pelo auto-crédito)
+      if (appliedIds.length) {
+        await supabase.from("transactions").update({ applied_to_balance: true }).in("id", appliedIds);
+        set({ transactions: memory.transactions.map(x => appliedIds.includes(x.id) ? { ...x, appliedToBalance: true } : x) });
       }
 
       // Auto-award de missões pela ação realizada
