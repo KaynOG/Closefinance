@@ -226,14 +226,36 @@ async function loadAll(supaUser: SupaUser) {
     if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
   }
 
+  const loadedTx = (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>));
+  let loadedBanks = (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>));
+
+  // Auto-crédito: ganhos com banco que já venceram (data <= hoje) e ainda não foram aplicados
+  const pendingIncome = loadedTx.filter(
+    t => t.type === "income" && t.bankId && t.date <= today && t.appliedToBalance === false,
+  );
+  if (pendingIncome.length) {
+    const perBank = new Map<string, number>();
+    for (const t of pendingIncome) perBank.set(t.bankId!, (perBank.get(t.bankId!) ?? 0) + t.amount);
+    for (const [bankId, delta] of perBank) {
+      const bank = loadedBanks.find(b => b.id === bankId);
+      if (!bank) continue;
+      const newBalance = bank.accountBalance + delta;
+      await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bankId);
+      loadedBanks = loadedBanks.map(b => b.id === bankId ? { ...b, accountBalance: newBalance } : b);
+    }
+    const ids = pendingIncome.map(t => t.id);
+    await supabase.from("transactions").update({ applied_to_balance: true }).in("id", ids);
+    for (const t of pendingIncome) t.appliedToBalance = true;
+  }
+
   set({
     loading: false,
     currentUserId: uid,
     users: [user],
     categories: cats,
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
-    banks: (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>)),
-    transactions: (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>)),
+    banks: loadedBanks,
+    transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
 }
