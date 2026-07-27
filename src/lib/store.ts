@@ -53,6 +53,30 @@ export interface Bank {
   note?: string;
 }
 
+export interface DebtInstallment {
+  id: string;
+  debtId: string;
+  number: number;
+  amount: number;
+  dueDate: string; // yyyy-mm-dd
+  paid: boolean;
+  transactionId?: string;
+}
+
+export interface Debt {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  totalAmount: number;
+  installmentsTotal: number;
+  bankId?: string;
+  categoryId?: string;
+  note?: string;
+  createdAt: string;
+  installments: DebtInstallment[];
+}
+
 export type Gender = "male" | "female" | "other";
 
 export interface User {
