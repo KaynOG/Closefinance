@@ -355,6 +355,14 @@ async function loadAll(supaUser: SupaUser) {
 // Marker prefix usado no campo tag para identificar pagamentos de fatura.
 // Formato: `__pf__:<cardId>` + opcional `|<tag livre do usuário>`
 export const INVOICE_PAYMENT_TAG_PREFIX = "__pf__:";
+
+// Etiqueta usada nos gastos gerados automaticamente pelas parcelas de dívidas.
+// Formato: `__dv__:<debtId>`
+export const DEBT_TAG_PREFIX = "__dv__:";
+export function parseDebtTag(tag?: string): string | null {
+  if (!tag || !tag.startsWith(DEBT_TAG_PREFIX)) return null;
+  return tag.slice(DEBT_TAG_PREFIX.length) || null;
+}
 export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?: string } | null {
   if (!tag || !tag.startsWith(INVOICE_PAYMENT_TAG_PREFIX)) return null;
   const rest = tag.slice(INVOICE_PAYMENT_TAG_PREFIX.length);
