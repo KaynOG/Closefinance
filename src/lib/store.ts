@@ -151,6 +151,7 @@ export interface AppState {
   categories: Category[];
   cards: Card[];
   banks: Bank[];
+  debts: Debt[];
   users: User[];
   currentUserId: string | null;
   missions: MissionState;
@@ -162,6 +163,7 @@ const EMPTY_STATE: AppState = {
   categories: [],
   cards: [],
   banks: [],
+  debts: [],
   users: [],
   currentUserId: null,
   missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
