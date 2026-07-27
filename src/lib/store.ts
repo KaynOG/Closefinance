@@ -302,6 +302,43 @@ async function loadAll(supaUser: SupaUser) {
     for (const t of pendingIncome) t.appliedToBalance = true;
   }
 
+  // Auto-débito: gastos agendados em banco (débito/pix) cuja data chegou e ainda não
+  // foram descontados — cobre as parcelas de dívidas com débito automático.
+  const pendingExpense = loadedTx.filter(
+    t => t.type === "expense" && t.bankId && (t.paymentMethod === "debit" || t.paymentMethod === "pix")
+      && t.date <= today && t.appliedToBalance === false,
+  );
+  if (pendingExpense.length) {
+    const perBank = new Map<string, number>();
+    for (const t of pendingExpense) perBank.set(t.bankId!, (perBank.get(t.bankId!) ?? 0) + t.amount);
+    for (const [bankId, delta] of perBank) {
+      const bank = loadedBanks.find(b => b.id === bankId);
+      if (!bank) continue;
+      const newBalance = bank.accountBalance - delta;
+      await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bankId);
+      loadedBanks = loadedBanks.map(b => b.id === bankId ? { ...b, accountBalance: newBalance } : b);
+    }
+    const ids = pendingExpense.map(t => t.id);
+    await supabase.from("transactions").update({ applied_to_balance: true }).in("id", ids);
+    for (const t of pendingExpense) t.appliedToBalance = true;
+  }
+
+  // Dívidas + parcelas (marca como paga toda parcela cujo gasto já foi debitado)
+  const instRows = (debtInstR.data ?? []).map(r => mapDebtInstallment(r as Record<string, unknown>));
+  const autoPaidIds: string[] = [];
+  for (const inst of instRows) {
+    if (inst.paid) continue;
+    const tx = inst.transactionId ? loadedTx.find(t => t.id === inst.transactionId) : undefined;
+    if (tx && tx.appliedToBalance && tx.date <= today) { inst.paid = true; autoPaidIds.push(inst.id); }
+  }
+  if (autoPaidIds.length) {
+    await supabase.from("debt_installments").update({ paid: true }).in("id", autoPaidIds);
+  }
+  const debts = (debtsR.data ?? []).map(r => {
+    const row = r as Record<string, unknown>;
+    return mapDebt(row, instRows.filter(i => i.debtId === String(row.id)));
+  });
+
   set({
     loading: false,
     currentUserId: uid,
@@ -309,6 +346,7 @@ async function loadAll(supaUser: SupaUser) {
     categories: cats,
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
     banks: loadedBanks,
+    debts,
     transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
