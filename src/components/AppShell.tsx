@@ -15,6 +15,7 @@ import {
   User as UserIcon,
   Trophy,
   Landmark,
+  Receipt,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
