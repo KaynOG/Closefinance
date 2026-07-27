@@ -53,6 +53,30 @@ export interface Bank {
   note?: string;
 }
 
+export interface DebtInstallment {
+  id: string;
+  debtId: string;
+  number: number;
+  amount: number;
+  dueDate: string; // yyyy-mm-dd
+  paid: boolean;
+  transactionId?: string;
+}
+
+export interface Debt {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  totalAmount: number;
+  installmentsTotal: number;
+  bankId?: string;
+  categoryId?: string;
+  note?: string;
+  createdAt: string;
+  installments: DebtInstallment[];
+}
+
 export type Gender = "male" | "female" | "other";
 
 export interface User {
@@ -127,6 +151,7 @@ export interface AppState {
   categories: Category[];
   cards: Card[];
   banks: Bank[];
+  debts: Debt[];
   users: User[];
   currentUserId: string | null;
   missions: MissionState;
@@ -138,6 +163,7 @@ const EMPTY_STATE: AppState = {
   categories: [],
   cards: [],
   banks: [],
+  debts: [],
   users: [],
   currentUserId: null,
   missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
@@ -180,6 +206,32 @@ function mapCard(row: Record<string, unknown>): Card {
 function mapBank(row: Record<string, unknown>): Bank {
   return { id: String(row.id), name: String(row.name), color: String(row.color), accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
 }
+function mapDebt(row: Record<string, unknown>, installments: DebtInstallment[]): Debt {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    icon: (row.icon as string) ?? "wallet",
+    color: (row.color as string) ?? "#540BD3",
+    totalAmount: Number(row.total_amount),
+    installmentsTotal: Number(row.installments_total),
+    bankId: (row.bank_id as string) ?? undefined,
+    categoryId: (row.category_id as string) ?? undefined,
+    note: (row.note as string) ?? undefined,
+    createdAt: String(row.created_at),
+    installments: installments.sort((a, b) => a.number - b.number),
+  };
+}
+function mapDebtInstallment(row: Record<string, unknown>): DebtInstallment {
+  return {
+    id: String(row.id),
+    debtId: String(row.debt_id),
+    number: Number(row.number),
+    amount: Number(row.amount),
+    dueDate: String(row.due_date),
+    paid: Boolean(row.paid),
+    transactionId: (row.transaction_id as string) ?? undefined,
+  };
+}
 function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
   return {
     id: String(p.id ?? supa.id),
@@ -201,13 +253,15 @@ async function loadAll(supaUser: SupaUser) {
   set({ loading: true });
   const uid = supaUser.id;
   const today = new Date().toISOString().slice(0, 10);
-  const [profileR, catsR, cardsR, banksR, txR, missR] = await Promise.all([
+  const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     supabase.from("categories").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("cards").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("banks").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("transactions").select("*").eq("user_id", uid).order("date", { ascending: false }).limit(2000),
     supabase.from("mission_history").select("*").eq("user_id", uid).order("occurred_at", { ascending: false }).limit(500),
+    supabase.from("debts").select("*").eq("user_id", uid).order("created_at"),
+    supabase.from("debt_installments").select("*").eq("user_id", uid).order("number"),
   ]);
 
   const profileRow = (profileR.data as Record<string, unknown> | null) ?? { id: uid, email: supaUser.email, name: supaUser.email?.split("@")[0] ?? "" };
@@ -248,6 +302,43 @@ async function loadAll(supaUser: SupaUser) {
     for (const t of pendingIncome) t.appliedToBalance = true;
   }
 
+  // Auto-débito: gastos agendados em banco (débito/pix) cuja data chegou e ainda não
+  // foram descontados — cobre as parcelas de dívidas com débito automático.
+  const pendingExpense = loadedTx.filter(
+    t => t.type === "expense" && t.bankId && (t.paymentMethod === "debit" || t.paymentMethod === "pix")
+      && t.date <= today && t.appliedToBalance === false,
+  );
+  if (pendingExpense.length) {
+    const perBank = new Map<string, number>();
+    for (const t of pendingExpense) perBank.set(t.bankId!, (perBank.get(t.bankId!) ?? 0) + t.amount);
+    for (const [bankId, delta] of perBank) {
+      const bank = loadedBanks.find(b => b.id === bankId);
+      if (!bank) continue;
+      const newBalance = bank.accountBalance - delta;
+      await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bankId);
+      loadedBanks = loadedBanks.map(b => b.id === bankId ? { ...b, accountBalance: newBalance } : b);
+    }
+    const ids = pendingExpense.map(t => t.id);
+    await supabase.from("transactions").update({ applied_to_balance: true }).in("id", ids);
+    for (const t of pendingExpense) t.appliedToBalance = true;
+  }
+
+  // Dívidas + parcelas (marca como paga toda parcela cujo gasto já foi debitado)
+  const instRows = (debtInstR.data ?? []).map(r => mapDebtInstallment(r as Record<string, unknown>));
+  const autoPaidIds: string[] = [];
+  for (const inst of instRows) {
+    if (inst.paid) continue;
+    const tx = inst.transactionId ? loadedTx.find(t => t.id === inst.transactionId) : undefined;
+    if (tx && tx.appliedToBalance && tx.date <= today) { inst.paid = true; autoPaidIds.push(inst.id); }
+  }
+  if (autoPaidIds.length) {
+    await supabase.from("debt_installments").update({ paid: true }).in("id", autoPaidIds);
+  }
+  const debts = (debtsR.data ?? []).map(r => {
+    const row = r as Record<string, unknown>;
+    return mapDebt(row, instRows.filter(i => i.debtId === String(row.id)));
+  });
+
   set({
     loading: false,
     currentUserId: uid,
@@ -255,6 +346,7 @@ async function loadAll(supaUser: SupaUser) {
     categories: cats,
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
     banks: loadedBanks,
+    debts,
     transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
@@ -263,6 +355,14 @@ async function loadAll(supaUser: SupaUser) {
 // Marker prefix usado no campo tag para identificar pagamentos de fatura.
 // Formato: `__pf__:<cardId>` + opcional `|<tag livre do usuário>`
 export const INVOICE_PAYMENT_TAG_PREFIX = "__pf__:";
+
+// Etiqueta usada nos gastos gerados automaticamente pelas parcelas de dívidas.
+// Formato: `__dv__:<debtId>`
+export const DEBT_TAG_PREFIX = "__dv__:";
+export function parseDebtTag(tag?: string): string | null {
+  if (!tag || !tag.startsWith(DEBT_TAG_PREFIX)) return null;
+  return tag.slice(DEBT_TAG_PREFIX.length) || null;
+}
 export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?: string } | null {
   if (!tag || !tag.startsWith(INVOICE_PAYMENT_TAG_PREFIX)) return null;
   const rest = tag.slice(INVOICE_PAYMENT_TAG_PREFIX.length);
@@ -644,6 +744,172 @@ export function useStore() {
       const { error } = await supabase.from("banks").delete().eq("id", i);
       if (error) return console.error(error);
       set({ banks: memory.banks.filter(x => x.id !== i) });
+    },
+
+    // ---------- DÍVIDAS ----------
+    // Cria a dívida, gera um gasto para cada parcela na data escolhida e vincula
+    // os dois. Parcelas com data já vencida debitam o banco na hora; as futuras
+    // são debitadas automaticamente quando a data chegar (ver loadAll).
+    addDebt: async (input: {
+      name: string; icon: string; color: string; totalAmount: number;
+      bankId?: string; categoryId?: string; note?: string;
+      installments: { number: number; amount: number; dueDate: string }[];
+    }) => {
+      const uid = memory.currentUserId; if (!uid) return null;
+      const { data: debtRow, error } = await supabase.from("debts").insert({
+        user_id: uid, name: input.name, icon: input.icon, color: input.color,
+        total_amount: input.totalAmount, installments_total: input.installments.length,
+        bank_id: input.bankId ?? null, category_id: input.categoryId ?? null, note: input.note ?? null,
+      }).select("*").single();
+      if (error || !debtRow) { console.error(error); return null; }
+      const debtId = String((debtRow as Record<string, unknown>).id);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const total = input.installments.length;
+
+      const txRows = input.installments.map(p => ({
+        user_id: uid, type: "expense", amount: p.amount,
+        description: `${input.name} (${p.number}/${total})`,
+        date: p.dueDate,
+        category_id: input.categoryId ?? null,
+        bank_id: input.bankId ?? null,
+        card_id: null,
+        essential: "essential",
+        payment_method: input.bankId ? "debit" : null,
+        installment_no: p.number, installment_total: total,
+        installment_group_id: null,
+        tag: `${DEBT_TAG_PREFIX}${debtId}`,
+        applied_to_balance: p.dueDate <= todayStr,
+      }));
+      const { data: txData, error: txErr } = await supabase.from("transactions").insert(txRows as never).select("*");
+      if (txErr) console.error(txErr);
+      const insertedTx = (txData ?? []).map(r => mapTx(r as Record<string, unknown>));
+
+      const instRows = input.installments.map((p, i) => ({
+        user_id: uid, debt_id: debtId, number: p.number, amount: p.amount,
+        due_date: p.dueDate, paid: p.dueDate <= todayStr,
+        transaction_id: insertedTx[i]?.id ?? null,
+      }));
+      const { data: instData } = await supabase.from("debt_installments").insert(instRows as never).select("*");
+      const installments = (instData ?? []).map(r => mapDebtInstallment(r as Record<string, unknown>));
+
+      // Debita do banco as parcelas que já venceram
+      if (input.bankId) {
+        const dueNow = insertedTx.filter(t => t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
+        const bank = memory.banks.find(b => b.id === input.bankId);
+        if (bank && dueNow > 0) {
+          const newBalance = bank.accountBalance - dueNow;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
+
+      const debt = mapDebt(debtRow as Record<string, unknown>, installments);
+      set({
+        debts: [...memory.debts, debt],
+        transactions: [...insertedTx, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
+      });
+      try { await api.awardMission("add_expense"); } catch {}
+      return debt;
+    },
+    updateDebt: async (debtId: string, p: Partial<Pick<Debt, "name" | "icon" | "color" | "note" | "bankId" | "categoryId">>) => {
+      const patch: Record<string, unknown> = {};
+      if (p.name !== undefined) patch.name = p.name;
+      if (p.icon !== undefined) patch.icon = p.icon;
+      if (p.color !== undefined) patch.color = p.color;
+      if (p.note !== undefined) patch.note = p.note || null;
+      if (p.bankId !== undefined) patch.bank_id = p.bankId || null;
+      if (p.categoryId !== undefined) patch.category_id = p.categoryId || null;
+      const { error } = await supabase.from("debts").update(patch as never).eq("id", debtId);
+      if (error) return console.error(error);
+      set({ debts: memory.debts.map(d => d.id === debtId ? { ...d, ...p } : d) });
+    },
+    removeDebt: async (debtId: string) => {
+      const debt = memory.debts.find(d => d.id === debtId);
+      if (!debt) return;
+      const txIds = debt.installments.map(i => i.transactionId).filter(Boolean) as string[];
+      // Estorna o que já foi debitado do banco
+      if (debt.bankId) {
+        const back = memory.transactions
+          .filter(t => txIds.includes(t.id) && t.appliedToBalance)
+          .reduce((s, t) => s + t.amount, 0);
+        const bank = memory.banks.find(b => b.id === debt.bankId);
+        if (bank && back > 0) {
+          const newBalance = bank.accountBalance + back;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
+      if (txIds.length) await supabase.from("transactions").delete().in("id", txIds);
+      const { error } = await supabase.from("debts").delete().eq("id", debtId);
+      if (error) return console.error(error);
+      set({
+        debts: memory.debts.filter(d => d.id !== debtId),
+        transactions: memory.transactions.filter(t => !txIds.includes(t.id)),
+      });
+    },
+    // Marca/desmarca uma parcela como paga e sincroniza o gasto vinculado.
+    setInstallmentPaid: async (debtId: string, instId: string, paid: boolean) => {
+      const debt = memory.debts.find(d => d.id === debtId);
+      const inst = debt?.installments.find(i => i.id === instId);
+      if (!debt || !inst) return;
+      await supabase.from("debt_installments").update({ paid }).eq("id", instId);
+      set({
+        debts: memory.debts.map(d => d.id !== debtId ? d : {
+          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid } : i),
+        }),
+      });
+      const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
+      if (!tx) return;
+      // Antecipa/estorna o débito no banco conforme a marcação manual
+      if (paid && !tx.appliedToBalance) {
+        if (debt.bankId) {
+          const bank = memory.banks.find(b => b.id === debt.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance - tx.amount;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        await supabase.from("transactions").update({ applied_to_balance: true }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: true } : t) });
+      } else if (!paid && tx.appliedToBalance) {
+        if (debt.bankId) {
+          const bank = memory.banks.find(b => b.id === debt.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance + tx.amount;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        await supabase.from("transactions").update({ applied_to_balance: false }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: false } : t) });
+      }
+    },
+    // Ajusta valor/data de uma parcela e reflete no gasto vinculado.
+    updateInstallment: async (debtId: string, instId: string, p: { amount?: number; dueDate?: string }) => {
+      const debt = memory.debts.find(d => d.id === debtId);
+      const inst = debt?.installments.find(i => i.id === instId);
+      if (!debt || !inst) return;
+      const patch: Record<string, unknown> = {};
+      if (p.amount !== undefined) patch.amount = p.amount;
+      if (p.dueDate !== undefined) patch.due_date = p.dueDate;
+      await supabase.from("debt_installments").update(patch as never).eq("id", instId);
+      set({
+        debts: memory.debts.map(d => d.id !== debtId ? d : {
+          ...d,
+          installments: d.installments.map(i => i.id === instId ? { ...i, ...p } : i),
+          totalAmount: d.installments.reduce((s, i) => s + (i.id === instId && p.amount !== undefined ? p.amount : i.amount), 0),
+        }),
+      });
+      if (inst.transactionId) {
+        const txPatch: Record<string, unknown> = {};
+        if (p.amount !== undefined) txPatch.amount = p.amount;
+        if (p.dueDate !== undefined) txPatch.date = p.dueDate;
+        await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
+      }
+      const newTotal = (memory.debts.find(d => d.id === debtId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
+      await supabase.from("debts").update({ total_amount: newTotal }).eq("id", debtId);
     },
     // Recalcula o saldo em conta de cada banco (e o dinheiro em caixa) com base
     // no histórico de transações aplicadas até hoje. Substitui o saldo atual pelo

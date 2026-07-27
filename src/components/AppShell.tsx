@@ -15,6 +15,7 @@ import {
   User as UserIcon,
   Trophy,
   Landmark,
+  Receipt,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
@@ -34,6 +35,7 @@ const nav = [
   { to: "/calendario", label: "Calendário", icon: Calendar },
   { to: "/cartoes", label: "Cartões", icon: CreditCard },
   { to: "/bancos", label: "Bancos", icon: Landmark },
+  { to: "/dividas", label: "Dívidas", icon: Receipt },
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },

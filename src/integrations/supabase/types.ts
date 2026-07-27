@@ -113,6 +113,120 @@ export type Database = {
         }
         Relationships: []
       }
+      debt_installments: {
+        Row: {
+          amount: number
+          created_at: string
+          debt_id: string
+          due_date: string
+          id: string
+          number: number
+          paid: boolean
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          debt_id: string
+          due_date: string
+          id?: string
+          number: number
+          paid?: boolean
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          debt_id?: string
+          due_date?: string
+          id?: string
+          number?: number
+          paid?: boolean
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_installments_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
+            referencedRelation: "debts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_installments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debts: {
+        Row: {
+          bank_id: string | null
+          category_id: string | null
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          installments_total: number
+          name: string
+          note: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_id?: string | null
+          category_id?: string | null
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          installments_total?: number
+          name: string
+          note?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_id?: string | null
+          category_id?: string | null
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          installments_total?: number
+          name?: string
+          note?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debts_bank_id_fkey"
+            columns: ["bank_id"]
+            isOneToOne: false
+            referencedRelation: "banks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string

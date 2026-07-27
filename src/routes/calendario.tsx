@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, type VirtualInvoiceRow } from "@/lib/store";
+import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, parseDebtTag, type VirtualInvoiceRow } from "@/lib/store";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Bell, AlertTriangle, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { notify } from "@/lib/notify";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/calendario")({
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 function CalendarPage() {
-  const [{ transactions, categories, cards }] = useStore();
+  const [{ transactions, categories, cards, debts }] = useStore();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selected, setSelected] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
@@ -202,14 +202,17 @@ function CalendarPage() {
                 const isInv = "virtual" in t && t.virtual;
                 const cat = !isInv ? categories.find(c => c.id === (t as { categoryId?: string }).categoryId) : undefined;
                 const essential = !isInv ? (t as { essential?: string }).essential : undefined;
+                const debtId = !isInv ? parseDebtTag((t as { tag?: string }).tag) : null;
+                const debt = debtId ? debts.find(d => d.id === debtId) : undefined;
                 return (
                   <li key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         {cat && <span className="size-2 rounded-full" style={{ background: cat.color }} />}
                         <p className="text-sm font-medium truncate">{t.description || (t.type === "income" ? "Entrada" : "Gasto")}</p>
+                        {debt && <span className="text-[9px] font-mono uppercase rounded-md px-1.5 py-0.5 shrink-0" style={{ background: `${debt.color}22`, color: debt.color }}>Dívida</span>}
                       </div>
-                      <p className="text-[11px] font-mono text-muted-foreground">{isInv ? "Fatura consolidada" : `${cat?.name ?? "Sem categoria"} · ${essential === "essential" ? "essencial" : essential === "non_essential" ? "não essencial" : "—"}`}</p>
+                      <p className="text-[11px] font-mono text-muted-foreground">{isInv ? "Fatura consolidada" : debt ? `Parcela · ${debt.name}` : `${cat?.name ?? "Sem categoria"} · ${essential === "essential" ? "essencial" : essential === "non_essential" ? "não essencial" : "—"}`}</p>
                     </div>
                     <p className={`font-mono text-sm ${t.type === "income" ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
                       {t.type === "income" ? "+" : "-"}{formatBRL(t.amount)}
