@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, parseDebtTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
