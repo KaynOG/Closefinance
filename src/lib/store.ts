@@ -305,7 +305,7 @@ async function loadAll(supaUser: SupaUser) {
   set({ loading: true });
   const uid = supaUser.id;
   const today = new Date().toISOString().slice(0, 10);
-  const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR] = await Promise.all([
+  const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR, recvR, recvInstR] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     supabase.from("categories").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("cards").select("*").eq("user_id", uid).order("created_at"),
@@ -314,6 +314,8 @@ async function loadAll(supaUser: SupaUser) {
     supabase.from("mission_history").select("*").eq("user_id", uid).order("occurred_at", { ascending: false }).limit(500),
     supabase.from("debts").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("debt_installments").select("*").eq("user_id", uid).order("number"),
+    supabase.from("receivables").select("*").eq("user_id", uid).order("created_at"),
+    supabase.from("receivable_installments").select("*").eq("user_id", uid).order("number"),
   ]);
 
   const profileRow = (profileR.data as Record<string, unknown> | null) ?? { id: uid, email: supaUser.email, name: supaUser.email?.split("@")[0] ?? "" };
