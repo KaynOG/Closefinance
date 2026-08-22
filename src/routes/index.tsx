@@ -640,7 +640,13 @@ function DashboardPage() {
             }
           />
 
-          <div className="h-64">
+          <motion.div
+            className="h-64"
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
