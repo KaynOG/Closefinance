@@ -200,6 +200,39 @@ export function FinancialHealthBeta({
     return { income, expense, nonEssential, topCategory, tips, score, savingsRate };
   }, [transactions, categories, cards]);
 
+  // Detalhamento do mês: categorias e lançamentos que mais impactaram
+  const impact = useMemo(() => {
+    const now = new Date();
+    const expenses = transactions.filter(
+      t => isSameMonth(t.date, now) && (isCashFlowExpense(t) || isCreditPurchase(t)),
+    );
+    const incomes = transactions.filter(t => t.type === "income" && isSameMonth(t.date, now));
+    const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+
+    const map = new Map<string, number>();
+    for (const t of expenses) {
+      const k = t.categoryId || "__none__";
+      map.set(k, (map.get(k) || 0) + t.amount);
+    }
+    const cats = Array.from(map.entries())
+      .map(([k, amount]) => {
+        const c = categories.find(x => x.id === k);
+        return {
+          id: k,
+          name: c?.name ?? "Sem categoria",
+          color: c?.color ?? "var(--muted-foreground)",
+          amount,
+          share: totalExp > 0 ? (amount / totalExp) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
+    const topExpenses = [...expenses].sort((a, b) => b.amount - a.amount).slice(0, 8);
+    const topIncomes = [...incomes].sort((a, b) => b.amount - a.amount).slice(0, 5);
+    return { cats, topExpenses, topIncomes, totalExp };
+  }, [transactions, categories]);
+
+
   const appliedSaving = tips
     .filter(t => applied[t.id])
     .reduce((s, t) => s + t.monthlySaving, 0);
