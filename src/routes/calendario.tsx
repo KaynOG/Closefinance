@@ -162,30 +162,37 @@ function CalendarPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4">
-        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês" className="p-2 sm:p-4 overflow-x-auto">
-          <div className="min-w-[720px]">
+        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês" className="p-2 sm:p-4">
+          <div className="min-w-0">
             <div className="grid grid-cols-7">
               {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
-                <div key={d} className="pb-3 text-center text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{d}</div>
+                <div key={d} className="pb-2 sm:pb-3 text-center text-[9px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground truncate">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 border-t border-l border-white/10">
               {days.map((c, i) => {
-                if (!c.date) return <div key={i} className="min-h-[132px] border-r border-b border-white/10 bg-white/[0.01]" />;
+                if (!c.date) return <div key={i} className="min-h-[58px] sm:min-h-[132px] border-r border-b border-white/10 bg-white/[0.01]" />;
                 const data = byDay.get(c.iso!);
                 const isToday = c.iso === new Date().toISOString().slice(0,10);
                 const isSel = selected === c.iso;
                 const items = data?.items ?? [];
                 return (
                   <button key={i} onClick={() => setSelected(c.iso!)}
-                    className={`relative min-h-[132px] border-r border-b border-white/10 p-2 text-left align-top transition ${
+                    className={`relative min-w-0 min-h-[58px] sm:min-h-[132px] border-r border-b border-white/10 p-1 sm:p-2 text-left align-top transition ${
                       isSel ? "bg-secondary/10 ring-1 ring-inset ring-secondary" : "hover:bg-white/[0.04] bg-transparent"
                     }`}>
-                    <span className={`block font-mono leading-none text-3xl lg:text-4xl tracking-tight ${
+                    <span className={`block font-mono leading-none text-base sm:text-3xl lg:text-4xl tracking-tight ${
                       isToday ? "text-secondary" : isSel ? "text-foreground" : "text-foreground/80"
                     }`}>{c.date.getDate()}</span>
                     {items.length > 0 && (
-                      <div className="mt-2 space-y-1">
+                      <div className="mt-1 flex flex-wrap gap-0.5 sm:hidden">
+                        {items.slice(0, 4).map((it, k) => (
+                          <span key={k} className={`size-1.5 rounded-full ${it.type === "income" ? "bg-[#2BD9A1]" : "bg-[#FF4D6D]"}`} />
+                        ))}
+                      </div>
+                    )}
+                    {items.length > 0 && (
+                      <div className="mt-2 space-y-1 hidden sm:block">
                         {items.slice(0, 3).map((it, k) => {
                           const income = it.type === "income";
                           return (
