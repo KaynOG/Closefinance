@@ -212,8 +212,11 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main
         className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 safe-area-main"
       >
-        {children ?? <Outlet />}
+        <div key={pathname} className="page-enter">
+          {children ?? <Outlet />}
+        </div>
       </main>
+
 
 
       {/* Botão fixo de alternar tema — mesmo lugar em todas as abas */}
