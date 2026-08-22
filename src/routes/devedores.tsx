@@ -244,7 +244,7 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
         </div>
 
         <Field label="Ícone">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto pr-1">
             {(Object.keys(RECEIVABLE_ICONS) as ReceivableIconKey[]).map(k => {
               const Icon = RECEIVABLE_ICONS[k];
               const active = form.icon === k;

@@ -244,7 +244,7 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
         </div>
 
         <Field label="Ícone">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto pr-1">
             {(Object.keys(DEBT_ICONS) as DebtIconKey[]).map(k => {
               const Icon = DEBT_ICONS[k];
               const active = form.icon === k;
