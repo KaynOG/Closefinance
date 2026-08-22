@@ -472,7 +472,7 @@ function DashboardPage() {
       </section>
 
       {/* Limite dos cartões (resumo) + Dica + Meta */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
         <GlassCard hideKey="index-2" hideLabel="Limite dos cartões" className="lg:col-span-2">
           <SectionTitle
             title="Limite dos cartões"
@@ -602,7 +602,7 @@ function DashboardPage() {
       )}
 
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
         <GlassCard hideKey="index-5" hideLabel="Saúde financeira" className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <HeartPulse className="size-5 text-secondary" />
@@ -717,7 +717,7 @@ function DashboardPage() {
             </p>
           </GlassCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {cardUsage.map((c) => (
               <div
                 key={c.id}

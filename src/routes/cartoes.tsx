@@ -176,7 +176,7 @@ function CardsPage() {
           </div>
         </GlassCard>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 content-start">
           {cards.length === 0 && (
             <GlassCard hideKey="cartoes-3" hideLabel="Lista de cartões" className="md:col-span-2">
               <p className="text-sm text-muted-foreground">Você ainda não tem cartões. Cadastre seu primeiro ao lado.</p>
