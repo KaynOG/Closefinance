@@ -130,6 +130,7 @@ function CardsPage() {
           </GlassCard>
 
           <CardSyncBar />
+          <CardPurchases />
         </>
       )}
 
