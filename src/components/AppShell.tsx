@@ -16,6 +16,7 @@ import {
   Trophy,
   Landmark,
   Receipt,
+  HandCoins,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
