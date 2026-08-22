@@ -43,6 +43,39 @@ function scorePassword(p: string): PwScore {
   return { score, label: labels[score], color: colors[score], checks };
 }
 
+const SHOTS = [shotDashboard.url, shotCalendar.url, shotIncome.url];
+
+/** Prints do app passando ao fundo, desfocados e com leve zoom. */
+function ShotsBackdrop() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI(v => (v + 1) % SHOTS.length), 6000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+      {SHOTS.map((url, idx) => (
+        <img
+          key={url}
+          src={url}
+          alt=""
+          loading="lazy"
+          width={1280}
+          height={832}
+          className="absolute inset-0 size-full object-cover transition-opacity duration-[2000ms] ease-in-out"
+          style={{
+            opacity: idx === i ? 0.35 : 0,
+            filter: "blur(14px) saturate(1.1)",
+            transform: idx === i ? "scale(1.12)" : "scale(1.05)",
+            transition: "opacity 2s ease-in-out, transform 6s ease-out",
+          }}
+        />
+      ))}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent,var(--background))] opacity-70" />
+    </div>
+  );
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [, api, user] = useStore();
