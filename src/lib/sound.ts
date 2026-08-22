@@ -1,6 +1,7 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
 import checkAsset from "@/assets/check-scribble.mp3.asset.json";
-import clickAsset from "@/assets/click-main.mp3.asset.json";
+import clickAsset from "@/assets/ui-click.mp3.asset.json";
+import navAsset from "@/assets/nav-click.mp3.asset.json";
 
 
 
@@ -152,7 +153,7 @@ export function playNotify() {
 
 /** Troca de aba. */
 export function playNav() {
-  playTone("nav");
+  playNavClick();
 }
 
 /** Som de marcar caixinha (rabisco de lápis). */
@@ -191,6 +192,27 @@ export function playClick() {
   } catch { /* noop */ }
 }
 
+/** Som de troca de aba na barra lateral (sample). */
+let navPool: HTMLAudioElement[] = [];
+let navIdx = 0;
+export function playNavClick() {
+  if (!enabled || typeof window === "undefined") return;
+  try {
+    if (navPool.length === 0) {
+      navPool = Array.from({ length: 2 }, () => {
+        const a = new Audio(navAsset.url);
+        a.volume = 0.4;
+        a.preload = "auto";
+        return a;
+      });
+    }
+    const a = navPool[navIdx % navPool.length];
+    navIdx++;
+    a.currentTime = 0;
+    void a.play().catch(() => {});
+  } catch { /* noop */ }
+}
+
 let installed = false;
 /** Instala um listener global que toca tons futuristas em botões/links. */
 export function installGlobalClickSounds() {
@@ -206,6 +228,7 @@ export function installGlobalClickSounds() {
     if (el.hasAttribute("data-no-sound")) return;
     if (el.getAttribute("data-sound") === "check") { playCheck(); return; }
     const v = el.getAttribute("data-sound") as Voice | null;
+    if (v === "nav") { playNavClick(); return; }
     if (!v || v === "click") { playClick(); return; }
     playTone(v);
   };

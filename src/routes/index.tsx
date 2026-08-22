@@ -606,7 +606,7 @@ function DashboardPage() {
 
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6">
-        <GlassCard hideKey="index-5" hideLabel="Saúde financeira" className="lg:col-span-1">
+        <GlassCard hideKey="index-5" hideLabel="Saúde financeira" className="lg:col-span-1 font-mono">
           <div className="flex items-center gap-2 mb-4">
             <HeartPulse className="size-5 text-secondary" />
             <h3 className="font-semibold">Saúde financeira</h3>
@@ -1073,7 +1073,7 @@ function HealthRing({
           style={{
             transform: "rotate(90deg)",
             transformOrigin: "80px 80px",
-            fontFamily: "Poppins",
+            fontFamily: MONO,
             fontWeight: 700,
             fontSize: 32,
           }}
