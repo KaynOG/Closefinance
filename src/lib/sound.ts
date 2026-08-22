@@ -1,5 +1,6 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
 import checkAsset from "@/assets/check-scribble.mp3.asset.json";
+import clickAsset from "@/assets/click-ui.mp3.asset.json";
 
 
 let ctx: AudioContext | null = null;
@@ -165,6 +166,27 @@ export function playCheck() {
     }
     checkAudio.currentTime = 0;
     void checkAudio.play().catch(() => {});
+  } catch { /* noop */ }
+}
+
+/** Som de clique padrão do app (sample curto). */
+let clickPool: HTMLAudioElement[] = [];
+let clickIdx = 0;
+export function playClick() {
+  if (!enabled || typeof window === "undefined") return;
+  try {
+    if (clickPool.length === 0) {
+      clickPool = Array.from({ length: 3 }, () => {
+        const a = new Audio(clickAsset.url);
+        a.volume = 0.35;
+        a.preload = "auto";
+        return a;
+      });
+    }
+    const a = clickPool[clickIdx % clickPool.length];
+    clickIdx++;
+    a.currentTime = 0;
+    void a.play().catch(() => {});
   } catch { /* noop */ }
 }
 
