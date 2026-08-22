@@ -217,7 +217,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main
         className="flex-1 min-w-0 p-4 lg:px-8 lg:py-6 pt-20 lg:pt-6 safe-area-main"
       >
-        <div key={pathname} className="page-enter mx-auto w-full max-w-[1440px]">
+        <div key={pathname} className="page-enter mx-auto w-full max-w-[1440px] 2xl:max-w-[1760px] min-[2200px]:max-w-[2040px]">
           {children ?? <Outlet />}
         </div>
       </main>
@@ -234,7 +234,9 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </div>
 
+      <RouteLoader />
       <ConsentModal />
+
       <SavingsMonitor />
       <OnboardingModal />
     </div>
