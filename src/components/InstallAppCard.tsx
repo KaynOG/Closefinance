@@ -50,6 +50,9 @@ export function InstallAppCard() {
     }
   }
 
+  // Recurso exclusivo de mobile/tablet — oculto no desktop.
+  if (isDesktop) return null;
+
   return (
     <GlassCard hideKey="perfil-install" hideLabel="Instalar app na tela de início">
       <div className="flex items-center justify-between gap-3">
