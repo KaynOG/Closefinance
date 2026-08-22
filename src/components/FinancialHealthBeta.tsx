@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard } from "@/components/ui-kit";
+import { DottedArcGauge } from "@/components/ui/animated-dashboard-card";
 import {
   formatBRL,
   monthExpenseTotal,
@@ -257,6 +258,19 @@ export function FinancialHealthBeta({
 
       {open && (
         <div className="mt-4 space-y-5">
+
+          {/* Medidor animado */}
+          <DottedArcGauge
+            centerLabel="Sobra do mês"
+            centerValue={formatBRL(baseNet)}
+            progress={Math.max(0.04, Math.min(1, score / 100))}
+            leftLabel="Ganhos"
+            leftValue={formatBRL(income)}
+            leftHint={`score ${score}/100`}
+            rightLabel="Gastos"
+            rightValue={formatBRL(expense)}
+            rightHint={income > 0 ? `${Math.round((expense / income) * 100)}% da renda` : undefined}
+          />
 
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
