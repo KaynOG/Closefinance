@@ -78,8 +78,15 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="glass hidden lg:flex w-64 shrink-0 flex-col gap-2 p-5 m-4 rounded-3xl sticky top-4 h-[calc(100vh-2rem)]">
-        <Brand />
+      <aside
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        onClick={() => setExpanded((v) => !v)}
+        className={`glass hidden lg:flex shrink-0 flex-col gap-2 p-3 m-4 rounded-lg sticky top-4 h-[calc(100vh-2rem)] overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          expanded ? "w-64" : "w-[76px]"
+        }`}
+      >
+        <Brand compact={!expanded} />
         <nav className="mt-6 flex flex-col gap-1">
           {nav.map((n) => {
             const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
@@ -87,20 +94,27 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
+                title={n.label}
+                className={`group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
                   active
                     ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-violet)]"
-                    : "hover:bg-white/5 hover:translate-x-0.5 text-foreground/80 hover:text-foreground"
+                    : "hover:bg-white/5 text-foreground/80 hover:text-foreground"
                 }`}
               >
-                <n.icon className="size-4" />
-                {n.label}
+                <n.icon className="size-4 shrink-0" />
+                <span
+                  className={`truncate transition-all duration-300 ${
+                    expanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 w-0"
+                  }`}
+                >
+                  {n.label}
+                </span>
               </Link>
             );
           })}
         </nav>
         <div className="mt-auto space-y-2">
-          <Link to="/perfil" className="rounded-2xl p-3 glass flex items-center gap-3 hover:bg-white/5 transition">
+          <Link to="/perfil" className="rounded-md p-2 glass flex items-center gap-3 hover:bg-white/5 transition">
             {(() => {
               const r = getRank(state.missions.totalPoints, user.gender);
               return (
