@@ -19,7 +19,14 @@ export function InstallAppCard() {
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => { setPlatform(detectPlatform()); }, []);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const p = detectPlatform();
+    setPlatform(p);
+    const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    setIsDesktop(p === "desktop" && !coarse);
+  }, []);
 
   async function copyUrl() {
     try {
