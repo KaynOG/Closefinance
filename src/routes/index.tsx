@@ -4,6 +4,10 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
+/** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
+const MONO = "'JetBrains Mono', ui-monospace, monospace";
 import {
   AreaChart,
   Area,
