@@ -210,9 +210,9 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       )}
 
       <main
-        className="flex-1 min-w-0 p-4 lg:p-8 pt-20 lg:pt-8 safe-area-main"
+        className="flex-1 min-w-0 p-4 lg:px-8 lg:py-6 pt-20 lg:pt-6 safe-area-main"
       >
-        <div key={pathname} className="page-enter">
+        <div key={pathname} className="page-enter mx-auto w-full max-w-[1440px]">
           {children ?? <Outlet />}
         </div>
       </main>

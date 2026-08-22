@@ -1,5 +1,6 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
 import checkAsset from "@/assets/check-scribble.mp3.asset.json";
+import clickAsset from "@/assets/click-ui.mp3.asset.json";
 
 
 let ctx: AudioContext | null = null;
@@ -168,6 +169,27 @@ export function playCheck() {
   } catch { /* noop */ }
 }
 
+/** Som de clique padrão do app (sample curto). */
+let clickPool: HTMLAudioElement[] = [];
+let clickIdx = 0;
+export function playClick() {
+  if (!enabled || typeof window === "undefined") return;
+  try {
+    if (clickPool.length === 0) {
+      clickPool = Array.from({ length: 3 }, () => {
+        const a = new Audio(clickAsset.url);
+        a.volume = 0.35;
+        a.preload = "auto";
+        return a;
+      });
+    }
+    const a = clickPool[clickIdx % clickPool.length];
+    clickIdx++;
+    a.currentTime = 0;
+    void a.play().catch(() => {});
+  } catch { /* noop */ }
+}
+
 let installed = false;
 /** Instala um listener global que toca tons futuristas em botões/links. */
 export function installGlobalClickSounds() {
@@ -182,7 +204,8 @@ export function installGlobalClickSounds() {
     if (!el) return;
     if (el.hasAttribute("data-no-sound")) return;
     if (el.getAttribute("data-sound") === "check") { playCheck(); return; }
-    const v = (el.getAttribute("data-sound") as Voice | null) ?? "click";
+    const v = el.getAttribute("data-sound") as Voice | null;
+    if (!v || v === "click") { playClick(); return; }
     playTone(v);
   };
   window.addEventListener("pointerdown", handler, { passive: true });

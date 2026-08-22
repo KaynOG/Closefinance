@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, CARD_PURCHASE_TAG, CARD_PURCHASE_PAID_TAG, isCardPurchaseTx, type Transaction } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp, Check, ShoppingBag } from "lucide-react";
+import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/cartoes")({
@@ -129,11 +130,12 @@ function CardsPage() {
           </GlassCard>
 
           <CardSyncBar />
+          <CardPurchases />
         </>
       )}
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-3">
         <GlassCard hideKey="cartoes-2" hideLabel="Novo cartão">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -174,7 +176,7 @@ function CardsPage() {
           </div>
         </GlassCard>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 content-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 content-start">
           {cards.length === 0 && (
             <GlassCard hideKey="cartoes-3" hideLabel="Lista de cartões" className="md:col-span-2">
               <p className="text-sm text-muted-foreground">Você ainda não tem cartões. Cadastre seu primeiro ao lado.</p>
@@ -383,3 +385,208 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
   );
 }
 
+
+// ---------------- COMPRAS NO CARTÃO (roadmap de parcelas) ----------------
+function closingDateFor(purchaseISO: string, closingDay: number) {
+  const base = new Date(purchaseISO + "T00:00:00");
+  const cd = Math.min(28, Math.max(1, closingDay));
+  const offset = base.getDate() <= cd ? 0 : 1;
+  return new Date(base.getFullYear(), base.getMonth() + offset, cd);
+}
+function fmtDate(iso: string) { return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR"); }
+function monthLabel(iso: string) {
+  return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+}
+
+function CardPurchases() {
+  const [{ cards, transactions }, api] = useStore();
+  const [open, setOpen] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    cardId: "", description: "", total: "", count: "1", date: new Date().toISOString().slice(0, 10),
+  });
+
+  useEffect(() => {
+    if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id }));
+  }, [cards, form.cardId]);
+
+  const groups = useMemo(() => {
+    const map = new Map<string, { key: string; card?: typeof cards[number]; description: string; items: Transaction[] }>();
+    for (const t of transactions) {
+      if (!isCardPurchaseTx(t)) continue;
+      const key = t.installmentGroupId ?? t.id;
+      const g = map.get(key) ?? {
+        key,
+        card: cards.find(c => c.id === t.cardId),
+        description: t.description || "Compra no cartão",
+        items: [] as Transaction[],
+      };
+      g.items.push(t);
+      map.set(key, g);
+    }
+    return [...map.values()]
+      .map(g => ({ ...g, items: g.items.sort((a, b) => (a.installmentNo ?? 1) - (b.installmentNo ?? 1)) }))
+      .sort((a, b) => (b.items[0]?.date ?? "").localeCompare(a.items[0]?.date ?? ""));
+  }, [transactions, cards]);
+
+  const selectedCard = cards.find(c => c.id === form.cardId);
+  const count = Math.max(1, Math.min(60, parseInt(form.count) || 1));
+  const totalNum = parseBRL(form.total) || 0;
+  const firstInvoice = selectedCard ? closingDateFor(form.date, selectedCard.closingDay) : null;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.cardId) return notify("Escolha um cartão.");
+    if (!form.description.trim()) return notify("Descreva a compra.");
+    if (totalNum <= 0) return notify("Informe o valor da compra.");
+    await api.addTransaction({
+      type: "expense",
+      amount: Number((totalNum / count).toFixed(2)),
+      description: form.description.trim(),
+      date: form.date,
+      cardId: form.cardId,
+      paymentMethod: "credit",
+      essential: "non_essential",
+      installmentTotal: count,
+      tag: CARD_PURCHASE_TAG,
+    });
+    notify(`Compra lançada em ${count}x — 1ª parcela na fatura de ${firstInvoice ? firstInvoice.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }) : "—"}.`);
+    setForm(f => ({ ...f, description: "", total: "", count: "1" }));
+    setShowForm(false);
+  }
+
+  return (
+    <GlassCard className="mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary shrink-0"><ShoppingBag className="size-4" /></div>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold">Compras no cartão</h3>
+            <p className="text-[11px] font-mono text-muted-foreground">
+              parcele e acompanhe o que já foi pago · entra na fatura do fechamento
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setShowForm(v => !v); setOpen(true); }}
+            className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition">
+            <Plus className="size-4" /> Nova compra
+          </button>
+          <button onClick={() => setOpen(o => !o)} data-no-sound aria-expanded={open}
+            className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+            {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          {showForm && (
+            <form onSubmit={submit} className="rounded-2xl border border-border bg-white/5 p-3 grid md:grid-cols-3 gap-3">
+              <Field label="Cartão">
+                <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                  {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </Field>
+              <Field label="Descrição">
+                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex: Tênis novo" className={inputCls} />
+              </Field>
+              <Field label="Valor total (R$)">
+                <input value={form.total} onChange={e => setForm({ ...form, total: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+              </Field>
+              <Field label="Parcelas">
+                <input type="number" min={1} max={60} value={form.count} onChange={e => setForm({ ...form, count: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Data da compra">
+                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
+              </Field>
+              <div className="flex items-end gap-2">
+                <button type="submit" data-sound="success" className="flex-1 rounded-xl bg-primary text-primary-foreground font-semibold py-2.5 text-sm active:scale-[0.98] transition">
+                  Lançar compra
+                </button>
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-border px-4 py-2.5 text-xs font-mono hover:bg-white/5">
+                  Cancelar
+                </button>
+              </div>
+              <p className="md:col-span-3 text-[11px] font-mono text-muted-foreground">
+                {count}x de {formatBRL(totalNum / count)}
+                {firstInvoice && selectedCard ? ` · 1ª parcela na fatura que fecha em ${firstInvoice.toLocaleDateString("pt-BR")} (fechamento dia ${selectedCard.closingDay})` : ""}
+              </p>
+            </form>
+          )}
+
+          {groups.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma compra lançada por aqui ainda.</p>
+          ) : (
+            <div className="space-y-3">
+              {groups.map(g => {
+                const total = g.items.reduce((s, t) => s + t.amount, 0);
+                const paid = g.items.filter(t => t.tag === CARD_PURCHASE_PAID_TAG);
+                const paidAmount = paid.reduce((s, t) => s + t.amount, 0);
+                const pct = total > 0 ? Math.round((paidAmount / total) * 100) : 0;
+                const color = g.card?.color ?? "#540BD3";
+                return (
+                  <div key={g.key} className="rounded-2xl border border-border p-3">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm break-words">{g.description}</p>
+                        <p className="text-[11px] font-mono text-muted-foreground break-words">
+                          {g.card?.name ?? "cartão removido"} · {paid.length}/{g.items.length} parcelas · {formatBRL(paidAmount)} de {formatBRL(total)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Apagar a compra "${g.description}" e todas as parcelas?`)) return;
+                          await api.removeTransaction(g.items[0].id, { wholeGroup: true });
+                          notify("Compra removida.");
+                        }}
+                        className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover compra">
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+
+                    <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                    </div>
+
+                    <div className="mt-3 overflow-x-auto -mx-1 px-1">
+                      <ol className="flex gap-2.5 min-w-max pb-1">
+                        {g.items.map(inst => {
+                          const isPaid = inst.tag === CARD_PURCHASE_PAID_TAG;
+                          return (
+                            <li key={inst.id}>
+                              <div className="w-44 rounded-xl border p-2.5"
+                                style={isPaid ? { borderColor: color, background: `${color}12` } : undefined}>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                                    {inst.installmentNo ?? 1}/{g.items.length}
+                                  </span>
+                                  <button
+                                    data-sound="check"
+                                    onClick={() => api.updateTransaction(inst.id, { tag: isPaid ? CARD_PURCHASE_TAG : CARD_PURCHASE_PAID_TAG })}
+                                    className={`size-6 rounded-md grid place-items-center border transition active:scale-95 ${isPaid ? "text-white" : "border-border text-muted-foreground hover:bg-white/10"}`}
+                                    style={isPaid ? { background: color, borderColor: color } : undefined}
+                                    aria-label={isPaid ? "Marcar como não paga" : "Marcar como paga"}>
+                                    <Check className="size-3.5" />
+                                  </button>
+                                </div>
+                                <p className="mt-1.5 text-sm font-semibold">{formatBRL(inst.amount)}</p>
+                                <p className="text-[10px] font-mono text-muted-foreground">
+                                  fatura {monthLabel(inst.date)} · {fmtDate(inst.date)}
+                                </p>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </GlassCard>
+  );
+}
