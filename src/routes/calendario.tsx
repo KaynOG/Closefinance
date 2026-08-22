@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, parseDebtTag, type VirtualInvoiceRow } from "@/lib/store";
+import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, parseDebtTag, parseReceivableTag, type VirtualInvoiceRow } from "@/lib/store";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Bell, AlertTriangle, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { notify } from "@/lib/notify";
