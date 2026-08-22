@@ -259,18 +259,32 @@ export function FinancialHealthBeta({
       {open && (
         <div className="mt-4 space-y-5">
 
-          {/* Medidor animado */}
-          <DottedArcGauge
-            centerLabel="Sobra do mês"
-            centerValue={formatBRL(baseNet)}
-            progress={Math.max(0.04, Math.min(1, score / 100))}
-            leftLabel="Ganhos"
-            leftValue={formatBRL(income)}
-            leftHint={`score ${score}/100`}
-            rightLabel="Gastos"
-            rightValue={formatBRL(expense)}
-            rightHint={income > 0 ? `${Math.round((expense / income) * 100)}% da renda` : undefined}
-          />
+          {/* Medidor animado — clique para ver o detalhamento do mês */}
+          <button
+            type="button"
+            onClick={() => setDetail(true)}
+            data-no-sound
+            className="w-full text-left rounded-lg transition hover:brightness-110 focus:outline-none focus:ring-1 focus:ring-primary/50"
+            aria-label="Ver categorias e lançamentos que mais impactaram o mês"
+          >
+            <DottedArcGauge
+              centerLabel="Sobra do mês"
+              centerValue={formatBRL(baseNet)}
+              progress={Math.max(0.04, Math.min(1, score / 100))}
+              leftLabel="Ganhos"
+              leftValue={formatBRL(income)}
+              leftHint={`score ${score}/100`}
+              rightLabel="Gastos"
+              rightValue={formatBRL(expense)}
+              rightHint={income > 0 ? `${Math.round((expense / income) * 100)}% da renda` : undefined}
+              footer={
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  toque no medidor para ver o que mais impactou o mês
+                </span>
+              }
+            />
+          </button>
+
 
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
