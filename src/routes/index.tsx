@@ -4,6 +4,10 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
+/** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
+const MONO = "'JetBrains Mono', ui-monospace, monospace";
 import {
   AreaChart,
   Area,
@@ -640,7 +644,13 @@ function DashboardPage() {
             }
           />
 
-          <div className="h-64">
+          <motion.div
+            className="h-64"
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -658,9 +668,9 @@ function DashboardPage() {
                   dataKey="month"
                   stroke="rgba(255,255,255,0.5)"
                   fontSize={11}
-                  tick={{ fill: "rgba(255,255,255,0.7)" }}
+                  tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
                 />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
                 <Tooltip
                   contentStyle={{
                     background: "#14062E",
@@ -679,7 +689,10 @@ function DashboardPage() {
                   stroke={CYAN}
                   fill="url(#dCyan)"
                   strokeWidth={2.5}
-                  animationDuration={900}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  animationDuration={1100}
+                  animationEasing="ease-out"
                 />
                 <Area
                   type="monotone"
@@ -688,11 +701,15 @@ function DashboardPage() {
                   stroke={ORANGE}
                   fill="url(#dOrange)"
                   strokeWidth={2.5}
-                  animationDuration={900}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  animationDuration={1100}
+                  animationBegin={180}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </motion.div>
         </GlassCard>)}
       </section>
 
@@ -820,7 +837,7 @@ function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
-                <div className="h-72">
+                <motion.div className="h-72" initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5, ease: "easeOut" }}>
                   {activeCats.length === 0 ? (
                     <div className="h-full grid place-items-center text-sm text-muted-foreground">
                       Sem gastos no período.
@@ -833,9 +850,9 @@ function DashboardPage() {
                           dataKey="month"
                           stroke="rgba(255,255,255,0.5)"
                           fontSize={11}
-                          tick={{ fill: "rgba(255,255,255,0.7)" }}
+                          tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
                         />
-                        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
                         <Tooltip
                           contentStyle={{
                             background: "#14062E",
@@ -851,20 +868,22 @@ function DashboardPage() {
                           wrapperStyle={{ fontSize: 11, color: "#fff" }}
                           formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
                         />
-                        {activeCats.map((c) => (
+                        {activeCats.map((c, i) => (
                           <RBar
                             key={c.id}
                             dataKey={c.name}
                             stackId="a"
                             fill={c.color}
                             radius={[6, 6, 0, 0]}
-                            animationDuration={700}
+                            animationDuration={800}
+                            animationBegin={i * 90}
+                            animationEasing="ease-out"
                           />
                         ))}
                       </BarChart>
                     </ResponsiveContainer>
                   )}
-                </div>
+                </motion.div>
 
                 <div className="rounded-2xl border border-border overflow-hidden">
                   <table className="w-full text-sm">
@@ -923,7 +942,7 @@ function DashboardPage() {
         <section className="mb-8">
           <GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
             <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
-            <div className="h-64">
+            <motion.div className="h-64" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5, ease: "easeOut" }}>
               {byCat.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
               ) : (
@@ -938,7 +957,9 @@ function DashboardPage() {
                       innerRadius={50}
                       outerRadius={90}
                       paddingAngle={2}
-                      animationDuration={700}
+                      animationDuration={900}
+                      animationBegin={120}
+                      animationEasing="ease-out"
                     >
                       {byCat.map((entry, i) => (
                         <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
@@ -962,7 +983,7 @@ function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </motion.div>
           </GlassCard>
         </section>
       )}
