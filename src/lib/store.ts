@@ -77,6 +77,30 @@ export interface Debt {
   installments: DebtInstallment[];
 }
 
+export interface ReceivableInstallment {
+  id: string;
+  receivableId: string;
+  number: number;
+  amount: number;
+  dueDate: string; // yyyy-mm-dd
+  received: boolean;
+  transactionId?: string;
+}
+
+export interface Receivable {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  totalAmount: number;
+  installmentsTotal: number;
+  bankId?: string;
+  categoryId?: string;
+  note?: string;
+  createdAt: string;
+  installments: ReceivableInstallment[];
+}
+
 export type Gender = "male" | "female" | "other";
 
 export interface User {
