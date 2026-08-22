@@ -393,6 +393,22 @@ async function loadAll(supaUser: SupaUser) {
     return mapDebt(row, instRows.filter(i => i.debtId === String(row.id)));
   });
 
+  // Devedores + parcelas (marca como recebida toda parcela cujo ganho já foi creditado)
+  const recvInstRows = (recvInstR.data ?? []).map(r => mapReceivableInstallment(r as Record<string, unknown>));
+  const autoReceivedIds: string[] = [];
+  for (const inst of recvInstRows) {
+    if (inst.received) continue;
+    const tx = inst.transactionId ? loadedTx.find(t => t.id === inst.transactionId) : undefined;
+    if (tx && tx.appliedToBalance && tx.date <= today) { inst.received = true; autoReceivedIds.push(inst.id); }
+  }
+  if (autoReceivedIds.length) {
+    await supabase.from("receivable_installments").update({ received: true }).in("id", autoReceivedIds);
+  }
+  const receivables = (recvR.data ?? []).map(r => {
+    const row = r as Record<string, unknown>;
+    return mapReceivable(row, recvInstRows.filter(i => i.receivableId === String(row.id)));
+  });
+
   set({
     loading: false,
     currentUserId: uid,
@@ -401,6 +417,7 @@ async function loadAll(supaUser: SupaUser) {
     cards: (cardsR.data ?? []).map(r => mapCard(r as Record<string, unknown>)),
     banks: loadedBanks,
     debts,
+    receivables,
     transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
