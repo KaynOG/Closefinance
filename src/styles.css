@@ -290,6 +290,47 @@
   --sidebar: rgba(238, 240, 246, 0.72);
 }
 
+/* ===== Accent: Roxo ===== */
+:root[data-accent="purple"] {
+  --primary: #8b2fe6;
+  --primary-foreground: #f6f2ff;
+  --secondary: #ff3fb4;
+  --secondary-foreground: #1a0526;
+  --accent: #b06bff;
+  --accent-foreground: #1a0526;
+  --ring: #8b2fe6;
+  --sidebar-primary: #8b2fe6;
+  --sidebar-ring: #8b2fe6;
+  --chart-1: #8b2fe6;
+  --chart-2: #ff3fb4;
+  --chart-3: #b06bff;
+  --chart-4: #5716a8;
+  --chart-5: #e0b6ff;
+  --shadow-glow-violet: 0 20px 60px -20px color-mix(in oklab, #8b2fe6 70%, transparent);
+  --gradient-primary: linear-gradient(135deg, #8b2fe6 0%, #ff3fb4 100%);
+  --gradient-warm: linear-gradient(135deg, #ff3fb4 0%, #5716a8 100%);
+  --gradient-cool: linear-gradient(135deg, #5716a8 0%, #b06bff 100%);
+  --gradient-bg:
+    radial-gradient(1200px 600px at 10% -10%, rgba(139, 47, 230, 0.35), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(255, 63, 180, 0.2), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(176, 107, 255, 0.18), transparent 60%);
+  --gradient-screen:
+    radial-gradient(600px 360px at 80% 0%, rgba(176, 107, 255, 0.10), transparent 70%),
+    radial-gradient(500px 320px at 0% 90%, rgba(255, 63, 180, 0.10), transparent 70%);
+}
+:root[data-accent="purple"]:not(.light) {
+  --background: #120720;
+  --popover: #1e0d33;
+  --sidebar: rgba(18, 7, 32, 0.72);
+}
+:root[data-accent="purple"].light {
+  --background: #f8f2ff;
+  --popover: #ffffff;
+  --sidebar: rgba(248, 242, 255, 0.72);
+}
+
+
+
 @layer base {
   * {
     border-color: var(--color-border);
