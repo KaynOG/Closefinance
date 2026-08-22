@@ -18,6 +18,9 @@ export function ThemedBackground() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        transform: "translateZ(0)",
+        backfaceVisibility: "hidden",
+        contain: "strict",
       }}
     >
       {hasBg && (
