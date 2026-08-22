@@ -49,6 +49,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const navigate = useNavigate();
   const [state, api, user] = useStore();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
