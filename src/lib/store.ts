@@ -990,6 +990,164 @@ export function useStore() {
       const newTotal = (memory.debts.find(d => d.id === debtId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
       await supabase.from("debts").update({ total_amount: newTotal }).eq("id", debtId);
     },
+
+    // ============= DEVEDORES (valores a receber) =============
+    addReceivable: async (input: {
+      name: string; icon: string; color: string; totalAmount: number;
+      bankId?: string; categoryId?: string; note?: string;
+      installments: { number: number; amount: number; dueDate: string }[];
+    }) => {
+      const uid = memory.currentUserId; if (!uid) return null;
+      const { data: recvRow, error } = await supabase.from("receivables").insert({
+        user_id: uid, name: input.name, icon: input.icon, color: input.color,
+        total_amount: input.totalAmount, installments_total: input.installments.length,
+        bank_id: input.bankId ?? null, category_id: input.categoryId ?? null, note: input.note ?? null,
+      }).select("*").single();
+      if (error || !recvRow) { console.error(error); return null; }
+      const recvId = String((recvRow as Record<string, unknown>).id);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const total = input.installments.length;
+
+      const txRows = input.installments.map(p => ({
+        user_id: uid, type: "income", amount: p.amount,
+        description: `${input.name} (${p.number}/${total})`,
+        date: p.dueDate,
+        category_id: input.categoryId ?? null,
+        bank_id: input.bankId ?? null,
+        card_id: null,
+        essential: null,
+        payment_method: input.bankId ? null : "cash",
+        installment_no: p.number, installment_total: total,
+        installment_group_id: null,
+        tag: `${RECEIVABLE_TAG_PREFIX}${recvId}`,
+        applied_to_balance: Boolean(input.bankId) && p.dueDate <= todayStr,
+      }));
+      const { data: txData, error: txErr } = await supabase.from("transactions").insert(txRows as never).select("*");
+      if (txErr) console.error(txErr);
+      const insertedTx = (txData ?? []).map(r => mapTx(r as Record<string, unknown>));
+
+      const instRows = input.installments.map((p, i) => ({
+        user_id: uid, receivable_id: recvId, number: p.number, amount: p.amount,
+        due_date: p.dueDate, received: p.dueDate <= todayStr,
+        transaction_id: insertedTx[i]?.id ?? null,
+      }));
+      const { data: instData } = await supabase.from("receivable_installments").insert(instRows as never).select("*");
+      const installments = (instData ?? []).map(r => mapReceivableInstallment(r as Record<string, unknown>));
+
+      // Credita no banco as parcelas cuja data já chegou
+      if (input.bankId) {
+        const dueNow = insertedTx.filter(t => t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
+        const bank = memory.banks.find(b => b.id === input.bankId);
+        if (bank && dueNow > 0) {
+          const newBalance = bank.accountBalance + dueNow;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
+
+      const receivable = mapReceivable(recvRow as Record<string, unknown>, installments);
+      set({
+        receivables: [...memory.receivables, receivable],
+        transactions: [...insertedTx, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
+      });
+      return receivable;
+    },
+    updateReceivable: async (recvId: string, p: Partial<Pick<Receivable, "name" | "icon" | "color" | "note" | "bankId" | "categoryId">>) => {
+      const patch: Record<string, unknown> = {};
+      if (p.name !== undefined) patch.name = p.name;
+      if (p.icon !== undefined) patch.icon = p.icon;
+      if (p.color !== undefined) patch.color = p.color;
+      if (p.note !== undefined) patch.note = p.note || null;
+      if (p.bankId !== undefined) patch.bank_id = p.bankId || null;
+      if (p.categoryId !== undefined) patch.category_id = p.categoryId || null;
+      const { error } = await supabase.from("receivables").update(patch as never).eq("id", recvId);
+      if (error) return console.error(error);
+      set({ receivables: memory.receivables.map(d => d.id === recvId ? { ...d, ...p } : d) });
+    },
+    removeReceivable: async (recvId: string) => {
+      const recv = memory.receivables.find(d => d.id === recvId);
+      if (!recv) return;
+      const txIds = recv.installments.map(i => i.transactionId).filter(Boolean) as string[];
+      if (recv.bankId) {
+        const back = memory.transactions
+          .filter(t => txIds.includes(t.id) && t.appliedToBalance)
+          .reduce((s, t) => s + t.amount, 0);
+        const bank = memory.banks.find(b => b.id === recv.bankId);
+        if (bank && back > 0) {
+          const newBalance = bank.accountBalance - back;
+          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+        }
+      }
+      if (txIds.length) await supabase.from("transactions").delete().in("id", txIds);
+      const { error } = await supabase.from("receivables").delete().eq("id", recvId);
+      if (error) return console.error(error);
+      set({
+        receivables: memory.receivables.filter(d => d.id !== recvId),
+        transactions: memory.transactions.filter(t => !txIds.includes(t.id)),
+      });
+    },
+    setReceivableInstallmentReceived: async (recvId: string, instId: string, received: boolean) => {
+      const recv = memory.receivables.find(d => d.id === recvId);
+      const inst = recv?.installments.find(i => i.id === instId);
+      if (!recv || !inst) return;
+      await supabase.from("receivable_installments").update({ received }).eq("id", instId);
+      set({
+        receivables: memory.receivables.map(d => d.id !== recvId ? d : {
+          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, received } : i),
+        }),
+      });
+      const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
+      if (!tx) return;
+      if (received && !tx.appliedToBalance) {
+        if (recv.bankId) {
+          const bank = memory.banks.find(b => b.id === recv.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance + tx.amount;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        await supabase.from("transactions").update({ applied_to_balance: true }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: true } : t) });
+      } else if (!received && tx.appliedToBalance) {
+        if (recv.bankId) {
+          const bank = memory.banks.find(b => b.id === recv.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance - tx.amount;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        await supabase.from("transactions").update({ applied_to_balance: false }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: false } : t) });
+      }
+    },
+    updateReceivableInstallment: async (recvId: string, instId: string, p: { amount?: number; dueDate?: string }) => {
+      const recv = memory.receivables.find(d => d.id === recvId);
+      const inst = recv?.installments.find(i => i.id === instId);
+      if (!recv || !inst) return;
+      const patch: Record<string, unknown> = {};
+      if (p.amount !== undefined) patch.amount = p.amount;
+      if (p.dueDate !== undefined) patch.due_date = p.dueDate;
+      await supabase.from("receivable_installments").update(patch as never).eq("id", instId);
+      set({
+        receivables: memory.receivables.map(d => d.id !== recvId ? d : {
+          ...d,
+          installments: d.installments.map(i => i.id === instId ? { ...i, ...p } : i),
+          totalAmount: d.installments.reduce((s, i) => s + (i.id === instId && p.amount !== undefined ? p.amount : i.amount), 0),
+        }),
+      });
+      if (inst.transactionId) {
+        const txPatch: Record<string, unknown> = {};
+        if (p.amount !== undefined) txPatch.amount = p.amount;
+        if (p.dueDate !== undefined) txPatch.date = p.dueDate;
+        await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
+      }
+      const newTotal = (memory.receivables.find(d => d.id === recvId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
+      await supabase.from("receivables").update({ total_amount: newTotal }).eq("id", recvId);
+    },
     // Recalcula o saldo em conta de cada banco (e o dinheiro em caixa) com base
     // no histórico de transações aplicadas até hoje. Substitui o saldo atual pelo
     // resultado líquido (soma de ganhos − soma de gastos débito/pix por banco).
