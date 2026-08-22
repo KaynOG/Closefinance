@@ -189,6 +189,7 @@ const EMPTY_STATE: AppState = {
   cards: [],
   banks: [],
   debts: [],
+  receivables: [],
   users: [],
   currentUserId: null,
   missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
