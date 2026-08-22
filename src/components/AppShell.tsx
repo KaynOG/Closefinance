@@ -87,7 +87,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           expanded ? "w-64" : "w-[76px]"
         }`}
       >
-        <Brand compact={!expanded} />
+        <Brand compact hideText={!expanded} />
         <nav className="mt-6 flex flex-col gap-1">
           {nav.map((n) => {
             const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
@@ -231,7 +231,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   );
 }
 
-function Brand({ compact = false }: { compact?: boolean }) {
+function Brand({ compact = false, hideText = false }: { compact?: boolean; hideText?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5 group">
       <div className="transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
@@ -245,7 +245,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
           </p>
         </div>
       ) : (
-        <p className="font-display font-bold text-lg">CloseFinance</p>
+        <p className={`font-display font-bold text-lg whitespace-nowrap transition-all duration-300 ${hideText ? "opacity-0 w-0 overflow-hidden" : "opacity-100"}`}>CloseFinance</p>
       )}
     </Link>
   );
