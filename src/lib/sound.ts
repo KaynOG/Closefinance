@@ -204,7 +204,8 @@ export function installGlobalClickSounds() {
     if (!el) return;
     if (el.hasAttribute("data-no-sound")) return;
     if (el.getAttribute("data-sound") === "check") { playCheck(); return; }
-    const v = (el.getAttribute("data-sound") as Voice | null) ?? "click";
+    const v = el.getAttribute("data-sound") as Voice | null;
+    if (!v || v === "click") { playClick(); return; }
     playTone(v);
   };
   window.addEventListener("pointerdown", handler, { passive: true });
