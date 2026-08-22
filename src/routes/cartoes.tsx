@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, CARD_PURCHASE_TAG, CARD_PURCHASE_PAID_TAG, isCardPurchaseTx, type Transaction } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp, Check, ShoppingBag } from "lucide-react";
+import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/cartoes")({
