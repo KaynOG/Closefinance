@@ -664,9 +664,9 @@ function DashboardPage() {
                   dataKey="month"
                   stroke="rgba(255,255,255,0.5)"
                   fontSize={11}
-                  tick={{ fill: "rgba(255,255,255,0.7)" }}
+                  tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
                 />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
+                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
                 <Tooltip
                   contentStyle={{
                     background: "#14062E",
@@ -685,7 +685,10 @@ function DashboardPage() {
                   stroke={CYAN}
                   fill="url(#dCyan)"
                   strokeWidth={2.5}
-                  animationDuration={900}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  animationDuration={1100}
+                  animationEasing="ease-out"
                 />
                 <Area
                   type="monotone"
@@ -694,11 +697,15 @@ function DashboardPage() {
                   stroke={ORANGE}
                   fill="url(#dOrange)"
                   strokeWidth={2.5}
-                  animationDuration={900}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                  animationDuration={1100}
+                  animationBegin={180}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </motion.div>
         </GlassCard>)}
       </section>
 
