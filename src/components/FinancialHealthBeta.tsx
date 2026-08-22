@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard } from "@/components/ui-kit";
 import { DottedArcGauge } from "@/components/ui/animated-dashboard-card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import {
   formatBRL,
   monthExpenseTotal,
@@ -52,7 +54,9 @@ export function FinancialHealthBeta({
   cards: Card[];
 }) {
   const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState(false);
   const [applied, setApplied] = useState<Record<string, boolean>>(() => loadApplied());
+
 
   useEffect(() => {
     try {
@@ -198,6 +202,39 @@ export function FinancialHealthBeta({
     return { income, expense, nonEssential, topCategory, tips, score, savingsRate };
   }, [transactions, categories, cards]);
 
+  // Detalhamento do mês: categorias e lançamentos que mais impactaram
+  const impact = useMemo(() => {
+    const now = new Date();
+    const expenses = transactions.filter(
+      t => isSameMonth(t.date, now) && (isCashFlowExpense(t) || isCreditPurchase(t)),
+    );
+    const incomes = transactions.filter(t => t.type === "income" && isSameMonth(t.date, now));
+    const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+
+    const map = new Map<string, number>();
+    for (const t of expenses) {
+      const k = t.categoryId || "__none__";
+      map.set(k, (map.get(k) || 0) + t.amount);
+    }
+    const cats = Array.from(map.entries())
+      .map(([k, amount]) => {
+        const c = categories.find(x => x.id === k);
+        return {
+          id: k,
+          name: c?.name ?? "Sem categoria",
+          color: c?.color ?? "var(--muted-foreground)",
+          amount,
+          share: totalExp > 0 ? (amount / totalExp) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
+    const topExpenses = [...expenses].sort((a, b) => b.amount - a.amount).slice(0, 8);
+    const topIncomes = [...incomes].sort((a, b) => b.amount - a.amount).slice(0, 5);
+    return { cats, topExpenses, topIncomes, totalExp };
+  }, [transactions, categories]);
+
+
   const appliedSaving = tips
     .filter(t => applied[t.id])
     .reduce((s, t) => s + t.monthlySaving, 0);
@@ -259,18 +296,32 @@ export function FinancialHealthBeta({
       {open && (
         <div className="mt-4 space-y-5">
 
-          {/* Medidor animado */}
-          <DottedArcGauge
-            centerLabel="Sobra do mês"
-            centerValue={formatBRL(baseNet)}
-            progress={Math.max(0.04, Math.min(1, score / 100))}
-            leftLabel="Ganhos"
-            leftValue={formatBRL(income)}
-            leftHint={`score ${score}/100`}
-            rightLabel="Gastos"
-            rightValue={formatBRL(expense)}
-            rightHint={income > 0 ? `${Math.round((expense / income) * 100)}% da renda` : undefined}
-          />
+          {/* Medidor animado — clique para ver o detalhamento do mês */}
+          <button
+            type="button"
+            onClick={() => setDetail(true)}
+            data-no-sound
+            className="w-full text-left rounded-lg transition hover:brightness-110 focus:outline-none focus:ring-1 focus:ring-primary/50"
+            aria-label="Ver categorias e lançamentos que mais impactaram o mês"
+          >
+            <DottedArcGauge
+              centerLabel="Sobra do mês"
+              centerValue={formatBRL(baseNet)}
+              progress={Math.max(0.04, Math.min(1, score / 100))}
+              leftLabel="Ganhos"
+              leftValue={formatBRL(income)}
+              leftHint={`score ${score}/100`}
+              rightLabel="Gastos"
+              rightValue={formatBRL(expense)}
+              rightHint={income > 0 ? `${Math.round((expense / income) * 100)}% da renda` : undefined}
+              footer={
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  toque no medidor para ver o que mais impactou o mês
+                </span>
+              }
+            />
+          </button>
+
 
           {/* Summary */}
           <div className="grid grid-cols-3 gap-2">
@@ -404,7 +455,96 @@ export function FinancialHealthBeta({
           </div>
         </div>
       )}
+      <Dialog open={detail} onOpenChange={setDetail}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">O que mais impactou seu mês</DialogTitle>
+            <DialogDescription className="font-mono text-[11px]">
+              sobra {formatBRL(baseNet)} · ganhos {formatBRL(income)} · gastos {formatBRL(expense)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Categorias
+              </h4>
+              {impact.cats.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem gastos neste mês.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {impact.cats.slice(0, 8).map(c => (
+                    <li key={c.id}>
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="size-2 rounded-[2px] shrink-0" style={{ background: c.color }} />
+                          <span className="truncate">{c.name}</span>
+                        </span>
+                        <span className="font-mono shrink-0">
+                          {formatBRL(c.amount)}{" "}
+                          <span className="text-muted-foreground">{Math.round(c.share)}%</span>
+                        </span>
+                      </div>
+                      <div className="mt-1 h-px w-full bg-border overflow-hidden">
+                        <div
+                          className="h-px transition-all duration-700"
+                          style={{ width: `${c.share}%`, background: c.color }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Maiores gastos
+              </h4>
+              <ul className="divide-y divide-border">
+                {impact.topExpenses.length === 0 && (
+                  <li className="text-xs text-muted-foreground py-1">Nenhum lançamento.</li>
+                )}
+                {impact.topExpenses.map(t => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 text-xs">
+                    <span className="truncate">
+                      {t.description || "Sem descrição"}
+                      <span className="font-mono text-muted-foreground">
+                        {" "}· {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    </span>
+                    <span className="font-mono shrink-0 text-[#FF8FA3]">−{formatBRL(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Maiores ganhos
+              </h4>
+              <ul className="divide-y divide-border">
+                {impact.topIncomes.length === 0 && (
+                  <li className="text-xs text-muted-foreground py-1">Nenhum ganho registrado.</li>
+                )}
+                {impact.topIncomes.map(t => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 text-xs">
+                    <span className="truncate">
+                      {t.description || "Sem descrição"}
+                      <span className="font-mono text-muted-foreground">
+                        {" "}· {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    </span>
+                    <span className="font-mono shrink-0 text-[#2BD9A1]">+{formatBRL(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </GlassCard>
+
 
   );
 }

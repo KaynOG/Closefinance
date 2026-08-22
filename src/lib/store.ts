@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupaUser } from "@supabase/supabase-js";
-import { playMissionComplete } from "@/lib/sound";
+import { playCheck, playMissionComplete } from "@/lib/sound";
 import { notify as notifyToast } from "@/lib/notify";
 
 export type TxType = "income" | "expense";
@@ -1275,6 +1275,7 @@ export function useStore() {
       await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
       set({ missions: { date: today, completed, totalPoints, history } });
       try {
+        playCheck();
         playMissionComplete();
         notifyToast(`🏆 Missão concluída: ${def?.title ?? missionId} · +${points} pts`);
       } catch { /* noop */ }
@@ -1291,6 +1292,7 @@ export function useStore() {
       const totalPoints = memory.missions.totalPoints + points;
       await supabase.from("profiles").update({ total_points: totalPoints }).eq("id", uid);
       set({ missions: { date: today, completed: [...memory.missions.completed, missionId], totalPoints, history: [{ date: occurred, missionId, points }, ...memory.missions.history] } });
+      try { playCheck(); } catch { /* noop */ }
     },
 
     // ---------- BACKUP ----------

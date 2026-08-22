@@ -1,5 +1,6 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
-// Timbres curtos, digitais e discretos — pensados para UI (abas, botões, notificações).
+import checkAsset from "@/assets/check-scribble.mp3.asset.json";
+
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -152,6 +153,21 @@ export function playNav() {
   playTone("nav");
 }
 
+/** Som de marcar caixinha (rabisco de lápis). */
+let checkAudio: HTMLAudioElement | null = null;
+export function playCheck() {
+  if (!enabled || typeof window === "undefined") return;
+  try {
+    if (!checkAudio) {
+      checkAudio = new Audio(checkAsset.url);
+      checkAudio.volume = 0.5;
+      checkAudio.preload = "auto";
+    }
+    checkAudio.currentTime = 0;
+    void checkAudio.play().catch(() => {});
+  } catch { /* noop */ }
+}
+
 let installed = false;
 /** Instala um listener global que toca tons futuristas em botões/links. */
 export function installGlobalClickSounds() {
@@ -161,11 +177,20 @@ export function installGlobalClickSounds() {
   const handler = (e: Event) => {
     const t = e.target as HTMLElement | null;
     if (!t) return;
+    if (t instanceof HTMLInputElement && t.type === "checkbox") return;
     const el = t.closest<HTMLElement>("button, a, [role='button'], [data-sound]");
     if (!el) return;
     if (el.hasAttribute("data-no-sound")) return;
+    if (el.getAttribute("data-sound") === "check") { playCheck(); return; }
     const v = (el.getAttribute("data-sound") as Voice | null) ?? "click";
     playTone(v);
   };
   window.addEventListener("pointerdown", handler, { passive: true });
+
+  // Qualquer checkbox marcado toca o som de rabisco
+  window.addEventListener("change", (e) => {
+    const t = e.target as HTMLElement | null;
+    if (t instanceof HTMLInputElement && t.type === "checkbox") playCheck();
+  }, { passive: true });
 }
+
