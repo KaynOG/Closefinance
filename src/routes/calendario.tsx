@@ -14,7 +14,7 @@ export const Route = createFileRoute("/calendario")({
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 function CalendarPage() {
-  const [{ transactions, categories, cards, debts }] = useStore();
+  const [{ transactions, categories, cards, debts, receivables }] = useStore();
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [selected, setSelected] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
