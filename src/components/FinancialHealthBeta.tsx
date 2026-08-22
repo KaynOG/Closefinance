@@ -52,7 +52,9 @@ export function FinancialHealthBeta({
   cards: Card[];
 }) {
   const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState(false);
   const [applied, setApplied] = useState<Record<string, boolean>>(() => loadApplied());
+
 
   useEffect(() => {
     try {
