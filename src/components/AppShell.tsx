@@ -27,6 +27,8 @@ import { ConsentModal } from "./ConsentModal";
 import { SavingsMonitor } from "./SavingsMonitor";
 import { OnboardingModal } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
+import { RouteLoader } from "./RouteLoader";
+
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -71,11 +73,14 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
   if (!user) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground font-mono">
-        {state.loading ? "Carregando…" : null}
+      <div className="min-h-screen grid place-items-center gap-3 text-sm text-muted-foreground font-mono">
+        {state.loading ? (
+          <span className="block size-9 rounded-full border-2 border-primary/25 border-t-primary animate-spin" />
+        ) : null}
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen flex">
