@@ -176,6 +176,7 @@ export interface AppState {
   cards: Card[];
   banks: Bank[];
   debts: Debt[];
+  receivables: Receivable[];
   users: User[];
   currentUserId: string | null;
   missions: MissionState;
