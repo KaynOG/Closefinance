@@ -19,7 +19,14 @@ export function InstallAppCard() {
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => { setPlatform(detectPlatform()); }, []);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const p = detectPlatform();
+    setPlatform(p);
+    const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    setIsDesktop(p === "desktop" && !coarse);
+  }, []);
 
   async function copyUrl() {
     try {
@@ -42,6 +49,9 @@ export function InstallAppCard() {
       copyUrl();
     }
   }
+
+  // Recurso exclusivo de mobile/tablet — oculto no desktop.
+  if (isDesktop) return null;
 
   return (
     <GlassCard hideKey="perfil-install" hideLabel="Instalar app na tela de início">

@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore, parseBRL } from "@/lib/store";
 import { Logo } from "@/components/Logo";
 import bgLogin from "@/assets/bg-teal-orange.png.asset.json";
+import shotDashboard from "@/assets/shot-dashboard.jpg.asset.json";
+import shotCalendar from "@/assets/shot-calendar.jpg.asset.json";
+import shotIncome from "@/assets/shot-income.jpg.asset.json";
 import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft, Venus, Mars, CircleDot } from "lucide-react";
 import type { Gender } from "@/lib/store";
 
@@ -38,6 +41,39 @@ function scorePassword(p: string): PwScore {
   const labels = ["Muito fraca", "Fraca", "Média", "Forte", "Muito segura"];
   const colors = ["#FF4D6D", "#FF8FA3", "#FFCC00", "#22C3CC", "#2BD9A1"];
   return { score, label: labels[score], color: colors[score], checks };
+}
+
+const SHOTS = [shotDashboard.url, shotCalendar.url, shotIncome.url];
+
+/** Prints do app passando ao fundo, desfocados e com leve zoom. */
+function ShotsBackdrop() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI(v => (v + 1) % SHOTS.length), 6000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+      {SHOTS.map((url, idx) => (
+        <img
+          key={url}
+          src={url}
+          alt=""
+          loading="lazy"
+          width={1280}
+          height={832}
+          className="absolute inset-0 size-full object-cover transition-opacity duration-[2000ms] ease-in-out"
+          style={{
+            opacity: idx === i ? 0.35 : 0,
+            filter: "blur(14px) saturate(1.1)",
+            transform: idx === i ? "scale(1.12)" : "scale(1.05)",
+            transition: "opacity 2s ease-in-out, transform 6s ease-out",
+          }}
+        />
+      ))}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent,var(--background))] opacity-70" />
+    </div>
+  );
 }
 
 function AuthPage() {
@@ -84,17 +120,18 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 relative">
+    <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden">
       <div
         aria-hidden
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 -z-20"
         style={{
           backgroundImage: `url(${bgLogin.url})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-background/40" />
+      <ShotsBackdrop />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/55" />
 
       <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
         <div className="relative animate-in fade-in slide-in-from-top duration-500">
