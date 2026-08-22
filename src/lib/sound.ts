@@ -1,5 +1,6 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
-// Timbres curtos, digitais e discretos — pensados para UI (abas, botões, notificações).
+import checkAsset from "@/assets/check-scribble.mp3.asset.json";
+
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
