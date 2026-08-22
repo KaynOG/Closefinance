@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChartTooltip } from "@/components/ChartTooltip";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
@@ -671,17 +672,7 @@ function DashboardPage() {
                   tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
                 />
                 <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
-                <Tooltip
-                  contentStyle={{
-                    background: "#14062E",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    borderRadius: 12,
-                    color: "#fff",
-                  }}
-                  labelStyle={{ color: "#fff" }}
-                  itemStyle={{ color: "#fff" }}
-                  formatter={(v: number) => formatBRL(v)}
-                />
+                <Tooltip cursor={{ stroke: "rgba(255,255,255,0.18)", strokeWidth: 1 }} content={<ChartTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="receitas"
@@ -853,17 +844,7 @@ function DashboardPage() {
                           tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
                         />
                         <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
-                        <Tooltip
-                          contentStyle={{
-                            background: "#14062E",
-                            border: "1px solid rgba(255,255,255,0.15)",
-                            borderRadius: 12,
-                            color: "#fff",
-                          }}
-                          labelStyle={{ color: "#fff" }}
-                          itemStyle={{ color: "#fff" }}
-                          formatter={(v: number) => formatBRL(v)}
-                        />
+                        <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} content={<ChartTooltip />} />
                         <Legend
                           wrapperStyle={{ fontSize: 11, color: "#fff" }}
                           formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
@@ -965,17 +946,7 @@ function DashboardPage() {
                         <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
                       ))}
                     </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: "#14062E",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        borderRadius: 12,
-                        color: "#fff",
-                      }}
-                      labelStyle={{ color: "#fff" }}
-                      itemStyle={{ color: "#fff" }}
-                      formatter={(v: number) => formatBRL(v)}
-                    />
+                    <Tooltip content={<ChartTooltip showTotal={false} />} />
                     <Legend
                       wrapperStyle={{ fontSize: 12, color: "#fff" }}
                       formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
