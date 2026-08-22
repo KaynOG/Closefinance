@@ -135,7 +135,7 @@ function CardsPage() {
       )}
 
 
-      <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-3">
         <GlassCard hideKey="cartoes-2" hideLabel="Novo cartão">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
