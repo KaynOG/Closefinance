@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard } from "@/components/ui-kit";
 import { DottedArcGauge } from "@/components/ui/animated-dashboard-card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import {
   formatBRL,
   monthExpenseTotal,
