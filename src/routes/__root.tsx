@@ -123,7 +123,7 @@ function RootComponent() {
       <ThemedBackground />
       <Outlet />
       <ConsentModal />
-      <Toaster richColors position="top-right" closeButton />
+      <Toaster position="top-right" closeButton />
     </QueryClientProvider>
   );
 }
