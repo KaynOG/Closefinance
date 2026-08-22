@@ -258,6 +258,32 @@ function mapDebtInstallment(row: Record<string, unknown>): DebtInstallment {
     transactionId: (row.transaction_id as string) ?? undefined,
   };
 }
+function mapReceivable(row: Record<string, unknown>, installments: ReceivableInstallment[]): Receivable {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    icon: (row.icon as string) ?? "wallet",
+    color: (row.color as string) ?? "#2BD9A1",
+    totalAmount: Number(row.total_amount),
+    installmentsTotal: Number(row.installments_total),
+    bankId: (row.bank_id as string) ?? undefined,
+    categoryId: (row.category_id as string) ?? undefined,
+    note: (row.note as string) ?? undefined,
+    createdAt: String(row.created_at),
+    installments: installments.sort((a, b) => a.number - b.number),
+  };
+}
+function mapReceivableInstallment(row: Record<string, unknown>): ReceivableInstallment {
+  return {
+    id: String(row.id),
+    receivableId: String(row.receivable_id),
+    number: Number(row.number),
+    amount: Number(row.amount),
+    dueDate: String(row.due_date),
+    received: Boolean(row.received),
+    transactionId: (row.transaction_id as string) ?? undefined,
+  };
+}
 function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
   return {
     id: String(p.id ?? supa.id),
