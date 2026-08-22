@@ -372,6 +372,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
                       </span>
                       <button
                         onClick={() => onTogglePaid(inst)}
+                        data-sound="check"
                         className={`size-6 rounded-md grid place-items-center border transition active:scale-95 ${inst.paid ? "text-white" : "border-border text-muted-foreground hover:bg-white/10"}`}
                         style={inst.paid ? { background: debt.color, borderColor: debt.color } : undefined}
                         aria-label={inst.paid ? "Marcar como não paga" : "Marcar como paga"}

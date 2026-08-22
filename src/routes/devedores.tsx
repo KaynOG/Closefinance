@@ -372,6 +372,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
                       </span>
                       <button
                         onClick={() => onToggleReceived(inst)}
+                        data-sound="check"
                         className={`size-6 rounded-md grid place-items-center border transition active:scale-95 ${inst.received ? "text-white" : "border-border text-muted-foreground hover:bg-white/10"}`}
                         style={inst.received ? { background: receivable.color, borderColor: receivable.color } : undefined}
                         aria-label={inst.received ? "Marcar como não recebida" : "Marcar como recebida"}
