@@ -434,6 +434,14 @@ export function parseDebtTag(tag?: string): string | null {
   if (!tag || !tag.startsWith(DEBT_TAG_PREFIX)) return null;
   return tag.slice(DEBT_TAG_PREFIX.length) || null;
 }
+
+// Etiqueta usada nos ganhos gerados automaticamente pelas parcelas a receber.
+// Formato: `__rc__:<receivableId>`
+export const RECEIVABLE_TAG_PREFIX = "__rc__:";
+export function parseReceivableTag(tag?: string): string | null {
+  if (!tag || !tag.startsWith(RECEIVABLE_TAG_PREFIX)) return null;
+  return tag.slice(RECEIVABLE_TAG_PREFIX.length) || null;
+}
 export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?: string } | null {
   if (!tag || !tag.startsWith(INVOICE_PAYMENT_TAG_PREFIX)) return null;
   const rest = tag.slice(INVOICE_PAYMENT_TAG_PREFIX.length);
