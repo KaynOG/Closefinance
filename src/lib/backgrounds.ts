@@ -4,6 +4,7 @@ import bgLime from "@/assets/bg-lime-stripes.png.asset.json";
 import bgOrange from "@/assets/bg-orange-glow.png.asset.json";
 import bgTealOrange from "@/assets/bg-teal-orange.png.asset.json";
 import bgTealWaves from "@/assets/bg-teal-waves.png.asset.json";
+import bgPurpleWaves from "@/assets/bg-purple-waves.jpg.asset.json";
 
 export type BgOption = { id: string; name: string; url: string };
 
@@ -15,7 +16,9 @@ export const BACKGROUNDS: BgOption[] = [
   { id: "orange", name: "Laranja glow", url: bgOrange.url },
   { id: "teal-orange", name: "Teal & laranja", url: bgTealOrange.url },
   { id: "teal-waves", name: "Ondas teal", url: bgTealWaves.url },
+  { id: "purple-waves", name: "Ondas roxas", url: bgPurpleWaves.url },
 ];
+
 
 const KEY = "closefinance:background";
 
