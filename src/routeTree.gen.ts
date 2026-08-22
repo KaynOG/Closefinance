@@ -17,6 +17,7 @@ import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as GanhosRouteImport } from './routes/ganhos'
 import { Route as EducacaoRouteImport } from './routes/educacao'
 import { Route as DividasRouteImport } from './routes/dividas'
+import { Route as DevedoresRouteImport } from './routes/devedores'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as CartoesRouteImport } from './routes/cartoes'
@@ -64,6 +65,11 @@ const EducacaoRoute = EducacaoRouteImport.update({
 const DividasRoute = DividasRouteImport.update({
   id: '/dividas',
   path: '/dividas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevedoresRoute = DevedoresRouteImport.update({
+  id: '/devedores',
+  path: '/devedores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
+  '/devedores': typeof DevedoresRoute
   '/dividas': typeof DividasRoute
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
+  '/devedores': typeof DevedoresRoute
   '/dividas': typeof DividasRoute
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
   '/design-system': typeof DesignSystemRoute
+  '/devedores': typeof DevedoresRoute
   '/dividas': typeof DividasRoute
   '/educacao': typeof EducacaoRoute
   '/ganhos': typeof GanhosRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/cartoes'
     | '/categorias'
     | '/design-system'
+    | '/devedores'
     | '/dividas'
     | '/educacao'
     | '/ganhos'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/cartoes'
     | '/categorias'
     | '/design-system'
+    | '/devedores'
     | '/dividas'
     | '/educacao'
     | '/ganhos'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/cartoes'
     | '/categorias'
     | '/design-system'
+    | '/devedores'
     | '/dividas'
     | '/educacao'
     | '/ganhos'
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   CartoesRoute: typeof CartoesRoute
   CategoriasRoute: typeof CategoriasRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  DevedoresRoute: typeof DevedoresRoute
   DividasRoute: typeof DividasRoute
   EducacaoRoute: typeof EducacaoRoute
   GanhosRoute: typeof GanhosRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/dividas'
       fullPath: '/dividas'
       preLoaderRoute: typeof DividasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devedores': {
+      id: '/devedores'
+      path: '/devedores'
+      fullPath: '/devedores'
+      preLoaderRoute: typeof DevedoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design-system': {
@@ -364,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartoesRoute: CartoesRoute,
   CategoriasRoute: CategoriasRoute,
   DesignSystemRoute: DesignSystemRoute,
+  DevedoresRoute: DevedoresRoute,
   DividasRoute: DividasRoute,
   EducacaoRoute: EducacaoRoute,
   GanhosRoute: GanhosRoute,
@@ -376,3 +397,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

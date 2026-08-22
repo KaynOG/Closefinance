@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, parseBRL, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, parseReceivableTag, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -19,7 +19,7 @@ const CYAN = "#22C3CC";
 const CYAN_DARK = "#006F77";
 
 function GanhosPage() {
-  const [{ transactions, categories, cards, banks }, api] = useStore();
+  const [{ transactions, categories, cards, banks, receivables }, api] = useStore();
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [fMonth, setFMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [fCategory, setFCategory] = useState("all");
@@ -237,7 +237,7 @@ function GanhosPage() {
                               <td className="py-2.5 px-3">
                                 {cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}
                               </td>
-                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.tag || "—"}</td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{(() => { const rv = parseReceivableTag(t.tag); if (rv) { const r = receivables.find(x => x.id === rv); return <span style={{ color: r?.color ?? "#2BD9A1" }}>A receber · {r?.name ?? "devedor"}</span>; } return t.tag || "—"; })()}</td>
                               <td className="py-2.5 px-3 font-mono text-right" style={{ color: CYAN }}>+{formatBRL(t.amount)}</td>
                               <td className="py-2.5 px-3 whitespace-nowrap">
                                 <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
