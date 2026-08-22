@@ -6,6 +6,10 @@ import { useMemo, useState } from "react";
 import {
   Plus, Trash2, Check, CalendarDays, Wallet, Home, Car, GraduationCap, HeartPulse,
   Smartphone, Plane, ShoppingCart, Landmark, Dog, Zap, Receipt, ChevronDown, ChevronUp,
+  CreditCard, Banknote, Coins, Fuel, Utensils, Shirt, Dumbbell, Baby, Book, Music,
+  Gamepad2, Tv, Wifi, Droplets, Flame, Wrench, Hammer, Sofa, Bike, Bus, Ship,
+  Stethoscope, Pill, Scissors, Gift, Briefcase, Building2, Store, Scale, Trees,
+  Laptop, Camera, PawPrint, Sparkles, Cigarette, Wine, Coffee, Church, Umbrella,
 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { playExpense } from "@/lib/sound";
@@ -28,6 +32,14 @@ export const DEBT_ICONS = {
   wallet: Wallet, home: Home, car: Car, study: GraduationCap, health: HeartPulse,
   phone: Smartphone, travel: Plane, shopping: ShoppingCart, bank: Landmark,
   pet: Dog, energy: Zap, bill: Receipt,
+  card: CreditCard, cash: Banknote, coins: Coins, fuel: Fuel, food: Utensils,
+  clothes: Shirt, gym: Dumbbell, baby: Baby, book: Book, music: Music,
+  games: Gamepad2, tv: Tv, internet: Wifi, water: Droplets, gas: Flame,
+  repair: Wrench, reform: Hammer, furniture: Sofa, bike: Bike, bus: Bus, boat: Ship,
+  doctor: Stethoscope, medicine: Pill, beauty: Scissors, gift: Gift,
+  work: Briefcase, company: Building2, store: Store, legal: Scale, garden: Trees,
+  tech: Laptop, camera: Camera, paw: PawPrint, other: Sparkles,
+  tobacco: Cigarette, drinks: Wine, coffee: Coffee, church: Church, insurance: Umbrella,
 } as const;
 type DebtIconKey = keyof typeof DEBT_ICONS;
 
@@ -232,7 +244,7 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
         </div>
 
         <Field label="Ícone">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto pr-1">
             {(Object.keys(DEBT_ICONS) as DebtIconKey[]).map(k => {
               const Icon = DEBT_ICONS[k];
               const active = form.icon === k;

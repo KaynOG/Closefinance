@@ -161,38 +161,55 @@ function CalendarPage() {
         </GlassCard>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês">
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
-              <div key={d} className="text-center text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {days.map((c, i) => {
-              if (!c.date) return <div key={i} />;
-              const data = byDay.get(c.iso!);
-              const isToday = c.iso === new Date().toISOString().slice(0,10);
-              const isSel = selected === c.iso;
-              return (
-                <button key={i} onClick={() => setSelected(c.iso!)}
-                  className={`relative min-h-[78px] rounded-2xl p-2 text-left transition group border ${
-                    isSel ? "border-secondary bg-secondary/10" : "border-white/5 hover:border-white/20 bg-white/[0.02]"
-                  } ${isToday ? "ring-1 ring-primary" : ""}`}>
-                  <span className={`text-sm font-semibold ${isToday ? "text-secondary" : ""}`}>{c.date.getDate()}</span>
-                  {data && (
-                    <div className="mt-1 space-y-1">
-                      {data.income > 0 && <p className="text-[10px] font-mono text-[#2BD9A1] truncate">+{formatBRL(data.income)}</p>}
-                      {data.expense > 0 && <p className="text-[10px] font-mono text-[#FF8FA3] truncate">-{formatBRL(data.expense)}</p>}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4">
+        <GlassCard hideKey="cal-grid" hideLabel="Calendário do mês" className="p-2 sm:p-4 overflow-x-auto">
+          <div className="min-w-[720px]">
+            <div className="grid grid-cols-7">
+              {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d => (
+                <div key={d} className="pb-3 text-center text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 border-t border-l border-white/10">
+              {days.map((c, i) => {
+                if (!c.date) return <div key={i} className="min-h-[132px] border-r border-b border-white/10 bg-white/[0.01]" />;
+                const data = byDay.get(c.iso!);
+                const isToday = c.iso === new Date().toISOString().slice(0,10);
+                const isSel = selected === c.iso;
+                const items = data?.items ?? [];
+                return (
+                  <button key={i} onClick={() => setSelected(c.iso!)}
+                    className={`relative min-h-[132px] border-r border-b border-white/10 p-2 text-left align-top transition ${
+                      isSel ? "bg-secondary/10 ring-1 ring-inset ring-secondary" : "hover:bg-white/[0.04] bg-transparent"
+                    }`}>
+                    <span className={`block font-mono leading-none text-3xl lg:text-4xl tracking-tight ${
+                      isToday ? "text-secondary" : isSel ? "text-foreground" : "text-foreground/80"
+                    }`}>{c.date.getDate()}</span>
+                    {items.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {items.slice(0, 3).map((it, k) => {
+                          const income = it.type === "income";
+                          return (
+                            <div key={k} className={`rounded-md px-1.5 py-1 border ${income ? "border-[#2BD9A1]/30 bg-[#2BD9A1]/10" : "border-[#FF4D6D]/30 bg-[#FF4D6D]/10"}`}>
+                              <p className="text-[10px] font-semibold leading-tight truncate">{it.description || (income ? "Entrada" : "Gasto")}</p>
+                              <p className={`text-[10px] font-mono leading-tight ${income ? "text-[#2BD9A1]" : "text-[#FF8FA3]"}`}>
+                                {income ? "+" : "-"}{formatBRL(it.amount)}
+                              </p>
+                            </div>
+                          );
+                        })}
+                        {items.length > 3 && (
+                          <p className="text-[10px] font-mono text-muted-foreground">+{items.length - 3} mais</p>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </GlassCard>
 
-        <GlassCard hideKey="cal-details" hideLabel="Detalhes do dia" className="h-fit lg:sticky lg:top-4">
+        <GlassCard hideKey="cal-details" hideLabel="Detalhes do dia" className="h-fit xl:sticky xl:top-4">
           <SectionTitle title={selected ? "Detalhes" : "Selecione um dia"} subtitle={selected ?? "para ver as transações"} />
           {selectedItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem lançamentos neste dia.</p>
