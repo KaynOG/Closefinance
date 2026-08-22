@@ -453,7 +453,96 @@ export function FinancialHealthBeta({
           </div>
         </div>
       )}
+      <Dialog open={detail} onOpenChange={setDetail}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">O que mais impactou seu mês</DialogTitle>
+            <DialogDescription className="font-mono text-[11px]">
+              sobra {formatBRL(baseNet)} · ganhos {formatBRL(income)} · gastos {formatBRL(expense)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Categorias
+              </h4>
+              {impact.cats.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem gastos neste mês.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {impact.cats.slice(0, 8).map(c => (
+                    <li key={c.id}>
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="size-2 rounded-[2px] shrink-0" style={{ background: c.color }} />
+                          <span className="truncate">{c.name}</span>
+                        </span>
+                        <span className="font-mono shrink-0">
+                          {formatBRL(c.amount)}{" "}
+                          <span className="text-muted-foreground">{Math.round(c.share)}%</span>
+                        </span>
+                      </div>
+                      <div className="mt-1 h-px w-full bg-border overflow-hidden">
+                        <div
+                          className="h-px transition-all duration-700"
+                          style={{ width: `${c.share}%`, background: c.color }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Maiores gastos
+              </h4>
+              <ul className="divide-y divide-border">
+                {impact.topExpenses.length === 0 && (
+                  <li className="text-xs text-muted-foreground py-1">Nenhum lançamento.</li>
+                )}
+                {impact.topExpenses.map(t => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 text-xs">
+                    <span className="truncate">
+                      {t.description || "Sem descrição"}
+                      <span className="font-mono text-muted-foreground">
+                        {" "}· {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    </span>
+                    <span className="font-mono shrink-0 text-[#FF8FA3]">−{formatBRL(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Maiores ganhos
+              </h4>
+              <ul className="divide-y divide-border">
+                {impact.topIncomes.length === 0 && (
+                  <li className="text-xs text-muted-foreground py-1">Nenhum ganho registrado.</li>
+                )}
+                {impact.topIncomes.map(t => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 py-1.5 text-xs">
+                    <span className="truncate">
+                      {t.description || "Sem descrição"}
+                      <span className="font-mono text-muted-foreground">
+                        {" "}· {new Date(t.date + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    </span>
+                    <span className="font-mono shrink-0 text-[#2BD9A1]">+{formatBRL(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </GlassCard>
+
 
   );
 }
