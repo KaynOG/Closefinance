@@ -449,6 +449,17 @@ export function parseInvoicePaymentTag(tag?: string): { cardId: string; userTag?
   return { cardId, userTag: userTag || undefined };
 }
 
+// Etiqueta usada nas compras criadas pela aba de Cartões (roadmap de parcelas).
+// Formato: `__cp__` (parcela em aberto) ou `__cp__:paid` (parcela quitada).
+export const CARD_PURCHASE_TAG = "__cp__";
+export const CARD_PURCHASE_PAID_TAG = "__cp__:paid";
+export function isCardPurchaseTx(t: Transaction): boolean {
+  return (t.tag ?? "").startsWith(CARD_PURCHASE_TAG);
+}
+export function isCardPurchasePaid(t: Transaction): boolean {
+  return t.tag === CARD_PURCHASE_PAID_TAG;
+}
+
 // ============= CRÉDITO / FATURA HELPERS =============
 // Compras no crédito (paymentMethod=credit) NÃO contam como saída direta —
 // elas se acumulam na "Fatura do {cartão} - {Mês}" do mês em que cada parcela cai.
