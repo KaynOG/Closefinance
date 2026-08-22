@@ -87,17 +87,18 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 relative">
+    <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden">
       <div
         aria-hidden
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 -z-20"
         style={{
           backgroundImage: `url(${bgLogin.url})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-background/40" />
+      <ShotsBackdrop />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/55" />
 
       <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden">
         <div className="relative animate-in fade-in slide-in-from-top duration-500">
