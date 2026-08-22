@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useStore, parseBRL } from "@/lib/store";
 import { Logo } from "@/components/Logo";
 import bgLogin from "@/assets/bg-teal-orange.png.asset.json";
+import shotDashboard from "@/assets/shot-dashboard.jpg.asset.json";
+import shotCalendar from "@/assets/shot-calendar.jpg.asset.json";
+import shotIncome from "@/assets/shot-income.jpg.asset.json";
 import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Target, Check, X, Eye, EyeOff, KeyRound, ArrowLeft, Venus, Mars, CircleDot } from "lucide-react";
 import type { Gender } from "@/lib/store";
 
