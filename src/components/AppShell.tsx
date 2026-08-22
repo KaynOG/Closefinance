@@ -27,6 +27,8 @@ import { ConsentModal } from "./ConsentModal";
 import { SavingsMonitor } from "./SavingsMonitor";
 import { OnboardingModal } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
+import { RouteLoader } from "./RouteLoader";
+
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -71,11 +73,14 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
   if (!user) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground font-mono">
-        {state.loading ? "Carregando…" : null}
+      <div className="min-h-screen grid place-items-center gap-3 text-sm text-muted-foreground font-mono">
+        {state.loading ? (
+          <span className="block size-9 rounded-full border-2 border-primary/25 border-t-primary animate-spin" />
+        ) : null}
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen flex">
@@ -212,7 +217,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main
         className="flex-1 min-w-0 p-4 lg:px-8 lg:py-6 pt-20 lg:pt-6 safe-area-main"
       >
-        <div key={pathname} className="page-enter mx-auto w-full max-w-[1440px]">
+        <div key={pathname} className="page-enter mx-auto w-full max-w-[1440px] 2xl:max-w-[1760px] min-[2200px]:max-w-[2040px]">
           {children ?? <Outlet />}
         </div>
       </main>
@@ -229,7 +234,9 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </div>
 
+      <RouteLoader />
       <ConsentModal />
+
       <SavingsMonitor />
       <OnboardingModal />
     </div>

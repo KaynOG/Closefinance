@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getBackgroundUrl, onBackgroundChange } from "@/lib/backgrounds";
 
 export function ThemedBackground() {
-  const [url, setUrl] = useState<string>(() => getBackgroundUrl());
+  const [url, setUrl] = useState<string>("");
   useEffect(() => {
     setUrl(getBackgroundUrl());
     return onBackgroundChange(() => setUrl(getBackgroundUrl()));

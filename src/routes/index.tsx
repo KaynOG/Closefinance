@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useChartColors } from "@/lib/theme-colors";
 import { ChartTooltip } from "@/components/ChartTooltip";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
@@ -60,8 +61,7 @@ export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
-const CYAN = "#22C3CC";
-const ORANGE = "#FF6B1A";
+
 
 
 
@@ -82,6 +82,9 @@ const DAILY_TIPS = [
 
 
 function DashboardPage() {
+  const cc = useChartColors();
+  const CYAN = cc.c1;
+  const ORANGE = cc.c2;
   const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
   useEffect(() => { if (user) api.awardMission("view_dashboard"); }, [user?.id]);
   const today = new Date();
@@ -507,7 +510,7 @@ function DashboardPage() {
               <div className="h-2.5 rounded-full bg-white/10 overflow-hidden mb-4">
                 <div
                   className="h-full transition-all duration-700"
-                  style={{ width: `${totalCardPct}%`, background: "linear-gradient(90deg, #540BD3, #FFCC00)" }}
+                  style={{ width: `${totalCardPct}%`, background: "linear-gradient(90deg, var(--chart-1), var(--chart-2))" }}
                 />
               </div>
               <ul className="space-y-2.5">
@@ -579,14 +582,14 @@ function DashboardPage() {
                   label="Essenciais"
                   value={month.essential}
                   total={month.expense || 1}
-                  color="#006F77"
+                  color="var(--chart-1)"
                   icon={<TrendingDown className="size-4" />}
                 />
                 <Bar
                   label="Não essenciais"
                   value={month.nonEssential}
                   total={month.expense || 1}
-                  color="#820432"
+                  color="var(--chart-4)"
                   icon={<TrendingUp className="size-4" />}
                 />
               </div>
@@ -748,7 +751,7 @@ function DashboardPage() {
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, #FFCC00)` }}
+                      style={{ width: `${c.pct}%`, background: `linear-gradient(90deg, ${c.color}, var(--chart-2))` }}
                     />
                   </div>
                   <div className="mt-3 flex justify-between text-xs font-mono">
@@ -1020,7 +1023,7 @@ function Bar({
       <div className="mt-2 h-2.5 rounded-full bg-white/10 overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, #FFCC00)` }}
+          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, var(--chart-2))` }}
         />
       </div>
     </div>
@@ -1037,11 +1040,12 @@ function HealthRing({
   const radius = 60;
   const c = 2 * Math.PI * radius;
   const offset = c - (score / 100) * c;
+  const cc = useChartColors();
   const colorMap: Record<string, string> = {
-    violet: "#540BD3",
-    yellow: "#f4fafe",
-    teal: "#006F77",
-    crimson: "#820432",
+    violet: cc.c1,
+    yellow: cc.c5,
+    teal: cc.c1,
+    crimson: cc.c4,
     success: "#2BD9A1",
     danger: "#FF4D6D",
   };
