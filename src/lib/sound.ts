@@ -1,6 +1,7 @@
 // Efeitos sonoros modernos/futuristas via Web Audio API.
 import checkAsset from "@/assets/check-scribble.mp3.asset.json";
-import clickAsset from "@/assets/click-ui.mp3.asset.json";
+import clickAsset from "@/assets/click-main.mp3.asset.json";
+
 
 
 let ctx: AudioContext | null = null;
