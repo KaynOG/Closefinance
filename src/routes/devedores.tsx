@@ -6,6 +6,10 @@ import { useMemo, useState } from "react";
 import {
   Plus, Trash2, Check, CalendarDays, Wallet, HandCoins, Handshake, Users, Briefcase,
   Building2, Landmark, PiggyBank, Gift, Laptop, Receipt, ChevronDown, ChevronUp,
+  CreditCard, Banknote, Coins, Home, Car, GraduationCap, HeartPulse, Smartphone,
+  Plane, ShoppingCart, Dog, Zap, Store, Scale, Trees, Camera, Music, Gamepad2,
+  Tv, Wifi, Dumbbell, Utensils, Shirt, Book, Baby, Bike, Bus, Ship, Wrench,
+  Sofa, Stethoscope, Sparkles, Coffee, Wine, Umbrella, TrendingUp, Trophy, Key,
 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { playCashRegister } from "@/lib/sound";
@@ -28,6 +32,14 @@ export const RECEIVABLE_ICONS = {
   wallet: Wallet, coins: HandCoins, deal: Handshake, people: Users, work: Briefcase,
   company: Building2, bank: Landmark, savings: PiggyBank, gift: Gift,
   freela: Laptop, bill: Receipt,
+  card: CreditCard, cash: Banknote, coins2: Coins, rent: Home, car: Car,
+  study: GraduationCap, health: HeartPulse, phone: Smartphone, travel: Plane,
+  shopping: ShoppingCart, pet: Dog, energy: Zap, store: Store, legal: Scale,
+  garden: Trees, camera: Camera, music: Music, games: Gamepad2, tv: Tv,
+  internet: Wifi, gym: Dumbbell, food: Utensils, clothes: Shirt, book: Book,
+  baby: Baby, bike: Bike, bus: Bus, boat: Ship, repair: Wrench, furniture: Sofa,
+  doctor: Stethoscope, other: Sparkles, coffee: Coffee, drinks: Wine,
+  insurance: Umbrella, invest: TrendingUp, prize: Trophy, key: Key,
 } as const;
 type ReceivableIconKey = keyof typeof RECEIVABLE_ICONS;
 
