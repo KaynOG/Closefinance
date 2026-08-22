@@ -67,7 +67,7 @@
 
 :root,
 :root.dark {
-  --radius: 0.35rem;
+  --radius: 0.2rem;
 
   --brand-violet: #007078;
   --brand-violet-foreground: #ffffff;
