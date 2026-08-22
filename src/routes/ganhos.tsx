@@ -19,7 +19,7 @@ const CYAN = "#22C3CC";
 const CYAN_DARK = "#006F77";
 
 function GanhosPage() {
-  const [{ transactions, categories, cards, banks }, api] = useStore();
+  const [{ transactions, categories, cards, banks, receivables }, api] = useStore();
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [fMonth, setFMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [fCategory, setFCategory] = useState("all");
