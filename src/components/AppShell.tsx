@@ -131,9 +131,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                 </div>
               );
             })()}
-            <div className="min-w-0 flex-1">
+            <div className={`min-w-0 flex-1 transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0 w-0"}`}>
               <p className="text-sm font-semibold truncate">{user.name}</p>
-              <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
             </div>
             <button
               onClick={(e) => {
@@ -142,7 +141,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                 sessionStorage.removeItem("closefinance:greeting");
                 navigate({ to: "/auth" });
               }}
-              className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground"
+              className={`rounded-md p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-300 ${expanded ? "opacity-100" : "opacity-0 w-0 p-0 overflow-hidden"}`}
               aria-label="Sair"
             >
               <LogOut className="size-4" />
