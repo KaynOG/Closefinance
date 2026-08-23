@@ -86,8 +86,11 @@ export function SavingsMonitor() {
       {congrats && (
         <Modal onClose={() => setCongrats(null)}>
           <div className="text-center px-2">
-            <div className="mx-auto mb-5 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#e2e043] via-[#f59e0f] to-[#FF6B1A] shadow-[0_0_60px_rgba(245,158,15,0.55)] animate-in zoom-in duration-500">
-              <PiggyBank className="size-10 text-[#001012]" />
+            <div
+              className="mx-auto mb-5 grid size-20 place-items-center rounded-full glow-violet animate-in zoom-in duration-500"
+              style={{ background: "var(--gradient-primary)" }}
+            >
+              <PiggyBank className="size-10 text-primary-foreground" />
             </div>
             <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-2 flex items-center justify-center gap-1.5">
               <Sparkles className="size-3.5" /> Você guardou dinheiro!
@@ -100,8 +103,8 @@ export function SavingsMonitor() {
             </p>
             <button
               onClick={() => setCongrats(null)}
-              className="w-full rounded-2xl py-3.5 font-semibold text-sm text-[#001012] transition active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg,#e2e043,#f59e0f)" }}
+              className="w-full rounded-2xl py-3.5 font-semibold text-sm text-primary-foreground transition active:scale-[0.98]"
+              style={{ background: "var(--gradient-primary)" }}
             >
               Bora continuar guardando 🚀
             </button>
@@ -112,8 +115,8 @@ export function SavingsMonitor() {
       {reminder && (
         <Modal onClose={closeReminder}>
           <div className="text-center px-2">
-            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-white/10 border border-white/20">
-              <Bell className="size-8 text-[#f59e0f]" />
+            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-muted border border-border">
+              <Bell className="size-8 text-primary" />
             </div>
             <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
               Lembrete mensal
@@ -128,15 +131,15 @@ export function SavingsMonitor() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={closeReminder}
-                className="rounded-2xl py-3 text-sm border border-border hover:bg-white/5 transition"
+                className="rounded-2xl py-3 text-sm border border-border hover:bg-muted transition"
               >
                 Depois
               </button>
               <a
                 href="/bancos"
                 onClick={closeReminder}
-                className="rounded-2xl py-3 text-sm font-semibold text-[#001012] transition active:scale-[0.98] grid place-items-center"
-                style={{ background: "linear-gradient(135deg,#e2e043,#f59e0f)" }}
+                className="rounded-2xl py-3 text-sm font-semibold text-primary-foreground transition active:scale-[0.98] grid place-items-center"
+                style={{ background: "var(--gradient-primary)" }}
               >
                 Guardar agora
               </a>
@@ -151,7 +154,7 @@ export function SavingsMonitor() {
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] grid place-items-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -160,7 +163,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 rounded-xl p-2 hover:bg-white/10 text-muted-foreground hover:text-foreground transition"
+          className="absolute top-3 right-3 rounded-xl p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition"
           aria-label="Fechar"
         >
           <X className="size-4" />
