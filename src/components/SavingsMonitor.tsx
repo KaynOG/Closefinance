@@ -131,7 +131,7 @@ export function SavingsMonitor() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={closeReminder}
-                className="rounded-2xl py-3 text-sm border border-border hover:bg-white/5 transition"
+                className="rounded-2xl py-3 text-sm border border-border hover:bg-muted transition"
               >
                 Depois
               </button>
