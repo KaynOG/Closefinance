@@ -163,7 +163,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 rounded-xl p-2 hover:bg-white/10 text-muted-foreground hover:text-foreground transition"
+          className="absolute top-3 right-3 rounded-xl p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition"
           aria-label="Fechar"
         >
           <X className="size-4" />
