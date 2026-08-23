@@ -434,3 +434,32 @@ html, body { overflow-x: clip; max-width: 100%; }
     padding-right: 2rem;
   }
 }
+
+/* ===== Escala tipográfica mobile: menor e mais minimalista ===== */
+@media (max-width: 767px) {
+  html {
+    /* reduz fontes e espaçamentos (rem) de forma proporcional */
+    font-size: 13.5px;
+  }
+  .safe-area-main {
+    padding-left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+    padding-right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  }
+  /* títulos mais discretos */
+  h1 { font-size: 1.35rem; line-height: 1.2; }
+  h2 { font-size: 1.1rem; line-height: 1.25; }
+  h3 { font-size: 1rem; line-height: 1.3; }
+  /* evita corte de texto em caixas estreitas */
+  h1, h2, h3, h4, p, span, li, button, label {
+    overflow-wrap: anywhere;
+  }
+  /* respiro interno menor nos cards de vidro */
+  .glass, .glass-strong {
+    border-radius: calc(var(--radius) + 6px);
+  }
+  /* tabelas e listas densas ficam legíveis sem estourar */
+  table { font-size: 0.8rem; }
+}
+@media (max-width: 380px) {
+  html { font-size: 12.5px; }
+}
