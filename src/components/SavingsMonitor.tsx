@@ -115,8 +115,8 @@ export function SavingsMonitor() {
       {reminder && (
         <Modal onClose={closeReminder}>
           <div className="text-center px-2">
-            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-white/10 border border-white/20">
-              <Bell className="size-8 text-[#f59e0f]" />
+            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-muted border border-border">
+              <Bell className="size-8 text-primary" />
             </div>
             <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
               Lembrete mensal
