@@ -86,8 +86,11 @@ export function SavingsMonitor() {
       {congrats && (
         <Modal onClose={() => setCongrats(null)}>
           <div className="text-center px-2">
-            <div className="mx-auto mb-5 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#e2e043] via-[#f59e0f] to-[#FF6B1A] shadow-[0_0_60px_rgba(245,158,15,0.55)] animate-in zoom-in duration-500">
-              <PiggyBank className="size-10 text-[#001012]" />
+            <div
+              className="mx-auto mb-5 grid size-20 place-items-center rounded-full glow-violet animate-in zoom-in duration-500"
+              style={{ background: "var(--gradient-primary)" }}
+            >
+              <PiggyBank className="size-10 text-primary-foreground" />
             </div>
             <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground mb-2 flex items-center justify-center gap-1.5">
               <Sparkles className="size-3.5" /> Você guardou dinheiro!
