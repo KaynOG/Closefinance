@@ -103,8 +103,8 @@ export function SavingsMonitor() {
             </p>
             <button
               onClick={() => setCongrats(null)}
-              className="w-full rounded-2xl py-3.5 font-semibold text-sm text-[#001012] transition active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg,#e2e043,#f59e0f)" }}
+              className="w-full rounded-2xl py-3.5 font-semibold text-sm text-primary-foreground transition active:scale-[0.98]"
+              style={{ background: "var(--gradient-primary)" }}
             >
               Bora continuar guardando 🚀
             </button>
