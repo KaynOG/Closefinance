@@ -138,8 +138,8 @@ export function SavingsMonitor() {
               <a
                 href="/bancos"
                 onClick={closeReminder}
-                className="rounded-2xl py-3 text-sm font-semibold text-[#001012] transition active:scale-[0.98] grid place-items-center"
-                style={{ background: "linear-gradient(135deg,#e2e043,#f59e0f)" }}
+                className="rounded-2xl py-3 text-sm font-semibold text-primary-foreground transition active:scale-[0.98] grid place-items-center"
+                style={{ background: "var(--gradient-primary)" }}
               >
                 Guardar agora
               </a>
