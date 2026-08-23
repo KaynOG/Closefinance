@@ -12,22 +12,22 @@ type GlassCardProps = HTMLAttributes<HTMLDivElement> & {
 export function GlassCard({ className, hideKey: _hk, hideLabel: _hl, children, ...props }: GlassCardProps) {
   void _hk; void _hl;
   return (
-    <div className={cn("glass rounded-3xl p-5 relative animate-in fade-in zoom-in-95 duration-300", className)} {...props}>
+    <div className={cn("glass rounded-3xl p-3.5 sm:p-5 relative animate-in fade-in zoom-in-95 duration-300", className)} {...props}>
       {children}
     </div>
   );
 }
 
 export function GlassPanel({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("glass-strong rounded-3xl p-6", className)} {...props} />;
+  return <div className={cn("glass-strong rounded-3xl p-4 sm:p-6", className)} {...props} />;
 }
 
 export function SectionTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-4 mb-5">
+    <div className="flex items-end justify-between gap-3 mb-3.5 sm:gap-4 sm:mb-5">
       <div>
-        <h2 className="text-xl lg:text-2xl font-bold">{title}</h2>
-        {subtitle && <p className="text-sm font-mono text-muted-foreground mt-1">{subtitle}</p>}
+        <h2 className="text-base sm:text-xl lg:text-2xl font-bold">{title}</h2>
+        {subtitle && <p className="text-[11px] sm:text-sm font-mono text-muted-foreground mt-0.5 sm:mt-1">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -51,7 +51,7 @@ export function Stat({ label, value, sub, accent = "violet", hideKey: _hk }: {
   };
   const color = accentVar[accent];
   return (
-    <div className="glass rounded-2xl p-5 relative overflow-hidden isolate animate-in fade-in zoom-in-95 duration-300">
+    <div className="glass rounded-2xl p-3.5 sm:p-5 relative overflow-hidden isolate animate-in fade-in zoom-in-95 duration-300">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -60,9 +60,9 @@ export function Stat({ label, value, sub, accent = "violet", hideKey: _hk }: {
         }}
       />
       <div className="relative">
-        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="mt-2 text-2xl lg:text-3xl font-bold">{value}</p>
-        {sub && <p className="mt-1 text-xs font-mono text-muted-foreground">{sub}</p>}
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+        <p className="mt-1.5 text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight">{value}</p>
+        {sub && <p className="mt-1 text-[10px] sm:text-xs font-mono text-muted-foreground">{sub}</p>}
       </div>
     </div>
   );
