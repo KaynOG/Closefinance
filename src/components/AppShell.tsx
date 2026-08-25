@@ -28,6 +28,7 @@ import { SavingsMonitor } from "./SavingsMonitor";
 import { OnboardingModal } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
 import { RouteLoader } from "./RouteLoader";
+import { LicenseNotice } from "./LicenseNotice";
 
 
 const nav = [
@@ -239,6 +240,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
       <SavingsMonitor />
       <OnboardingModal />
+      <LicenseNotice />
     </div>
   );
 }

@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_keys: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          days: number | null
+          id: string
+          kind: string
+          note: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       banks: {
         Row: {
           account_balance: number
@@ -286,6 +328,9 @@ export type Database = {
           gender: string | null
           id: string
           job: string | null
+          license_expires_at: string | null
+          license_kind: string
+          license_started_at: string | null
           name: string
           sound_enabled: boolean
           total_points: number
@@ -302,6 +347,9 @@ export type Database = {
           gender?: string | null
           id: string
           job?: string | null
+          license_expires_at?: string | null
+          license_kind?: string
+          license_started_at?: string | null
           name?: string
           sound_enabled?: boolean
           total_points?: number
@@ -318,6 +366,9 @@ export type Database = {
           gender?: string | null
           id?: string
           job?: string | null
+          license_expires_at?: string | null
+          license_kind?: string
+          license_started_at?: string | null
           name?: string
           sound_enabled?: boolean
           total_points?: number
@@ -522,6 +573,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -537,6 +609,7 @@ export type Database = {
           total_points: number
         }[]
       }
+      gen_access_code: { Args: never; Returns: string }
       gen_friend_code: { Args: never; Returns: string }
       get_my_friends_ranking: {
         Args: never
@@ -548,9 +621,23 @@ export type Database = {
           total_points: number
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      redeem_access_key: {
+        Args: { _code: string }
+        Returns: {
+          license_expires_at: string
+          license_kind: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -677,6 +764,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

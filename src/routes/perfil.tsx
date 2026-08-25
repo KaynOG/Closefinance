@@ -13,6 +13,7 @@ import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
 import { BACKGROUNDS, getBackgroundId, setBackgroundId, onBackgroundChange } from "@/lib/backgrounds";
 import { InstallAppCard } from "@/components/InstallAppCard";
+import { LicenseCard } from "@/components/LicenseCard";
 
 
 export const Route = createFileRoute("/perfil")({
@@ -140,6 +141,10 @@ function PerfilPage() {
 
       <section className="mb-6">
         <SecurityPanel />
+      </section>
+
+      <section className="mb-6">
+        <LicenseCard />
       </section>
 
       <section className="mb-6">
