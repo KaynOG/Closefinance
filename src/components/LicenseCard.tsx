@@ -7,6 +7,7 @@ import {
   type LicenseInfo,
 } from "@/lib/license";
 import { AdminKeysCard } from "./AdminKeysCard";
+import { AdminUsersCard } from "./AdminUsersCard";
 
 export function LicenseCard() {
   const [, , user] = useStore();
@@ -105,6 +106,7 @@ export function LicenseCard() {
       </GlassCard>
 
       {admin && <AdminKeysCard />}
+      {admin && <AdminUsersCard />}
     </div>
   );
 }
