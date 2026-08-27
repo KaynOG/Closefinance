@@ -68,17 +68,36 @@ function BackupBody() {
     return m;
   }, [cards, preview]);
 
-  function handleExport() {
+  function downloadBackup(prefix = "closefinance-backup") {
     const json = api.exportData("user");
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-    a.href = url; a.download = `closefinance-backup-${stamp}.json`;
+    a.href = url; a.download = `${prefix}-${stamp}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function handleExport() {
+    downloadBackup();
     setToast({ kind: "ok", msg: "Backup exportado com sucesso." });
   }
+
+  async function handleWipe() {
+    if (!confirm("Tem certeza que deseja apagar TODOS os seus dados? Um backup será baixado antes da exclusão.")) return;
+    if (!confirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
+    setWiping(true);
+    try {
+      downloadBackup("closefinance-antes-de-apagar");
+      const r = await api.wipeData();
+      if (r?.ok) setToast({ kind: "ok", msg: "Todos os dados foram apagados. O backup foi baixado no seu dispositivo." });
+      else setToast({ kind: "err", msg: r?.error ?? "Não foi possível apagar os dados." });
+    } finally {
+      setWiping(false);
+    }
+  }
+
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
