@@ -69,11 +69,31 @@ function BanksPage() {
 
 
 
-      <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <Stat label="Saldo total" value={formatBRL(totals.balance + totals.saved + cash)} accent="violet" sub="bancos + guardado + dinheiro físico" />
         <Stat label="Saldo em contas" value={formatBRL(totals.balance)} accent="teal" sub={`${banks.length} ${banks.length === 1 ? "banco" : "bancos"}`} />
         <Stat label="Guardado / poupado" value={formatBRL(totals.saved)} accent="success" sub="reserva acumulada" />
         <Stat label="Meta anual" value={goal > 0 ? formatBRL(goal) : "—"} accent="violet" sub={goal > 0 ? `${Math.round(totals.goalPct)}% atingido` : "defina no perfil"} />
       </section>
+
+      <GlassCard className="mb-4">
+        <SectionTitle title="Saldo total" subtitle="dinheiro físico + bancos" />
+        <p className="font-mono text-3xl font-bold text-gradient">{formatBRL(totals.balance + totals.saved + cash)}</p>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
+          <div className="rounded-lg border border-border bg-white/5 p-2.5">
+            <p className="text-muted-foreground uppercase tracking-wider">Dinheiro físico</p>
+            <p className="text-sm font-semibold mt-1">{formatBRL(cash)}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-white/5 p-2.5">
+            <p className="text-muted-foreground uppercase tracking-wider">Em contas</p>
+            <p className="text-sm font-semibold mt-1">{formatBRL(totals.balance)}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-white/5 p-2.5">
+            <p className="text-muted-foreground uppercase tracking-wider">Guardado</p>
+            <p className="text-sm font-semibold mt-1">{formatBRL(totals.saved)}</p>
+          </div>
+        </div>
+      </GlassCard>
 
 
       <CashBox cash={cash} onAdd={(v) => api.addCash(v)} onSet={(v) => api.setCash(v)} />
