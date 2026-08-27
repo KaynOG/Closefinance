@@ -1350,7 +1350,6 @@ export function useStore() {
         for (const c of incomingCards) {
           const dup = existingCards.find(x => norm(x.name) === norm(c.name));
           if (dup) {
-            catIdMapNoop();
             await supabase.from("cards").update({
               limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color,
               used_manual: c.usedManual ?? 0,
