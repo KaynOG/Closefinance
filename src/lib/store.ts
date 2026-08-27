@@ -1309,11 +1309,32 @@ export function useStore() {
     // ---------- BACKUP ----------
     exportData: (_scope: "user" | "all" = "user") => {
       const user = memory.users.find(u => u.id === memory.currentUserId) ?? null;
+      const cards = memory.cards.map(c => ({ ...c, usedManual: c.usedManual ?? 0 }));
       return JSON.stringify({
         app: "CloseFinance", version: 2, exportedAt: new Date().toISOString(),
-        data: { transactions: memory.transactions, categories: memory.categories, cards: memory.cards, banks: memory.banks, user, missions: memory.missions },
+        data: { transactions: memory.transactions, categories: memory.categories, cards, banks: memory.banks, user, missions: memory.missions },
       }, null, 2);
     },
+    wipeData: async () => {
+      const uid = memory.currentUserId; if (!uid) return { ok: false as const, error: "Você precisa estar logado." };
+      try {
+        await supabase.from("debt_installments").delete().eq("user_id", uid);
+        await supabase.from("receivable_installments").delete().eq("user_id", uid);
+        await supabase.from("debts").delete().eq("user_id", uid);
+        await supabase.from("receivables").delete().eq("user_id", uid);
+        await supabase.from("transactions").delete().eq("user_id", uid);
+        await supabase.from("cards").delete().eq("user_id", uid);
+        await supabase.from("banks").delete().eq("user_id", uid);
+        await supabase.from("categories").delete().eq("user_id", uid);
+        await supabase.from("profiles").update({ cash_amount: 0 } as never).eq("id", uid);
+        const { data: u } = await supabase.auth.getUser();
+        if (u.user) await loadAll(u.user);
+        return { ok: true as const };
+      } catch {
+        return { ok: false as const, error: "Não foi possível apagar os dados." };
+      }
+    },
+
     importData: async (json: string, mode: "merge" | "replace" = "merge") => {
       try {
         const parsed = JSON.parse(json);
