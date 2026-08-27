@@ -463,3 +463,15 @@ html, body { overflow-x: clip; max-width: 100%; }
 @media (max-width: 380px) {
   html { font-size: 12.5px; }
 }
+
+/* Legibilidade das caixas de seleção (dropdown nativo) no modo escuro */
+select option,
+select optgroup {
+  background-color: #ffffff;
+  color: #101010;
+}
+select option:checked,
+select option:hover {
+  background-color: #e6e6e6;
+  color: #101010;
+}
