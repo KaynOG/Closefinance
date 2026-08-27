@@ -5,7 +5,7 @@ import { useStore, formatBRL, type Transaction, type Category, type Card } from 
 import { useMemo, useRef, useState } from "react";
 import {
   Download, Upload, Database, ShieldCheck, FileJson, CheckCircle2, AlertTriangle,
-  ArrowDownCircle, ArrowUpCircle, CreditCard, Tags, Plus, RefreshCw, Minus,
+  ArrowDownCircle, ArrowUpCircle, CreditCard, Tags, Plus, RefreshCw, Minus, Trash2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/backup")({
@@ -68,17 +68,36 @@ function BackupBody() {
     return m;
   }, [cards, preview]);
 
-  function handleExport() {
+  function downloadBackup(prefix = "closefinance-backup") {
     const json = api.exportData("user");
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-    a.href = url; a.download = `closefinance-backup-${stamp}.json`;
+    a.href = url; a.download = `${prefix}-${stamp}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function handleExport() {
+    downloadBackup();
     setToast({ kind: "ok", msg: "Backup exportado com sucesso." });
   }
+
+  async function handleWipe() {
+    if (!confirm("Tem certeza que deseja apagar TODOS os seus dados? Um backup será baixado antes da exclusão.")) return;
+    if (!confirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
+    setWiping(true);
+    try {
+      downloadBackup("closefinance-antes-de-apagar");
+      const r = await api.wipeData();
+      if (r?.ok) setToast({ kind: "ok", msg: "Todos os dados foram apagados. O backup foi baixado no seu dispositivo." });
+      else setToast({ kind: "err", msg: r?.error ?? "Não foi possível apagar os dados." });
+    } finally {
+      setWiping(false);
+    }
+  }
+
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -170,8 +189,22 @@ function BackupBody() {
             <ShieldCheck className="size-4 text-[#22C3CC] shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">A senha do seu cadastro <strong>não</strong> é incluída no backup.</p>
           </div>
+
+          <div className="mt-4 rounded-2xl border border-[#FF4D6D]/40 bg-[#FF4D6D]/5 p-4">
+            <p className="font-semibold text-sm">Apagar todos os dados</p>
+            <p className="text-xs text-muted-foreground mt-1 mb-3">Remove transações, cartões, bancos, categorias, dívidas e devedores. Um backup .json é baixado automaticamente antes da exclusão.</p>
+            <button
+              onClick={handleWipe}
+              disabled={wiping}
+              className="w-full rounded-xl border border-[#FF4D6D]/50 text-[#FF8FA3] font-semibold py-3 hover:bg-[#FF4D6D]/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <Trash2 className="size-4" />
+              {wiping ? "Apagando…" : "Apagar todos os dados"}
+            </button>
+          </div>
         </GlassCard>
       </section>
+
 
       <GlassCard>
         <SectionTitle title="Importar / restaurar" subtitle="suba um arquivo .json gerado anteriormente" />
