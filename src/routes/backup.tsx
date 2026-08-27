@@ -5,7 +5,7 @@ import { useStore, formatBRL, type Transaction, type Category, type Card } from 
 import { useMemo, useRef, useState } from "react";
 import {
   Download, Upload, Database, ShieldCheck, FileJson, CheckCircle2, AlertTriangle,
-  ArrowDownCircle, ArrowUpCircle, CreditCard, Tags, Plus, RefreshCw, Minus,
+  ArrowDownCircle, ArrowUpCircle, CreditCard, Tags, Plus, RefreshCw, Minus, Trash2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/backup")({
