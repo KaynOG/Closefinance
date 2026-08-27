@@ -170,8 +170,22 @@ function BackupBody() {
             <ShieldCheck className="size-4 text-[#22C3CC] shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">A senha do seu cadastro <strong>não</strong> é incluída no backup.</p>
           </div>
+
+          <div className="mt-4 rounded-2xl border border-[#FF4D6D]/40 bg-[#FF4D6D]/5 p-4">
+            <p className="font-semibold text-sm">Apagar todos os dados</p>
+            <p className="text-xs text-muted-foreground mt-1 mb-3">Remove transações, cartões, bancos, categorias, dívidas e devedores. Um backup .json é baixado automaticamente antes da exclusão.</p>
+            <button
+              onClick={handleWipe}
+              disabled={wiping}
+              className="w-full rounded-xl border border-[#FF4D6D]/50 text-[#FF8FA3] font-semibold py-3 hover:bg-[#FF4D6D]/10 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <Trash2 className="size-4" />
+              {wiping ? "Apagando…" : "Apagar todos os dados"}
+            </button>
+          </div>
         </GlassCard>
       </section>
+
 
       <GlassCard>
         <SectionTitle title="Importar / restaurar" subtitle="suba um arquivo .json gerado anteriormente" />
