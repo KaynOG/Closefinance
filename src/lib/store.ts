@@ -1335,17 +1335,40 @@ export function useStore() {
         }
         // Insert categories first (so tx FK works); remap ids
         const catIdMap = new Map<string, string>();
+        const existingCats = mode === "merge" ? memory.categories : [];
+        const existingCards = mode === "merge" ? memory.cards : [];
+        const existingBanks = mode === "merge" ? memory.banks : [];
+        const norm = (s: string) => s.trim().toLowerCase();
+
         for (const c of incomingCats) {
+          const dup = existingCats.find(x => norm(x.name) === norm(c.name));
+          if (dup) { catIdMap.set(c.id, dup.id); continue; }
           const { data } = await supabase.from("categories").insert({ user_id: uid, name: c.name, color: c.color, icon: c.icon ?? null, kind: c.kind ?? "expense" }).select("id").single();
           if (data) catIdMap.set(c.id, String((data as Record<string, unknown>).id));
         }
         const cardIdMap = new Map<string, string>();
         for (const c of incomingCards) {
-          const { data } = await supabase.from("cards").insert({ user_id: uid, name: c.name, limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color }).select("id").single();
+          const dup = existingCards.find(x => norm(x.name) === norm(c.name));
+          if (dup) {
+            catIdMapNoop();
+            await supabase.from("cards").update({
+              limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color,
+              used_manual: c.usedManual ?? 0,
+            } as never).eq("id", dup.id);
+            cardIdMap.set(c.id, dup.id);
+            continue;
+          }
+          const { data } = await supabase.from("cards").insert({ user_id: uid, name: c.name, limit_amount: c.limit, closing_day: c.closingDay, due_day: c.dueDay, color: c.color, used_manual: c.usedManual ?? 0 } as never).select("id").single();
           if (data) cardIdMap.set(c.id, String((data as Record<string, unknown>).id));
         }
         const bankIdMap = new Map<string, string>();
         for (const b of incomingBanks) {
+          const dup = existingBanks.find(x => norm(x.name) === norm(b.name));
+          if (dup) {
+            await supabase.from("banks").update({ color: b.color, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null } as never).eq("id", dup.id);
+            bankIdMap.set(b.id, dup.id);
+            continue;
+          }
           const { data } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null }).select("id").single();
           if (data) bankIdMap.set(b.id, String((data as Record<string, unknown>).id));
         }
