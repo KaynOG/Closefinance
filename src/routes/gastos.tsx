@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, parseDebtTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TrendAreaChart, CategoryBarChart } from "@/components/charts/lazy";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -168,21 +168,7 @@ function GastosPage() {
         <GlassCard hideKey="gastos-1" hideLabel="Evolução dos gastos" className="lg:col-span-2">
           <SectionTitle title="Evolução dos gastos" subtitle="últimos 12 meses" />
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={ORANGE} stopOpacity={0.7} />
-                    <stop offset="100%" stopColor={ORANGE} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
-                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
-                <Area type="monotone" dataKey="valor" stroke={ORANGE} fill="url(#gOrange)" strokeWidth={2.5} animationDuration={900} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <TrendAreaChart data={series} color={ORANGE} gradientId="gOrange" />
           </div>
         </GlassCard>
 
@@ -190,16 +176,7 @@ function GastosPage() {
           <SectionTitle title="Top categorias" subtitle="mês atual" />
           <div className="h-72">
             {byCat.length === 0 ? <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p> : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byCat} layout="vertical" margin={{ left: 10, right: 10 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" fontSize={11} width={90} tick={{ fill: "rgba(255,255,255,0.75)" }} />
-                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
-                  <Bar dataKey="valor" radius={[0, 8, 8, 0]} animationDuration={800}>
-                    {byCat.map((c, i) => <Cell key={i} fill={c.color} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <CategoryBarChart data={byCat} />
             )}
           </div>
         </GlassCard>

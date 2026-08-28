@@ -5,7 +5,7 @@ import { useStore, formatBRL, isSameMonth, parseBRL, parseReceivableTag, type Tr
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { TrendAreaChart, CategoryBarChart } from "@/components/charts/lazy";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
 import { playCashRegister } from "@/lib/sound";
@@ -103,21 +103,7 @@ function GanhosPage() {
         <GlassCard hideKey="ganhos-1" hideLabel="Evolução dos ganhos" className="lg:col-span-2">
           <SectionTitle title="Evolução dos ganhos" subtitle="últimos 12 meses" />
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={CYAN} stopOpacity={0.7} />
-                    <stop offset="100%" stopColor={CYAN} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.7)" }} />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)" }} />
-                <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
-                <Area type="monotone" dataKey="valor" stroke={CYAN} fill="url(#gCyan)" strokeWidth={2.5} animationDuration={900} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <TrendAreaChart data={series} color={CYAN} gradientId="gCyan" />
           </div>
         </GlassCard>
 
@@ -125,16 +111,7 @@ function GanhosPage() {
           <SectionTitle title="Por categoria" subtitle="mês atual" />
           <div className="h-72">
             {byCat.length === 0 ? <p className="text-sm text-muted-foreground">Sem ganhos categorizados este mês.</p> : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byCat} layout="vertical" margin={{ left: 10, right: 10 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" stroke="rgba(255,255,255,0.6)" fontSize={11} width={90} tick={{ fill: "rgba(255,255,255,0.75)" }} />
-                  <Tooltip contentStyle={{ background: "#14062E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "#fff" }} labelStyle={{ color: "#fff" }} itemStyle={{ color: "#fff" }} formatter={(v: number) => formatBRL(v)} />
-                  <Bar dataKey="valor" radius={[0, 8, 8, 0]} animationDuration={800}>
-                    {byCat.map((c, i) => <Cell key={i} fill={c.color} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <CategoryBarChart data={byCat} />
             )}
           </div>
         </GlassCard>
