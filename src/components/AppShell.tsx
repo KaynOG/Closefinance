@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   LayoutDashboard,
   Calendar,
@@ -23,12 +23,12 @@ import { getRank } from "@/lib/ranks";
 import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
 import { initTheme } from "@/lib/theme";
-import { ConsentModal } from "./ConsentModal";
-import { SavingsMonitor } from "./SavingsMonitor";
-import { OnboardingModal } from "./OnboardingModal";
+const ConsentModal = lazy(() => import("./ConsentModal").then((m) => ({ default: m.ConsentModal })));
+const SavingsMonitor = lazy(() => import("./SavingsMonitor").then((m) => ({ default: m.SavingsMonitor })));
+const OnboardingModal = lazy(() => import("./OnboardingModal").then((m) => ({ default: m.OnboardingModal })));
 import { ThemeToggle } from "./ThemeToggle";
 import { RouteLoader } from "./RouteLoader";
-import { LicenseNotice } from "./LicenseNotice";
+const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
 
 
 const nav = [
@@ -54,11 +54,15 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [deferred, setDeferred] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     installGlobalClickSounds();
     initTheme();
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+    const schedule = w.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 600));
+    schedule(() => setDeferred(true));
   }, []);
   useEffect(() => {
     if (mounted && !state.loading && !user && pathname !== "/auth") {
@@ -236,11 +240,14 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       </div>
 
       <RouteLoader />
-      <ConsentModal />
-
-      <SavingsMonitor />
-      <OnboardingModal />
-      <LicenseNotice />
+      {deferred && (
+        <Suspense fallback={null}>
+          <ConsentModal />
+          <SavingsMonitor />
+          <OnboardingModal />
+          <LicenseNotice />
+        </Suspense>
+      )}
     </div>
   );
 }

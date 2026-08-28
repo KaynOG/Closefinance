@@ -10,21 +10,7 @@ import { motion } from "framer-motion";
 
 /** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  CartesianGrid,
-  BarChart,
-  Bar as RBar,
-} from "recharts";
+import { FlowAreaChart, CatStackBarChart, CatPieChart } from "@/components/charts/lazy";
 import {
   TrendingUp,
   TrendingDown,
@@ -655,54 +641,7 @@ function DashboardPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="dCyan" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={CYAN} stopOpacity={0.7} />
-                    <stop offset="100%" stopColor={CYAN} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="dOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={ORANGE} stopOpacity={0.7} />
-                    <stop offset="100%" stopColor={ORANGE} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis
-                  dataKey="month"
-                  stroke="rgba(255,255,255,0.5)"
-                  fontSize={11}
-                  tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
-                />
-                <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
-                <Tooltip cursor={{ stroke: "rgba(255,255,255,0.18)", strokeWidth: 1 }} content={<ChartTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="receitas"
-                  name="Ganhos"
-                  stroke={CYAN}
-                  fill="url(#dCyan)"
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                  animationDuration={1100}
-                  animationEasing="ease-out"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="despesas"
-                  name="Gastos"
-                  stroke={ORANGE}
-                  fill="url(#dOrange)"
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                  animationDuration={1100}
-                  animationBegin={180}
-                  animationEasing="ease-out"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <FlowAreaChart data={series} incomeColor={CYAN} expenseColor={ORANGE} />
           </motion.div>
         </GlassCard>)}
       </section>
@@ -837,35 +776,7 @@ function DashboardPage() {
                       Sem gastos no período.
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={catSeries} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis
-                          dataKey="month"
-                          stroke="rgba(255,255,255,0.5)"
-                          fontSize={11}
-                          tick={{ fill: "rgba(255,255,255,0.7)", fontFamily: MONO }}
-                        />
-                        <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tick={{ fill: "rgba(255,255,255,0.6)", fontFamily: MONO }} />
-                        <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} content={<ChartTooltip />} />
-                        <Legend
-                          wrapperStyle={{ fontSize: 11, color: "#fff" }}
-                          formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
-                        />
-                        {activeCats.map((c, i) => (
-                          <RBar
-                            key={c.id}
-                            dataKey={c.name}
-                            stackId="a"
-                            fill={c.color}
-                            radius={[6, 6, 0, 0]}
-                            animationDuration={800}
-                            animationBegin={i * 90}
-                            animationEasing="ease-out"
-                          />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <CatStackBarChart data={catSeries} cats={activeCats} />
                   )}
                 </motion.div>
 
@@ -930,32 +841,7 @@ function DashboardPage() {
               {byCat.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={byCat}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      animationDuration={900}
-                      animationBegin={120}
-                      animationEasing="ease-out"
-                    >
-                      {byCat.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} stroke="rgba(0,0,0,0)" />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip showTotal={false} />} />
-                    <Legend
-                      wrapperStyle={{ fontSize: 12, color: "#fff" }}
-                      formatter={(value) => <span style={{ color: "#fff" }}>{value}</span>}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <CatPieChart data={byCat} />
               )}
             </motion.div>
           </GlassCard>
