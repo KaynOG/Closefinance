@@ -49,6 +49,7 @@ function BackupBody() {
   const [toast, setToast] = useState<Toast>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [tab, setTab] = useState<TabKey>("transactions");
+  const [wiping, setWiping] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const totalIncome = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
