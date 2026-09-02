@@ -325,11 +325,12 @@ async function loadAll(supaUser: SupaUser) {
   const completed = history.filter(h => h.date.slice(0, 10) === today && h.points > 0).map(h => h.missionId);
 
   let cats = (catsR.data ?? []).map(r => mapCat(r as Record<string, unknown>));
-  // Garante a categoria padrão de Adiantamento/Pagamento de fatura
-  const INVOICE_CAT_NAME = "Adiantamento/Pagamento de fatura";
-  if (!cats.some(c => c.name === INVOICE_CAT_NAME)) {
+  // Garante as categorias padrão (fixas) de cada usuário
+  const normName = (s: string) => s.trim().toLowerCase();
+  for (const def of DEFAULT_CATEGORIES) {
+    if (cats.some(c => normName(c.name) === normName(def.name))) continue;
     const { data: newCat } = await supabase.from("categories")
-      .insert({ user_id: uid, name: INVOICE_CAT_NAME, color: "#2BD9A1", kind: "expense" })
+      .insert({ user_id: uid, name: def.name, color: def.color, kind: def.kind, icon: def.icon ?? null })
       .select("*").single();
     if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
   }
