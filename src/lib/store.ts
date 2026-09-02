@@ -300,6 +300,14 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
   };
 }
 
+// ============= CATEGORIAS PADRÃO (fixas) =============
+export const DEFAULT_CATEGORIES = [
+  { name: "Salário", color: "#2BD9A1", kind: "income", icon: "wallet" },
+  { name: "Renda extra", color: "#22C3CC", kind: "income", icon: "coins" },
+  { name: "Adiantamento/Pagamento de fatura", color: "#2BD9A1", kind: "expense", icon: null },
+] as const;
+export const LOCKED_CATEGORY_NAMES: string[] = DEFAULT_CATEGORIES.map(c => c.name.toLowerCase());
+
 // ============= LOAD =============
 async function loadAll(supaUser: SupaUser) {
   set({ loading: true });
