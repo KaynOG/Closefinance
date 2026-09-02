@@ -783,8 +783,8 @@ export function useStore() {
     },
     removeCategory: async (i: string) => {
       const cat = memory.categories.find(c => c.id === i);
-      if (cat?.name === "Adiantamento/Pagamento de fatura") {
-        console.warn("Categoria padrão Adiantamento/Pagamento de fatura não pode ser apagada.");
+      if (cat && LOCKED_CATEGORY_NAMES.includes(cat.name.trim().toLowerCase())) {
+        console.warn(`Categoria padrão "${cat.name}" não pode ser apagada.`);
         return;
       }
       const { error } = await supabase.from("categories").delete().eq("id", i);
