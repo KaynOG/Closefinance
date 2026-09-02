@@ -93,7 +93,7 @@ function TxPage() {
     <AppShell>
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Lançamentos</p>
-        <h1 className="text-3xl font-bold">Transações</h1>
+        <h1 className="text-3xl font-bold">Transações (BETA)</h1>
       </header>
 
       {/* Fatura atual */}
