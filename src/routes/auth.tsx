@@ -198,7 +198,7 @@ function AuthPage() {
 
             <form onSubmit={submit} className="space-y-3">
               {mode === "signup" && (
-                <IconField icon={<UserIcon className="size-4" />} placeholder="Seu nome completo"
+                <IconField icon={<UserIcon className="size-4" />} placeholder="Nome e sobrenome"
                   value={form.name} onChange={v => setForm({ ...form, name: v })} />
               )}
               <IconField icon={<Mail className="size-4" />} placeholder="E-mail" type="email"
