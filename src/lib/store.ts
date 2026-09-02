@@ -1311,8 +1311,18 @@ export function useStore() {
       const user = memory.users.find(u => u.id === memory.currentUserId) ?? null;
       const cards = memory.cards.map(c => ({ ...c, usedManual: c.usedManual ?? 0 }));
       return JSON.stringify({
-        app: "CloseFinance", version: 2, exportedAt: new Date().toISOString(),
-        data: { transactions: memory.transactions, categories: memory.categories, cards, banks: memory.banks, user, missions: memory.missions },
+        app: "CloseFinance", version: 3, exportedAt: new Date().toISOString(),
+        data: {
+          transactions: memory.transactions,
+          categories: memory.categories,
+          cards,
+          banks: memory.banks,
+          debts: memory.debts,
+          receivables: memory.receivables,
+          cashAmount: user?.cashAmount ?? 0,
+          user,
+          missions: memory.missions,
+        },
       }, null, 2);
     },
     wipeData: async () => {
