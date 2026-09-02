@@ -1355,8 +1355,16 @@ export function useStore() {
         const incomingCats: Category[] = Array.isArray(d.categories) ? d.categories : [];
         const incomingCards: Card[] = Array.isArray(d.cards) ? d.cards : [];
         const incomingBanks: Bank[] = Array.isArray(d.banks) ? d.banks : [];
+        const incomingDebts: Debt[] = Array.isArray(d.debts) ? d.debts : [];
+        const incomingRecvs: Receivable[] = Array.isArray(d.receivables) ? d.receivables : [];
 
         if (mode === "replace") {
+          await supabase.from("debt_installments").delete().eq("user_id", uid);
+          await supabase.from("receivable_installments").delete().eq("user_id", uid);
+          await Promise.all([
+            supabase.from("debts").delete().eq("user_id", uid),
+            supabase.from("receivables").delete().eq("user_id", uid),
+          ]);
           await Promise.all([
             supabase.from("transactions").delete().eq("user_id", uid),
             supabase.from("cards").delete().eq("user_id", uid),
@@ -1402,6 +1410,51 @@ export function useStore() {
           const { data } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null }).select("id").single();
           if (data) bankIdMap.set(b.id, String((data as Record<string, unknown>).id));
         }
+
+        // Dívidas e devedores (cabeçalhos) — antes das transações para remapear as tags
+        const existingDebts = mode === "merge" ? memory.debts : [];
+        const existingRecvs = mode === "merge" ? memory.receivables : [];
+        const debtIdMap = new Map<string, string>();
+        for (const dv of incomingDebts) {
+          const dup = existingDebts.find(x => norm(x.name) === norm(dv.name));
+          if (dup) { debtIdMap.set(dv.id, dup.id); continue; }
+          const { data } = await supabase.from("debts").insert({
+            user_id: uid, name: dv.name, icon: dv.icon ?? "wallet", color: dv.color ?? "#540BD3",
+            total_amount: dv.totalAmount, installments_total: dv.installmentsTotal ?? (dv.installments?.length ?? 0),
+            bank_id: dv.bankId ? bankIdMap.get(dv.bankId) ?? null : null,
+            category_id: dv.categoryId ? catIdMap.get(dv.categoryId) ?? null : null,
+            note: dv.note ?? null,
+          }).select("id").single();
+          if (data) debtIdMap.set(dv.id, String((data as Record<string, unknown>).id));
+        }
+        const recvIdMap = new Map<string, string>();
+        for (const rv of incomingRecvs) {
+          const dup = existingRecvs.find(x => norm(x.name) === norm(rv.name));
+          if (dup) { recvIdMap.set(rv.id, dup.id); continue; }
+          const { data } = await supabase.from("receivables").insert({
+            user_id: uid, name: rv.name, icon: rv.icon ?? "wallet", color: rv.color ?? "#2BD9A1",
+            total_amount: rv.totalAmount, installments_total: rv.installmentsTotal ?? (rv.installments?.length ?? 0),
+            bank_id: rv.bankId ? bankIdMap.get(rv.bankId) ?? null : null,
+            category_id: rv.categoryId ? catIdMap.get(rv.categoryId) ?? null : null,
+            note: rv.note ?? null,
+          }).select("id").single();
+          if (data) recvIdMap.set(rv.id, String((data as Record<string, unknown>).id));
+        }
+
+        const remapTag = (tag?: string | null): string | null => {
+          if (!tag) return null;
+          if (tag.startsWith(DEBT_TAG_PREFIX)) {
+            const id = debtIdMap.get(tag.slice(DEBT_TAG_PREFIX.length));
+            return id ? `${DEBT_TAG_PREFIX}${id}` : null;
+          }
+          if (tag.startsWith(RECEIVABLE_TAG_PREFIX)) {
+            const id = recvIdMap.get(tag.slice(RECEIVABLE_TAG_PREFIX.length));
+            return id ? `${RECEIVABLE_TAG_PREFIX}${id}` : null;
+          }
+          return tag;
+        };
+
+        const txIdMap = new Map<string, string>();
         if (incomingTx.length) {
           const rows = incomingTx.map(t => ({
             user_id: uid, type: t.type, amount: t.amount, description: t.description ?? "",
@@ -1410,10 +1463,42 @@ export function useStore() {
             bank_id: t.bankId ? bankIdMap.get(t.bankId) ?? null : null,
             essential: t.essential ?? null, payment_method: t.paymentMethod ?? null,
             installment_no: t.installmentNo ?? null, installment_total: t.installmentTotal ?? null,
-            installment_group_id: null, tag: t.tag ?? null,
+            installment_group_id: null, tag: remapTag(t.tag),
+            applied_to_balance: t.appliedToBalance ?? false,
           }));
-          await supabase.from("transactions").insert(rows);
+          const { data: txData } = await supabase.from("transactions").insert(rows as never).select("id");
+          const ids = (txData ?? []) as Record<string, unknown>[];
+          incomingTx.forEach((t, i) => { const nid = ids[i]?.id; if (nid) txIdMap.set(t.id, String(nid)); });
         }
+
+        // Parcelas de dívidas e devedores
+        const debtInstRows = incomingDebts.flatMap(dv => {
+          const newDebtId = debtIdMap.get(dv.id);
+          if (!newDebtId || !Array.isArray(dv.installments)) return [];
+          return dv.installments.map(i => ({
+            user_id: uid, debt_id: newDebtId, number: i.number, amount: i.amount,
+            due_date: i.dueDate, paid: Boolean(i.paid),
+            transaction_id: i.transactionId ? txIdMap.get(i.transactionId) ?? null : null,
+          }));
+        });
+        if (debtInstRows.length) await supabase.from("debt_installments").insert(debtInstRows as never);
+
+        const recvInstRows = incomingRecvs.flatMap(rv => {
+          const newRecvId = recvIdMap.get(rv.id);
+          if (!newRecvId || !Array.isArray(rv.installments)) return [];
+          return rv.installments.map(i => ({
+            user_id: uid, receivable_id: newRecvId, number: i.number, amount: i.amount,
+            due_date: i.dueDate, received: Boolean(i.received),
+            transaction_id: i.transactionId ? txIdMap.get(i.transactionId) ?? null : null,
+          }));
+        });
+        if (recvInstRows.length) await supabase.from("receivable_installments").insert(recvInstRows as never);
+
+        // Dinheiro físico
+        if (typeof d.cashAmount === "number") {
+          await supabase.from("profiles").update({ cash_amount: d.cashAmount } as never).eq("id", uid);
+        }
+
         // Refresh state
         const { data: u } = await supabase.auth.getUser();
         if (u.user) await loadAll(u.user);
