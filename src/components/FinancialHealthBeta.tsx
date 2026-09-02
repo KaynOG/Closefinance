@@ -266,7 +266,7 @@ export function FinancialHealthBeta({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold">Saúde financeira</h2>
+              <h2 className="text-base font-semibold">Saúde financeira (BETA)</h2>
               <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
                 Beta
               </span>
