@@ -300,6 +300,14 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
   };
 }
 
+// ============= CATEGORIAS PADRÃO (fixas) =============
+export const DEFAULT_CATEGORIES = [
+  { name: "Salário", color: "#2BD9A1", kind: "income", icon: "wallet" },
+  { name: "Renda extra", color: "#22C3CC", kind: "income", icon: "coins" },
+  { name: "Adiantamento/Pagamento de fatura", color: "#2BD9A1", kind: "expense", icon: null },
+] as const;
+export const LOCKED_CATEGORY_NAMES: string[] = DEFAULT_CATEGORIES.map(c => c.name.toLowerCase());
+
 // ============= LOAD =============
 async function loadAll(supaUser: SupaUser) {
   set({ loading: true });
@@ -325,11 +333,12 @@ async function loadAll(supaUser: SupaUser) {
   const completed = history.filter(h => h.date.slice(0, 10) === today && h.points > 0).map(h => h.missionId);
 
   let cats = (catsR.data ?? []).map(r => mapCat(r as Record<string, unknown>));
-  // Garante a categoria padrão de Adiantamento/Pagamento de fatura
-  const INVOICE_CAT_NAME = "Adiantamento/Pagamento de fatura";
-  if (!cats.some(c => c.name === INVOICE_CAT_NAME)) {
+  // Garante as categorias padrão (fixas) de cada usuário
+  const normName = (s: string) => s.trim().toLowerCase();
+  for (const def of DEFAULT_CATEGORIES) {
+    if (cats.some(c => normName(c.name) === normName(def.name))) continue;
     const { data: newCat } = await supabase.from("categories")
-      .insert({ user_id: uid, name: INVOICE_CAT_NAME, color: "#2BD9A1", kind: "expense" })
+      .insert({ user_id: uid, name: def.name, color: def.color, kind: def.kind, icon: def.icon ?? null })
       .select("*").single();
     if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
   }
@@ -774,8 +783,8 @@ export function useStore() {
     },
     removeCategory: async (i: string) => {
       const cat = memory.categories.find(c => c.id === i);
-      if (cat?.name === "Adiantamento/Pagamento de fatura") {
-        console.warn("Categoria padrão Adiantamento/Pagamento de fatura não pode ser apagada.");
+      if (cat && LOCKED_CATEGORY_NAMES.includes(cat.name.trim().toLowerCase())) {
+        console.warn(`Categoria padrão "${cat.name}" não pode ser apagada.`);
         return;
       }
       const { error } = await supabase.from("categories").delete().eq("id", i);
