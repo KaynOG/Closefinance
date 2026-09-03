@@ -1199,12 +1199,24 @@ export function useStore() {
         }),
       });
       if (inst.transactionId) {
+        const tx = memory.transactions.find(t => t.id === inst.transactionId);
         const txPatch: Record<string, unknown> = {};
         if (p.amount !== undefined) txPatch.amount = p.amount;
         if (p.dueDate !== undefined) txPatch.date = p.dueDate;
         await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
         set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
+        // Ajusta o saldo do banco quando o valor muda e o ganho já foi creditado
+        if (p.amount !== undefined && tx?.appliedToBalance && recv.bankId) {
+          const diff = p.amount - tx.amount;
+          const bank = memory.banks.find(b => b.id === recv.bankId);
+          if (bank && diff !== 0) {
+            const newBalance = bank.accountBalance + diff;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
       }
+
       const newTotal = (memory.receivables.find(d => d.id === recvId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
       await supabase.from("receivables").update({ total_amount: newTotal }).eq("id", recvId);
     },
