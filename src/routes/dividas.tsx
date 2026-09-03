@@ -443,3 +443,24 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
+
+function AmountInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  function commit() {
+    const raw = draft;
+    setDraft(null);
+    if (raw === null) return;
+    const v = parseBRL(raw);
+    if (!isNaN(v) && v > 0 && v !== value) onCommit(v);
+  }
+  return (
+    <input
+      value={draft ?? String(value)}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      inputMode="decimal"
+      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+    />
+  );
+}
