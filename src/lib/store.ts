@@ -921,7 +921,21 @@ export function useStore() {
       const { error } = await supabase.from("debts").update(patch as never).eq("id", debtId);
       if (error) return console.error(error);
       set({ debts: memory.debts.map(d => d.id === debtId ? { ...d, ...p } : d) });
+      // Renomeia os gastos vinculados às parcelas
+      if (p.name !== undefined) {
+        const debt = memory.debts.find(d => d.id === debtId);
+        if (debt) {
+          const totalInst = debt.installments.length;
+          for (const inst of debt.installments) {
+            if (!inst.transactionId) continue;
+            const desc = `${p.name} (${inst.number}/${totalInst})`;
+            await supabase.from("transactions").update({ description: desc }).eq("id", inst.transactionId);
+            set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, description: desc } : t) });
+          }
+        }
+      }
     },
+
     removeDebt: async (debtId: string) => {
       const debt = memory.debts.find(d => d.id === debtId);
       if (!debt) return;
