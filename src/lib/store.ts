@@ -921,7 +921,21 @@ export function useStore() {
       const { error } = await supabase.from("debts").update(patch as never).eq("id", debtId);
       if (error) return console.error(error);
       set({ debts: memory.debts.map(d => d.id === debtId ? { ...d, ...p } : d) });
+      // Renomeia os gastos vinculados às parcelas
+      if (p.name !== undefined) {
+        const debt = memory.debts.find(d => d.id === debtId);
+        if (debt) {
+          const totalInst = debt.installments.length;
+          for (const inst of debt.installments) {
+            if (!inst.transactionId) continue;
+            const desc = `${p.name} (${inst.number}/${totalInst})`;
+            await supabase.from("transactions").update({ description: desc }).eq("id", inst.transactionId);
+            set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, description: desc } : t) });
+          }
+        }
+      }
     },
+
     removeDebt: async (debtId: string) => {
       const debt = memory.debts.find(d => d.id === debtId);
       if (!debt) return;
@@ -1001,15 +1015,27 @@ export function useStore() {
         }),
       });
       if (inst.transactionId) {
+        const tx = memory.transactions.find(t => t.id === inst.transactionId);
         const txPatch: Record<string, unknown> = {};
         if (p.amount !== undefined) txPatch.amount = p.amount;
         if (p.dueDate !== undefined) txPatch.date = p.dueDate;
         await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
         set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
+        // Ajusta o saldo do banco quando o valor muda e o gasto já foi debitado
+        if (p.amount !== undefined && tx?.appliedToBalance && debt.bankId) {
+          const diff = p.amount - tx.amount;
+          const bank = memory.banks.find(b => b.id === debt.bankId);
+          if (bank && diff !== 0) {
+            const newBalance = bank.accountBalance - diff;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
       }
       const newTotal = (memory.debts.find(d => d.id === debtId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
       await supabase.from("debts").update({ total_amount: newTotal }).eq("id", debtId);
     },
+
 
     // ============= DEVEDORES (valores a receber) =============
     addReceivable: async (input: {
@@ -1083,7 +1109,21 @@ export function useStore() {
       const { error } = await supabase.from("receivables").update(patch as never).eq("id", recvId);
       if (error) return console.error(error);
       set({ receivables: memory.receivables.map(d => d.id === recvId ? { ...d, ...p } : d) });
+      // Renomeia os ganhos vinculados às parcelas
+      if (p.name !== undefined) {
+        const recv = memory.receivables.find(d => d.id === recvId);
+        if (recv) {
+          const totalInst = recv.installments.length;
+          for (const inst of recv.installments) {
+            if (!inst.transactionId) continue;
+            const desc = `${p.name} (${inst.number}/${totalInst})`;
+            await supabase.from("transactions").update({ description: desc }).eq("id", inst.transactionId);
+            set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, description: desc } : t) });
+          }
+        }
+      }
     },
+
     removeReceivable: async (recvId: string) => {
       const recv = memory.receivables.find(d => d.id === recvId);
       if (!recv) return;
@@ -1159,12 +1199,24 @@ export function useStore() {
         }),
       });
       if (inst.transactionId) {
+        const tx = memory.transactions.find(t => t.id === inst.transactionId);
         const txPatch: Record<string, unknown> = {};
         if (p.amount !== undefined) txPatch.amount = p.amount;
         if (p.dueDate !== undefined) txPatch.date = p.dueDate;
         await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
         set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
+        // Ajusta o saldo do banco quando o valor muda e o ganho já foi creditado
+        if (p.amount !== undefined && tx?.appliedToBalance && recv.bankId) {
+          const diff = p.amount - tx.amount;
+          const bank = memory.banks.find(b => b.id === recv.bankId);
+          if (bank && diff !== 0) {
+            const newBalance = bank.accountBalance + diff;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
       }
+
       const newTotal = (memory.receivables.find(d => d.id === recvId)?.installments ?? []).reduce((s, i) => s + i.amount, 0);
       await supabase.from("receivables").update({ total_amount: newTotal }).eq("id", recvId);
     },

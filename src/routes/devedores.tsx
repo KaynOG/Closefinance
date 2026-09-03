@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Receivable, type ReceivableInstallment } from "@/lib/store";
 import { useMemo, useState } from "react";
 import {
-  Plus, Trash2, Check, CalendarDays, Wallet, HandCoins, Handshake, Users, Briefcase,
+  Plus, Trash2, Check, CalendarDays, Pencil, Wallet, HandCoins, Handshake, Users, Briefcase,
   Building2, Landmark, PiggyBank, Gift, Laptop, Receipt, ChevronDown, ChevronUp,
   CreditCard, Banknote, Coins, Home, Car, GraduationCap, HeartPulse, Smartphone,
   Plane, ShoppingCart, Dog, Zap, Store, Scale, Trees, Camera, Music, Gamepad2,

@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Debt, type DebtInstallment } from "@/lib/store";
 import { useMemo, useState } from "react";
 import {
-  Plus, Trash2, Check, CalendarDays, Wallet, Home, Car, GraduationCap, HeartPulse,
+  Plus, Trash2, Check, CalendarDays, Pencil, Wallet, Home, Car, GraduationCap, HeartPulse,
   Smartphone, Plane, ShoppingCart, Landmark, Dog, Zap, Receipt, ChevronDown, ChevronUp,
   CreditCard, Banknote, Coins, Fuel, Utensils, Shirt, Dumbbell, Baby, Book, Music,
   Gamepad2, Tv, Wifi, Droplets, Flame, Wrench, Hammer, Sofa, Bike, Bus, Ship,
@@ -135,7 +135,9 @@ function DividasPage() {
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
               onTogglePaid={(inst) => api.setInstallmentPaid(d.id, inst.id, !inst.paid)}
+              onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
+
               onRemove={async () => {
                 if (!confirm(`Apagar a dívida "${d.name}" e todos os gastos das parcelas?`)) return;
                 await api.removeDebt(d.id);
@@ -305,20 +307,30 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove }: {
+function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment, onRemove }: {
   debt: Debt;
   bankName?: string;
   onTogglePaid: (i: DebtInstallment) => void;
+  onRename: (name: string) => void | Promise<void>;
   onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(debt.name);
   const Icon = DEBT_ICONS[(debt.icon as DebtIconKey)] ?? Wallet;
   const paidCount = debt.installments.filter(i => i.paid).length;
   const total = debt.installments.reduce((s, i) => s + i.amount, 0);
   const paidAmount = debt.installments.filter(i => i.paid).reduce((s, i) => s + i.amount, 0);
   const pct = total > 0 ? Math.round((paidAmount / total) * 100) : 0;
   const today = todayISO();
+
+  function commitName() {
+    const v = nameDraft.trim();
+    setEditingName(false);
+    if (!v || v === debt.name) { setNameDraft(debt.name); return; }
+    onRename(v);
+  }
 
   return (
     <GlassCard>
@@ -329,7 +341,24 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
             <Icon className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base break-words">{debt.name}</h3>
+            {editingName ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={e => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setNameDraft(debt.name); setEditingName(false); } }}
+                className="font-bold text-base bg-white/5 border border-border rounded-lg px-2 py-1 outline-none focus:border-primary w-full"
+              />
+            ) : (
+              <h3 className="font-bold text-base break-words flex items-center gap-2">
+                {debt.name}
+                <button onClick={() => { setNameDraft(debt.name); setEditingName(true); }}
+                  className="text-muted-foreground hover:text-foreground" aria-label="Editar nome da dívida">
+                  <Pencil className="size-3.5" />
+                </button>
+              </h3>
+            )}
             <p className="text-[11px] font-mono text-muted-foreground break-words">
               {paidCount}/{debt.installments.length} parcelas · {formatBRL(paidAmount)} de {formatBRL(total)}
               {bankName ? ` · débito em ${bankName}` : " · sem débito automático"}
@@ -338,6 +367,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen(v => !v)} data-no-sound
+
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
             {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
@@ -380,15 +410,11 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
                         <Check className="size-3.5" />
                       </button>
                     </div>
-                    <input
-                      value={String(inst.amount)}
-                      onChange={e => {
-                        const v = parseBRL(e.target.value);
-                        if (!isNaN(v) && v > 0) onUpdateInstallment(inst, { amount: v });
-                      }}
-                      inputMode="decimal"
-                      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+                    <AmountInput
+                      value={inst.amount}
+                      onCommit={v => onUpdateInstallment(inst, { amount: v })}
                     />
+
                     <label className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                       <CalendarDays className="size-3.5 shrink-0" />
                       <input type="date" value={inst.dueDate}
@@ -415,5 +441,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
+  );
+}
+
+function AmountInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  function commit() {
+    const raw = draft;
+    setDraft(null);
+    if (raw === null) return;
+    const v = parseBRL(raw);
+    if (!isNaN(v) && v > 0 && v !== value) onCommit(v);
+  }
+  return (
+    <input
+      value={draft ?? String(value)}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      inputMode="decimal"
+      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+    />
   );
 }
