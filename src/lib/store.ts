@@ -1378,12 +1378,16 @@ export function useStore() {
             supabase.from("transactions").delete().eq("user_id", uid),
             supabase.from("cards").delete().eq("user_id", uid),
             supabase.from("banks").delete().eq("user_id", uid),
-            supabase.from("categories").delete().eq("user_id", uid),
           ]);
+          // Categorias padrão (Salário, Renda extra, Pagamento de fatura) são fixas — nunca apagadas
+          const removableCatIds = memory.categories
+            .filter(c => !LOCKED_CATEGORY_NAMES.includes(c.name.trim().toLowerCase()))
+            .map(c => c.id);
+          if (removableCatIds.length) await supabase.from("categories").delete().in("id", removableCatIds);
         }
         // Insert categories first (so tx FK works); remap ids
         const catIdMap = new Map<string, string>();
-        const existingCats = mode === "merge" ? memory.categories : [];
+        const existingCats = mode === "merge" ? memory.categories : memory.categories.filter(c => LOCKED_CATEGORY_NAMES.includes(c.name.trim().toLowerCase()));
         const existingCards = mode === "merge" ? memory.cards : [];
         const existingBanks = mode === "merge" ? memory.banks : [];
         const norm = (s: string) => s.trim().toLowerCase();
