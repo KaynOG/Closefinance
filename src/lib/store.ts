@@ -1097,7 +1097,21 @@ export function useStore() {
       const { error } = await supabase.from("receivables").update(patch as never).eq("id", recvId);
       if (error) return console.error(error);
       set({ receivables: memory.receivables.map(d => d.id === recvId ? { ...d, ...p } : d) });
+      // Renomeia os ganhos vinculados às parcelas
+      if (p.name !== undefined) {
+        const recv = memory.receivables.find(d => d.id === recvId);
+        if (recv) {
+          const totalInst = recv.installments.length;
+          for (const inst of recv.installments) {
+            if (!inst.transactionId) continue;
+            const desc = `${p.name} (${inst.number}/${totalInst})`;
+            await supabase.from("transactions").update({ description: desc }).eq("id", inst.transactionId);
+            set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, description: desc } : t) });
+          }
+        }
+      }
     },
+
     removeReceivable: async (recvId: string) => {
       const recv = memory.receivables.find(d => d.id === recvId);
       if (!recv) return;
