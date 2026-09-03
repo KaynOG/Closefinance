@@ -410,15 +410,11 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment,
                         <Check className="size-3.5" />
                       </button>
                     </div>
-                    <input
-                      value={String(inst.amount)}
-                      onChange={e => {
-                        const v = parseBRL(e.target.value);
-                        if (!isNaN(v) && v > 0) onUpdateInstallment(inst, { amount: v });
-                      }}
-                      inputMode="decimal"
-                      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+                    <AmountInput
+                      value={inst.amount}
+                      onCommit={v => onUpdateInstallment(inst, { amount: v })}
                     />
+
                     <label className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                       <CalendarDays className="size-3.5 shrink-0" />
                       <input type="date" value={inst.dueDate}
