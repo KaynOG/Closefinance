@@ -1344,7 +1344,7 @@ export function useStore() {
         await supabase.from("transactions").delete().eq("user_id", uid);
         await supabase.from("cards").delete().eq("user_id", uid);
         await supabase.from("banks").delete().eq("user_id", uid);
-        await supabase.from("categories").delete().eq("user_id", uid);
+        // Categorias são mantidas de propósito — inclusive as padrão fixas (Salário, Renda extra, Pagamento de fatura)
         await supabase.from("profiles").update({ cash_amount: 0 } as never).eq("id", uid);
         const { data: u } = await supabase.auth.getUser();
         if (u.user) await loadAll(u.user);
