@@ -193,7 +193,7 @@ function BackupBody() {
 
           <div className="mt-4 rounded-2xl border border-[#FF4D6D]/40 bg-[#FF4D6D]/5 p-4">
             <p className="font-semibold text-sm">Apagar todos os dados</p>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">Remove transações, cartões, bancos, categorias, dívidas e devedores. Um backup .json é baixado automaticamente antes da exclusão.</p>
+            <p className="text-xs text-muted-foreground mt-1 mb-3">Remove transações, cartões, bancos, dívidas e devedores. Suas categorias são mantidas. Um backup .json é baixado automaticamente antes da exclusão.</p>
             <button
               onClick={handleWipe}
               disabled={wiping}
