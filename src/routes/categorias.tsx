@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
-import { useStore } from "@/lib/store";
+import { useStore, LOCKED_CATEGORY_NAMES } from "@/lib/store";
 import { useState } from "react";
 import {
   Plus, Trash2, Tag,
@@ -141,7 +141,7 @@ function CategoriesPage() {
           {categories.map((c) => {
             const count = transactions.filter(t => t.categoryId === c.id).length;
             const Icon = CATEGORY_ICONS[c.icon ?? "tag"] ?? Tag;
-            const isLocked = c.name === "Adiantamento/Pagamento de fatura";
+            const isLocked = LOCKED_CATEGORY_NAMES.includes(c.name.trim().toLowerCase());
             return (
               <div key={c.id} className="glass rounded-2xl p-4 flex items-center gap-3">
                 <div className="size-10 rounded-xl grid place-items-center shrink-0" style={{ background: c.color + "33", color: c.color }}>
