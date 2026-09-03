@@ -4,7 +4,7 @@ import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Debt, type DebtInstallment } from "@/lib/store";
 import { useMemo, useState } from "react";
 import {
-  Plus, Trash2, Check, CalendarDays, Wallet, Home, Car, GraduationCap, HeartPulse,
+  Plus, Trash2, Check, CalendarDays, Pencil, Wallet, Home, Car, GraduationCap, HeartPulse,
   Smartphone, Plane, ShoppingCart, Landmark, Dog, Zap, Receipt, ChevronDown, ChevronUp,
   CreditCard, Banknote, Coins, Fuel, Utensils, Shirt, Dumbbell, Baby, Book, Music,
   Gamepad2, Tv, Wifi, Droplets, Flame, Wrench, Hammer, Sofa, Bike, Bus, Ship,
