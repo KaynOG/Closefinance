@@ -307,20 +307,30 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove }: {
+function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment, onRemove }: {
   debt: Debt;
   bankName?: string;
   onTogglePaid: (i: DebtInstallment) => void;
+  onRename: (name: string) => void | Promise<void>;
   onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(debt.name);
   const Icon = DEBT_ICONS[(debt.icon as DebtIconKey)] ?? Wallet;
   const paidCount = debt.installments.filter(i => i.paid).length;
   const total = debt.installments.reduce((s, i) => s + i.amount, 0);
   const paidAmount = debt.installments.filter(i => i.paid).reduce((s, i) => s + i.amount, 0);
   const pct = total > 0 ? Math.round((paidAmount / total) * 100) : 0;
   const today = todayISO();
+
+  function commitName() {
+    const v = nameDraft.trim();
+    setEditingName(false);
+    if (!v || v === debt.name) { setNameDraft(debt.name); return; }
+    onRename(v);
+  }
 
   return (
     <GlassCard>
@@ -331,7 +341,24 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
             <Icon className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base break-words">{debt.name}</h3>
+            {editingName ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={e => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setNameDraft(debt.name); setEditingName(false); } }}
+                className="font-bold text-base bg-white/5 border border-border rounded-lg px-2 py-1 outline-none focus:border-primary w-full"
+              />
+            ) : (
+              <h3 className="font-bold text-base break-words flex items-center gap-2">
+                {debt.name}
+                <button onClick={() => { setNameDraft(debt.name); setEditingName(true); }}
+                  className="text-muted-foreground hover:text-foreground" aria-label="Editar nome da dívida">
+                  <Pencil className="size-3.5" />
+                </button>
+              </h3>
+            )}
             <p className="text-[11px] font-mono text-muted-foreground break-words">
               {paidCount}/{debt.installments.length} parcelas · {formatBRL(paidAmount)} de {formatBRL(total)}
               {bankName ? ` · débito em ${bankName}` : " · sem débito automático"}
@@ -340,6 +367,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onUpdateInstallment, onRemove 
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen(v => !v)} data-no-sound
+
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
             {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
