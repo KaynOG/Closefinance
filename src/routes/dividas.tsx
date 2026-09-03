@@ -135,7 +135,9 @@ function DividasPage() {
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
               onTogglePaid={(inst) => api.setInstallmentPaid(d.id, inst.id, !inst.paid)}
+              onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
+
               onRemove={async () => {
                 if (!confirm(`Apagar a dívida "${d.name}" e todos os gastos das parcelas?`)) return;
                 await api.removeDebt(d.id);
