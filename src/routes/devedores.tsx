@@ -305,20 +305,30 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstallment, onRemove }: {
+function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUpdateInstallment, onRemove }: {
   receivable: Receivable;
   bankName?: string;
   onToggleReceived: (i: ReceivableInstallment) => void;
+  onRename: (name: string) => void | Promise<void>;
   onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(receivable.name);
   const Icon = RECEIVABLE_ICONS[(receivable.icon as ReceivableIconKey)] ?? HandCoins;
   const receivedCount = receivable.installments.filter(i => i.received).length;
   const total = receivable.installments.reduce((s, i) => s + i.amount, 0);
   const receivedAmount = receivable.installments.filter(i => i.received).reduce((s, i) => s + i.amount, 0);
   const pct = total > 0 ? Math.round((receivedAmount / total) * 100) : 0;
   const today = todayISO();
+
+  function commitName() {
+    const v = nameDraft.trim();
+    setEditingName(false);
+    if (!v || v === receivable.name) { setNameDraft(receivable.name); return; }
+    onRename(v);
+  }
 
   return (
     <GlassCard>
@@ -329,7 +339,24 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
             <Icon className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base break-words">{receivable.name}</h3>
+            {editingName ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={e => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setNameDraft(receivable.name); setEditingName(false); } }}
+                className="font-bold text-base bg-white/5 border border-border rounded-lg px-2 py-1 outline-none focus:border-primary w-full"
+              />
+            ) : (
+              <h3 className="font-bold text-base break-words flex items-center gap-2">
+                {receivable.name}
+                <button onClick={() => { setNameDraft(receivable.name); setEditingName(true); }}
+                  className="text-muted-foreground hover:text-foreground" aria-label="Editar nome do valor a receber">
+                  <Pencil className="size-3.5" />
+                </button>
+              </h3>
+            )}
             <p className="text-[11px] font-mono text-muted-foreground break-words">
               {receivedCount}/{receivable.installments.length} parcelas · {formatBRL(receivedAmount)} de {formatBRL(total)}
               {bankName ? ` · crédito em ${bankName}` : " · sem crédito automático"}
@@ -338,6 +365,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen(v => !v)} data-no-sound
+
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
             {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
