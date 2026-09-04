@@ -321,19 +321,47 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
         </Field>
 
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
-            Parcelas — ajuste data e valor de cada uma
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              Parcelas — ajuste data e valor de cada uma
+            </p>
+            <div className="flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+              <button type="button" onClick={() => switchMode("equal")}
+                className={`px-3 py-1.5 transition ${mode === "equal" ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                Valores iguais
+              </button>
+              <button type="button" onClick={() => switchMode("custom")}
+                className={`px-3 py-1.5 transition ${mode === "custom" ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                Valores desiguais
+              </button>
+            </div>
+          </div>
           <div className="max-h-72 overflow-y-auto pr-1 space-y-2">
             {preview.map((r, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-[11px] font-mono text-muted-foreground w-10 shrink-0">{i + 1}/{preview.length}</span>
                 <input type="date" value={r.dueDate} onChange={e => editRow(i, { dueDate: e.target.value })} className={inputCls} />
                 <input value={r.amount} onChange={e => editRow(i, { amount: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+                {mode === "custom" && (
+                  <button type="button" onClick={() => removeRow(i)} aria-label="Remover parcela"
+                    className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15 shrink-0">
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+            {mode === "custom" ? (
+              <button type="button" onClick={addRow}
+                className="rounded-xl border border-border px-3 py-1.5 text-[11px] font-mono hover:bg-white/5 flex items-center gap-1.5">
+                <Plus className="size-3.5" /> Adicionar parcela
+              </button>
+            ) : <span />}
+            <span className="text-[11px] font-mono text-muted-foreground">Soma das parcelas: {formatBRL(sum)}</span>
+          </div>
         </div>
+
 
         <div className="flex flex-wrap gap-2 pt-1">
           <button type="submit" data-sound="success"
