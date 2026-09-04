@@ -135,7 +135,9 @@ function DevedoresPage() {
               receivable={r}
               bankName={banks.find(b => b.id === r.bankId)?.name}
               onToggleReceived={(inst) => api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received)}
+              onRename={async (name) => { await api.updateReceivable(r.id, { name }); notify("Nome atualizado nos ganhos."); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
+
               onRemove={async () => {
                 if (!confirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) return;
                 await api.removeReceivable(r.id);
@@ -305,20 +307,30 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstallment, onRemove }: {
+function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUpdateInstallment, onRemove }: {
   receivable: Receivable;
   bankName?: string;
   onToggleReceived: (i: ReceivableInstallment) => void;
+  onRename: (name: string) => void | Promise<void>;
   onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(receivable.name);
   const Icon = RECEIVABLE_ICONS[(receivable.icon as ReceivableIconKey)] ?? HandCoins;
   const receivedCount = receivable.installments.filter(i => i.received).length;
   const total = receivable.installments.reduce((s, i) => s + i.amount, 0);
   const receivedAmount = receivable.installments.filter(i => i.received).reduce((s, i) => s + i.amount, 0);
   const pct = total > 0 ? Math.round((receivedAmount / total) * 100) : 0;
   const today = todayISO();
+
+  function commitName() {
+    const v = nameDraft.trim();
+    setEditingName(false);
+    if (!v || v === receivable.name) { setNameDraft(receivable.name); return; }
+    onRename(v);
+  }
 
   return (
     <GlassCard>
@@ -329,7 +341,24 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
             <Icon className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base break-words">{receivable.name}</h3>
+            {editingName ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={e => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setNameDraft(receivable.name); setEditingName(false); } }}
+                className="font-bold text-base bg-white/5 border border-border rounded-lg px-2 py-1 outline-none focus:border-primary w-full"
+              />
+            ) : (
+              <h3 className="font-bold text-base break-words flex items-center gap-2">
+                {receivable.name}
+                <button onClick={() => { setNameDraft(receivable.name); setEditingName(true); }}
+                  className="text-muted-foreground hover:text-foreground" aria-label="Editar nome do valor a receber">
+                  <Pencil className="size-3.5" />
+                </button>
+              </h3>
+            )}
             <p className="text-[11px] font-mono text-muted-foreground break-words">
               {receivedCount}/{receivable.installments.length} parcelas · {formatBRL(receivedAmount)} de {formatBRL(total)}
               {bankName ? ` · crédito em ${bankName}` : " · sem crédito automático"}
@@ -338,6 +367,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setOpen(v => !v)} data-no-sound
+
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
             {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
@@ -380,14 +410,9 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onUpdateInstal
                         <Check className="size-3.5" />
                       </button>
                     </div>
-                    <input
-                      value={String(inst.amount)}
-                      onChange={e => {
-                        const v = parseBRL(e.target.value);
-                        if (!isNaN(v) && v > 0) onUpdateInstallment(inst, { amount: v });
-                      }}
-                      inputMode="decimal"
-                      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+                    <AmountInput
+                      value={inst.amount}
+                      onCommit={v => onUpdateInstallment(inst, { amount: v })}
                     />
                     <label className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                       <CalendarDays className="size-3.5 shrink-0" />
@@ -415,5 +440,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
+  );
+}
+
+function AmountInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  function commit() {
+    const raw = draft;
+    setDraft(null);
+    if (raw === null) return;
+    const v = parseBRL(raw);
+    if (!isNaN(v) && v > 0 && v !== value) onCommit(v);
+  }
+  return (
+    <input
+      value={draft ?? String(value)}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+      inputMode="decimal"
+      className="mt-2 w-full bg-transparent text-lg font-bold font-mono outline-none"
+    />
   );
 }
