@@ -135,7 +135,9 @@ function DevedoresPage() {
               receivable={r}
               bankName={banks.find(b => b.id === r.bankId)?.name}
               onToggleReceived={(inst) => api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received)}
+              onRename={async (name) => { await api.updateReceivable(r.id, { name }); notify("Nome atualizado nos ganhos."); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
+
               onRemove={async () => {
                 if (!confirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) return;
                 await api.removeReceivable(r.id);
