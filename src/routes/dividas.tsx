@@ -166,25 +166,50 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
     name: "", icon: "wallet" as DebtIconKey, color: COLORS[0],
     total: "", count: "12", firstDate: todayISO(), bankId: "", categoryId: "", note: "",
   });
+  const [mode, setMode] = useState<"equal" | "custom">("equal");
   const [rows, setRows] = useState<{ amount: string; dueDate: string }[] | null>(null);
 
   const count = Math.max(1, Math.min(120, parseInt(form.count) || 1));
   const totalNum = parseBRL(form.total) || 0;
 
-  const preview = useMemo(() => {
-    if (rows) return rows;
+  const equalRows = useMemo(() => {
     const per = totalNum / count;
     return Array.from({ length: count }, (_, i) => ({
       amount: per ? per.toFixed(2) : "",
       dueDate: addMonthsISO(form.firstDate, i),
     }));
-  }, [rows, totalNum, count, form.firstDate]);
+  }, [totalNum, count, form.firstDate]);
+
+  const preview = mode === "custom" && rows ? rows : equalRows;
+  const sum = preview.reduce((s, r) => s + (parseBRL(r.amount) || 0), 0);
 
   function editRow(i: number, patch: Partial<{ amount: string; dueDate: string }>) {
     const base = preview.map(r => ({ ...r }));
     base[i] = { ...base[i], ...patch };
     setRows(base);
+    setMode("custom");
   }
+  function switchMode(next: "equal" | "custom") {
+    setMode(next);
+    if (next === "custom") setRows(preview.map(r => ({ ...r })));
+    else setRows(null);
+  }
+  function addRow() {
+    const base = preview.map(r => ({ ...r }));
+    const last = base[base.length - 1];
+    base.push({ amount: "", dueDate: last ? addMonthsISO(last.dueDate, 1) : form.firstDate });
+    setRows(base);
+    setMode("custom");
+    setForm(f => ({ ...f, count: String(base.length) }));
+  }
+  function removeRow(i: number) {
+    if (preview.length <= 1) return;
+    const base = preview.filter((_, idx) => idx !== i).map(r => ({ ...r }));
+    setRows(base);
+    setMode("custom");
+    setForm(f => ({ ...f, count: String(base.length) }));
+  }
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -219,18 +244,40 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="Ex: Empréstimo do carro" className={inputCls} />
           </Field>
-          <Field label="Valor total (R$)">
-            <input value={form.total} onChange={e => { setForm({ ...form, total: e.target.value }); setRows(null); }}
-              inputMode="decimal" placeholder="0,00" className={inputCls} />
+          <Field label={mode === "custom" ? "Valor total (soma das parcelas)" : "Valor total (R$)"}>
+            {mode === "custom" ? (
+              <input value={formatBRL(sum)} readOnly className={`${inputCls} opacity-70`} />
+            ) : (
+              <input value={form.total} onChange={e => { setForm({ ...form, total: e.target.value }); setRows(null); }}
+                inputMode="decimal" placeholder="0,00" className={inputCls} />
+            )}
           </Field>
           <Field label="Quantidade de parcelas">
             <input type="number" min={1} max={120} value={form.count}
-              onChange={e => { setForm({ ...form, count: e.target.value }); setRows(null); }} className={inputCls} />
+              onChange={e => {
+                setForm({ ...form, count: e.target.value });
+                const n = Math.max(1, Math.min(120, parseInt(e.target.value) || 1));
+                if (mode === "custom") {
+                  const base = preview.map(r => ({ ...r }));
+                  while (base.length < n) {
+                    const last = base[base.length - 1];
+                    base.push({ amount: "", dueDate: last ? addMonthsISO(last.dueDate, 1) : form.firstDate });
+                  }
+                  setRows(base.slice(0, n));
+                } else setRows(null);
+              }} className={inputCls} />
           </Field>
+
           <Field label="Data da 1ª parcela">
             <input type="date" value={form.firstDate}
-              onChange={e => { setForm({ ...form, firstDate: e.target.value }); setRows(null); }} className={inputCls} />
+              onChange={e => {
+                const v = e.target.value;
+                setForm({ ...form, firstDate: v });
+                if (mode === "custom") setRows(preview.map((r, i) => ({ ...r, dueDate: addMonthsISO(v, i) })));
+                else setRows(null);
+              }} className={inputCls} />
           </Field>
+
           <Field label="Banco debitado automaticamente">
             <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
               <option value="">Nenhum (só registrar o gasto)</option>
@@ -275,19 +322,47 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
         </Field>
 
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
-            Parcelas — ajuste data e valor de cada uma
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              Parcelas — ajuste data e valor de cada uma
+            </p>
+            <div className="flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
+              <button type="button" onClick={() => switchMode("equal")}
+                className={`px-3 py-1.5 transition ${mode === "equal" ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                Valores iguais
+              </button>
+              <button type="button" onClick={() => switchMode("custom")}
+                className={`px-3 py-1.5 transition ${mode === "custom" ? "bg-primary text-primary-foreground" : "hover:bg-white/5"}`}>
+                Valores desiguais
+              </button>
+            </div>
+          </div>
           <div className="max-h-72 overflow-y-auto pr-1 space-y-2">
             {preview.map((r, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-[11px] font-mono text-muted-foreground w-10 shrink-0">{i + 1}/{preview.length}</span>
                 <input type="date" value={r.dueDate} onChange={e => editRow(i, { dueDate: e.target.value })} className={inputCls} />
                 <input value={r.amount} onChange={e => editRow(i, { amount: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+                {mode === "custom" && (
+                  <button type="button" onClick={() => removeRow(i)} aria-label="Remover parcela"
+                    className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15 shrink-0">
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+            {mode === "custom" ? (
+              <button type="button" onClick={addRow}
+                className="rounded-xl border border-border px-3 py-1.5 text-[11px] font-mono hover:bg-white/5 flex items-center gap-1.5">
+                <Plus className="size-3.5" /> Adicionar parcela
+              </button>
+            ) : <span />}
+            <span className="text-[11px] font-mono text-muted-foreground">Soma das parcelas: {formatBRL(sum)}</span>
+          </div>
         </div>
+
 
         <div className="flex flex-wrap gap-2 pt-1">
           <button type="submit" data-sound="success"
