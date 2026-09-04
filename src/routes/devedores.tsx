@@ -166,25 +166,50 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
     name: "", icon: "coins" as ReceivableIconKey, color: COLORS[0],
     total: "", count: "1", firstDate: todayISO(), bankId: "", categoryId: "", note: "",
   });
+  const [mode, setMode] = useState<"equal" | "custom">("equal");
   const [rows, setRows] = useState<{ amount: string; dueDate: string }[] | null>(null);
 
   const count = Math.max(1, Math.min(120, parseInt(form.count) || 1));
   const totalNum = parseBRL(form.total) || 0;
 
-  const preview = useMemo(() => {
-    if (rows) return rows;
+  const equalRows = useMemo(() => {
     const per = totalNum / count;
     return Array.from({ length: count }, (_, i) => ({
       amount: per ? per.toFixed(2) : "",
       dueDate: addMonthsISO(form.firstDate, i),
     }));
-  }, [rows, totalNum, count, form.firstDate]);
+  }, [totalNum, count, form.firstDate]);
+
+  const preview = mode === "custom" && rows ? rows : equalRows;
+  const sum = preview.reduce((s, r) => s + (parseBRL(r.amount) || 0), 0);
 
   function editRow(i: number, patch: Partial<{ amount: string; dueDate: string }>) {
     const base = preview.map(r => ({ ...r }));
     base[i] = { ...base[i], ...patch };
     setRows(base);
+    setMode("custom");
   }
+  function switchMode(next: "equal" | "custom") {
+    setMode(next);
+    if (next === "custom") setRows(preview.map(r => ({ ...r })));
+    else setRows(null);
+  }
+  function addRow() {
+    const base = preview.map(r => ({ ...r }));
+    const last = base[base.length - 1];
+    base.push({ amount: "", dueDate: last ? addMonthsISO(last.dueDate, 1) : form.firstDate });
+    setRows(base);
+    setMode("custom");
+    setForm(f => ({ ...f, count: String(base.length) }));
+  }
+  function removeRow(i: number) {
+    if (preview.length <= 1) return;
+    const base = preview.filter((_, idx) => idx !== i).map(r => ({ ...r }));
+    setRows(base);
+    setMode("custom");
+    setForm(f => ({ ...f, count: String(base.length) }));
+  }
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
