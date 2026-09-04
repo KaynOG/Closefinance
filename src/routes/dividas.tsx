@@ -270,8 +270,14 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
 
           <Field label="Data da 1ª parcela">
             <input type="date" value={form.firstDate}
-              onChange={e => { setForm({ ...form, firstDate: e.target.value }); setRows(null); }} className={inputCls} />
+              onChange={e => {
+                const v = e.target.value;
+                setForm({ ...form, firstDate: v });
+                if (mode === "custom") setRows(preview.map((r, i) => ({ ...r, dueDate: addMonthsISO(v, i) })));
+                else setRows(null);
+              }} className={inputCls} />
           </Field>
+
           <Field label="Banco debitado automaticamente">
             <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
               <option value="">Nenhum (só registrar o gasto)</option>
