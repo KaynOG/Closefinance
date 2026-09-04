@@ -244,18 +244,39 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="Ex: João — empréstimo" className={inputCls} />
           </Field>
-          <Field label="Valor total (R$)">
-            <input value={form.total} onChange={e => { setForm({ ...form, total: e.target.value }); setRows(null); }}
-              inputMode="decimal" placeholder="0,00" className={inputCls} />
+          <Field label={mode === "custom" ? "Valor total (soma das parcelas)" : "Valor total (R$)"}>
+            {mode === "custom" ? (
+              <input value={formatBRL(sum)} readOnly className={`${inputCls} opacity-70`} />
+            ) : (
+              <input value={form.total} onChange={e => { setForm({ ...form, total: e.target.value }); setRows(null); }}
+                inputMode="decimal" placeholder="0,00" className={inputCls} />
+            )}
           </Field>
           <Field label="Quantidade de parcelas">
             <input type="number" min={1} max={120} value={form.count}
-              onChange={e => { setForm({ ...form, count: e.target.value }); setRows(null); }} className={inputCls} />
+              onChange={e => {
+                setForm({ ...form, count: e.target.value });
+                const n = Math.max(1, Math.min(120, parseInt(e.target.value) || 1));
+                if (mode === "custom") {
+                  const base = preview.map(r => ({ ...r }));
+                  while (base.length < n) {
+                    const last = base[base.length - 1];
+                    base.push({ amount: "", dueDate: last ? addMonthsISO(last.dueDate, 1) : form.firstDate });
+                  }
+                  setRows(base.slice(0, n));
+                } else setRows(null);
+              }} className={inputCls} />
           </Field>
           <Field label="Data do 1º recebimento">
             <input type="date" value={form.firstDate}
-              onChange={e => { setForm({ ...form, firstDate: e.target.value }); setRows(null); }} className={inputCls} />
+              onChange={e => {
+                const v = e.target.value;
+                setForm({ ...form, firstDate: v });
+                if (mode === "custom") setRows(preview.map((r, i) => ({ ...r, dueDate: addMonthsISO(v, i) })));
+                else setRows(null);
+              }} className={inputCls} />
           </Field>
+
           <Field label="Banco creditado automaticamente">
             <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
               <option value="">Nenhum (só registrar o ganho)</option>
