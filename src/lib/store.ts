@@ -749,6 +749,82 @@ export function useStore() {
         }
       };
 
+      // Se o lançamento é de uma parcela de dívida/devedor, remove a parcela correspondente
+      const dropInstallmentForTx = async (transaction: Transaction) => {
+        const tag = transaction.tag ?? "";
+        const isDebt = tag.startsWith(DEBT_TAG_PREFIX);
+        const isRecv = !isDebt && tag.startsWith(RECEIVABLE_TAG_PREFIX);
+        if (!isDebt && !isRecv) return;
+        const ownerId = tag.slice((isDebt ? DEBT_TAG_PREFIX : RECEIVABLE_TAG_PREFIX).length);
+        const instTable = isDebt ? "debt_installments" : "receivable_installments";
+        const ownerTable = isDebt ? "debts" : "receivables";
+
+        const applyShrink = async (
+          owner: Debt | Receivable,
+          remaining: (DebtInstallment | ReceivableInstallment)[],
+        ) => {
+          const newTotal = remaining.length;
+
+          // Sem parcelas restantes: apaga a dívida/devedor inteiro
+          if (newTotal === 0) {
+            await supabase.from(ownerTable).delete().eq("id", ownerId);
+            if (isDebt) set({ debts: memory.debts.filter(d => d.id !== ownerId) });
+            else set({ receivables: memory.receivables.filter(r => r.id !== ownerId) });
+            return;
+          }
+
+          const newAmount = remaining.reduce((s, x) => s + x.amount, 0);
+          await supabase.from(ownerTable).update({ installments_total: newTotal, total_amount: newAmount }).eq("id", ownerId);
+
+          // Renumera parcelas e descrições dos lançamentos vinculados
+          for (const x of remaining) {
+            const old = owner.installments.find(o => o.id === x.id);
+            if (old && old.number !== x.number) {
+              await supabase.from(instTable).update({ number: x.number }).eq("id", x.id);
+            }
+            if (x.transactionId) {
+              const desc = `${owner.name} (${x.number}/${newTotal})`;
+              await supabase.from("transactions").update({ description: desc }).eq("id", x.transactionId);
+              set({ transactions: memory.transactions.map(t => t.id === x.transactionId ? { ...t, description: desc } : t) });
+            }
+          }
+        };
+
+        if (isDebt) {
+          const owner = memory.debts.find(d => d.id === ownerId);
+          if (!owner) return;
+          const inst = owner.installments.find(x => x.transactionId === transaction.id);
+          if (!inst) return;
+          await supabase.from(instTable).delete().eq("id", inst.id);
+          const remaining = owner.installments
+            .filter(x => x.id !== inst.id)
+            .sort((a, b) => a.number - b.number)
+            .map((x, idx) => ({ ...x, number: idx + 1 }));
+          await applyShrink(owner, remaining);
+          if (remaining.length > 0) {
+            const newTotal = remaining.length;
+            const newAmount = remaining.reduce((s, x) => s + x.amount, 0);
+            set({ debts: memory.debts.map(d => d.id !== ownerId ? d : { ...d, installments: remaining, installmentsTotal: newTotal, totalAmount: newAmount }) });
+          }
+        } else {
+          const owner = memory.receivables.find(r => r.id === ownerId);
+          if (!owner) return;
+          const inst = owner.installments.find(x => x.transactionId === transaction.id);
+          if (!inst) return;
+          await supabase.from(instTable).delete().eq("id", inst.id);
+          const remaining = owner.installments
+            .filter(x => x.id !== inst.id)
+            .sort((a, b) => a.number - b.number)
+            .map((x, idx) => ({ ...x, number: idx + 1 }));
+          await applyShrink(owner, remaining);
+          if (remaining.length > 0) {
+            const newTotal = remaining.length;
+            const newAmount = remaining.reduce((s, x) => s + x.amount, 0);
+            set({ receivables: memory.receivables.map(r => r.id !== ownerId ? r : { ...r, installments: remaining, installmentsTotal: newTotal, totalAmount: newAmount }) });
+          }
+        }
+      };
+
       if (opts?.wholeGroup && tx?.installmentGroupId) {
         const gid = tx.installmentGroupId;
         const groupTxs = memory.transactions.filter(x => x.installmentGroupId === gid);
@@ -756,11 +832,15 @@ export function useStore() {
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.installmentGroupId !== gid) });
         groupTxs.forEach(reverseSideEffects);
+        for (const gtx of groupTxs) await dropInstallmentForTx(gtx);
       } else {
         const { error } = await supabase.from("transactions").delete().eq("id", i);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.id !== i) });
-        if (tx) reverseSideEffects(tx);
+        if (tx) {
+          reverseSideEffects(tx);
+          await dropInstallmentForTx(tx);
+        }
       }
     },
 
