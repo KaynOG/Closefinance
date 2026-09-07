@@ -1045,14 +1045,21 @@ export function useStore() {
       const debt = memory.debts.find(d => d.id === debtId);
       const inst = debt?.installments.find(i => i.id === instId);
       if (!debt || !inst) return;
-      await supabase.from("debt_installments").update({ paid }).eq("id", instId);
+      // Ao marcar como paga, a data da parcela passa a ser o dia da marcação
+      const today = new Date().toISOString().slice(0, 10);
+      const newDue = paid ? today : inst.dueDate;
+      await supabase.from("debt_installments").update({ paid, due_date: newDue }).eq("id", instId);
       set({
         debts: memory.debts.map(d => d.id !== debtId ? d : {
-          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid } : i),
+          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid, dueDate: newDue } : i),
         }),
       });
       const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
       if (!tx) return;
+      if (paid && tx.date !== today) {
+        await supabase.from("transactions").update({ date: today }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, date: today } : t) });
+      }
       // Antecipa/estorna o débito no banco conforme a marcação manual
       if (paid && !tx.appliedToBalance) {
         if (debt.bankId) {
@@ -1231,14 +1238,21 @@ export function useStore() {
       const recv = memory.receivables.find(d => d.id === recvId);
       const inst = recv?.installments.find(i => i.id === instId);
       if (!recv || !inst) return;
-      await supabase.from("receivable_installments").update({ received }).eq("id", instId);
+      // Ao marcar como recebida, a data da parcela passa a ser o dia da marcação
+      const today = new Date().toISOString().slice(0, 10);
+      const newDue = received ? today : inst.dueDate;
+      await supabase.from("receivable_installments").update({ received, due_date: newDue }).eq("id", instId);
       set({
         receivables: memory.receivables.map(d => d.id !== recvId ? d : {
-          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, received } : i),
+          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, received, dueDate: newDue } : i),
         }),
       });
       const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
       if (!tx) return;
+      if (received && tx.date !== today) {
+        await supabase.from("transactions").update({ date: today }).eq("id", tx.id);
+        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, date: today } : t) });
+      }
       if (received && !tx.appliedToBalance) {
         if (recv.bankId) {
           const bank = memory.banks.find(b => b.id === recv.bankId);

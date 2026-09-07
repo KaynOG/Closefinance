@@ -134,7 +134,10 @@ function DevedoresPage() {
               key={r.id}
               receivable={r}
               bankName={banks.find(b => b.id === r.bankId)?.name}
-              onToggleReceived={(inst) => api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received)}
+              onToggleReceived={(inst) => {
+                if (!inst.received && !confirm(`Tem certeza de que a parcela ${inst.number} de "${r.name}" foi recebida? A data dela será ajustada para hoje.`)) return;
+                api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received);
+              }}
               onRename={async (name) => { await api.updateReceivable(r.id, { name }); notify("Nome atualizado nos ganhos."); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
 

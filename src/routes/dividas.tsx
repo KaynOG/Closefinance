@@ -134,7 +134,10 @@ function DividasPage() {
               key={d.id}
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
-              onTogglePaid={(inst) => api.setInstallmentPaid(d.id, inst.id, !inst.paid)}
+              onTogglePaid={(inst) => {
+                if (!inst.paid && !confirm(`Tem certeza de que a parcela ${inst.number} de "${d.name}" foi paga? A data dela será ajustada para hoje.`)) return;
+                api.setInstallmentPaid(d.id, inst.id, !inst.paid);
+              }}
               onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
 
