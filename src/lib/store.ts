@@ -1045,10 +1045,13 @@ export function useStore() {
       const debt = memory.debts.find(d => d.id === debtId);
       const inst = debt?.installments.find(i => i.id === instId);
       if (!debt || !inst) return;
-      await supabase.from("debt_installments").update({ paid }).eq("id", instId);
+      // Ao marcar como paga, a data da parcela passa a ser o dia da marcação
+      const today = new Date().toISOString().slice(0, 10);
+      const newDue = paid ? today : inst.dueDate;
+      await supabase.from("debt_installments").update({ paid, due_date: newDue }).eq("id", instId);
       set({
         debts: memory.debts.map(d => d.id !== debtId ? d : {
-          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid } : i),
+          ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid, dueDate: newDue } : i),
         }),
       });
       const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
