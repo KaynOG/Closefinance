@@ -491,6 +491,51 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          active: boolean
+          amount: number
+          color: string
+          created_at: string
+          essential: string
+          first_charge_date: string
+          icon: string
+          id: string
+          name: string
+          recurrence_months: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount?: number
+          color?: string
+          created_at?: string
+          essential?: string
+          first_charge_date: string
+          icon?: string
+          id?: string
+          name: string
+          recurrence_months?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          color?: string
+          created_at?: string
+          essential?: string
+          first_charge_date?: string
+          icon?: string
+          id?: string
+          name?: string
+          recurrence_months?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -507,6 +552,7 @@ export type Database = {
           installment_no: number | null
           installment_total: number | null
           payment_method: string | null
+          subscription_id: string | null
           tag: string | null
           type: string
           user_id: string
@@ -526,6 +572,7 @@ export type Database = {
           installment_no?: number | null
           installment_total?: number | null
           payment_method?: string | null
+          subscription_id?: string | null
           tag?: string | null
           type: string
           user_id: string
@@ -545,6 +592,7 @@ export type Database = {
           installment_no?: number | null
           installment_total?: number | null
           payment_method?: string | null
+          subscription_id?: string | null
           tag?: string | null
           type?: string
           user_id?: string
@@ -569,6 +617,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]
