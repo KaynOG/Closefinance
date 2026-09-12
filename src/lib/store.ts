@@ -1010,7 +1010,7 @@ export function useStore() {
       if (patch.icon !== undefined) dbPatch.icon = patch.icon;
       if (patch.essential !== undefined) dbPatch.essential = patch.essential;
       if (patch.active !== undefined) dbPatch.active = patch.active;
-      const { error } = await supabase.from("subscriptions").update(dbPatch).eq("id", subscriptionId);
+      const { error } = await supabase.from("subscriptions").update(dbPatch as never).eq("id", subscriptionId);
       if (error) { console.error(error); return false; }
       const next = { ...current, ...patch };
       const today = new Date().toISOString().slice(0, 10);
@@ -1601,6 +1601,7 @@ export function useStore() {
           banks: memory.banks,
           debts: memory.debts,
           receivables: memory.receivables,
+          subscriptions: memory.subscriptions,
           cashAmount: user?.cashAmount ?? 0,
           user,
           missions: memory.missions,
@@ -1615,6 +1616,7 @@ export function useStore() {
         await supabase.from("debts").delete().eq("user_id", uid);
         await supabase.from("receivables").delete().eq("user_id", uid);
         await supabase.from("transactions").delete().eq("user_id", uid);
+        await supabase.from("subscriptions").delete().eq("user_id", uid);
         await supabase.from("cards").delete().eq("user_id", uid);
         await supabase.from("banks").delete().eq("user_id", uid);
         // Categorias são mantidas de propósito — inclusive as padrão fixas (Salário, Renda extra, Pagamento de fatura)
@@ -1639,6 +1641,7 @@ export function useStore() {
         const incomingBanks: Bank[] = Array.isArray(d.banks) ? d.banks : [];
         const incomingDebts: Debt[] = Array.isArray(d.debts) ? d.debts : [];
         const incomingRecvs: Receivable[] = Array.isArray(d.receivables) ? d.receivables : [];
+        const incomingSubscriptions: Subscription[] = Array.isArray(d.subscriptions) ? d.subscriptions : [];
 
         if (mode === "replace") {
           await supabase.from("debt_installments").delete().eq("user_id", uid);
@@ -1646,6 +1649,7 @@ export function useStore() {
           await Promise.all([
             supabase.from("debts").delete().eq("user_id", uid),
             supabase.from("receivables").delete().eq("user_id", uid),
+            supabase.from("subscriptions").delete().eq("user_id", uid),
           ]);
           await Promise.all([
             supabase.from("transactions").delete().eq("user_id", uid),
@@ -1727,6 +1731,19 @@ export function useStore() {
           if (data) recvIdMap.set(rv.id, String((data as Record<string, unknown>).id));
         }
 
+        const subscriptionIdMap = new Map<string, string>();
+        const existingSubscriptions = mode === "merge" ? memory.subscriptions : [];
+        for (const sub of incomingSubscriptions) {
+          const dup = existingSubscriptions.find(x => norm(x.name) === norm(sub.name));
+          if (dup) { subscriptionIdMap.set(sub.id, dup.id); continue; }
+          const { data } = await supabase.from("subscriptions").insert({
+            user_id: uid, name: sub.name, amount: sub.amount, first_charge_date: sub.firstChargeDate,
+            recurrence_months: sub.recurrenceMonths, color: sub.color, icon: sub.icon,
+            essential: sub.essential, active: sub.active,
+          }).select("id").single();
+          if (data) subscriptionIdMap.set(sub.id, String((data as Record<string, unknown>).id));
+        }
+
         const remapTag = (tag?: string | null): string | null => {
           if (!tag) return null;
           if (tag.startsWith(DEBT_TAG_PREFIX)) {
@@ -1750,6 +1767,7 @@ export function useStore() {
             essential: t.essential ?? null, payment_method: t.paymentMethod ?? null,
             installment_no: t.installmentNo ?? null, installment_total: t.installmentTotal ?? null,
             installment_group_id: null, tag: remapTag(t.tag),
+            subscription_id: t.subscriptionId ? subscriptionIdMap.get(t.subscriptionId) ?? null : null,
             applied_to_balance: t.appliedToBalance ?? false,
           }));
           const { data: txData } = await supabase.from("transactions").insert(rows as never).select("id");
