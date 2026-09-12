@@ -71,7 +71,7 @@ function DashboardPage() {
   const cc = useChartColors();
   const CYAN = cc.c1;
   const ORANGE = cc.c2;
-  const [{ transactions, categories, cards, banks, missions }, api, user] = useStore();
+  const [{ transactions, categories, cards, banks, missions, subscriptions }, api, user] = useStore();
   useEffect(() => { if (user) api.awardMission("view_dashboard"); }, [user?.id]);
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
@@ -131,6 +131,14 @@ function DashboardPage() {
       .reduce((s, t) => s + t.amount, 0);
     return { tx, invoices, income, expense, essential, nonEssential, balance: income - expense };
   }, [transactions, cards, displayMonth]);
+  const subscriptionSplit = useMemo(() => {
+    const activeIds = new Set(subscriptions.map(s => s.id));
+    const tx = transactions.filter(t => t.type === "expense" && t.subscriptionId && activeIds.has(t.subscriptionId) && isSameMonth(t.date, displayMonth));
+    return {
+      essential: tx.filter(t => t.essential === "essential").reduce((sum, t) => sum + t.amount, 0),
+      nonEssential: tx.filter(t => t.essential !== "essential").reduce((sum, t) => sum + t.amount, 0),
+    };
+  }, [transactions, subscriptions, displayMonth]);
 
   // Dados de cartão puxados dos gastos (transactions) — mesma lógica da aba Cartões
   const cardUsage = useMemo(
@@ -580,10 +588,11 @@ function DashboardPage() {
                 />
               </div>
               <div className="rounded-2xl bg-white/5 p-4 border border-border">
-                <p className="font-mono text-xs text-muted-foreground">Insight</p>
-                <p className="text-sm mt-1 leading-relaxed">
-                  Manter gastos não essenciais abaixo de <span className="font-semibold text-secondary">30%</span> do total ajuda a poupar mais e melhora sua saúde financeira.
-                </p>
+                <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
+                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="h-40"><CatPieChart data={[
+                  { name: "Essenciais", value: subscriptionSplit.essential, color: "var(--chart-1)" },
+                  { name: "Não essenciais", value: subscriptionSplit.nonEssential, color: "var(--chart-4)" },
+                ]} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
               </div>
             </div>
           </GlassCard>
