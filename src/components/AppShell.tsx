@@ -17,6 +17,7 @@ import {
   Landmark,
   Receipt,
   HandCoins,
+  Repeat2,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getRank } from "@/lib/ranks";
@@ -41,6 +42,7 @@ const nav = [
   { to: "/bancos", label: "Bancos", icon: Landmark },
   { to: "/dividas", label: "Dívidas", icon: Receipt },
   { to: "/devedores", label: "Devedores", icon: HandCoins },
+  { to: "/assinaturas", label: "Assinaturas (BETA)", icon: Repeat2 },
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
