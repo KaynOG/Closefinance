@@ -24,6 +24,20 @@ export interface Transaction {
   installmentTotal?: number;
   installmentGroupId?: string;
   appliedToBalance?: boolean;
+  subscriptionId?: string;
+}
+
+export interface Subscription {
+  id: string;
+  name: string;
+  amount: number;
+  firstChargeDate: string;
+  recurrenceMonths: number;
+  color: string;
+  icon: string;
+  essential: Essential;
+  active: boolean;
+  createdAt: string;
 }
 
 export interface Category {
@@ -177,6 +191,7 @@ export interface AppState {
   banks: Bank[];
   debts: Debt[];
   receivables: Receivable[];
+  subscriptions: Subscription[];
   users: User[];
   currentUserId: string | null;
   missions: MissionState;
@@ -190,6 +205,7 @@ const EMPTY_STATE: AppState = {
   banks: [],
   debts: [],
   receivables: [],
+  subscriptions: [],
   users: [],
   currentUserId: null,
   missions: { date: new Date().toISOString().slice(0, 10), completed: [], totalPoints: 0, history: [] },
@@ -221,6 +237,7 @@ function mapTx(row: Record<string, unknown>): Transaction {
     installmentTotal: (row.installment_total as number) ?? undefined,
     installmentGroupId: (row.installment_group_id as string) ?? undefined,
     appliedToBalance: row.applied_to_balance == null ? true : Boolean(row.applied_to_balance),
+    subscriptionId: (row.subscription_id as string) ?? undefined,
   };
 }
 function mapCat(row: Record<string, unknown>): Category {
@@ -231,6 +248,14 @@ function mapCard(row: Record<string, unknown>): Card {
 }
 function mapBank(row: Record<string, unknown>): Bank {
   return { id: String(row.id), name: String(row.name), color: String(row.color), accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
+}
+function mapSubscription(row: Record<string, unknown>): Subscription {
+  return {
+    id: String(row.id), name: String(row.name), amount: Number(row.amount),
+    firstChargeDate: String(row.first_charge_date), recurrenceMonths: Number(row.recurrence_months),
+    color: String(row.color), icon: String(row.icon), essential: row.essential as Essential,
+    active: Boolean(row.active), createdAt: String(row.created_at),
+  };
 }
 function mapDebt(row: Record<string, unknown>, installments: DebtInstallment[]): Debt {
   return {
@@ -305,6 +330,7 @@ export const DEFAULT_CATEGORIES = [
   { name: "Salário", color: "#2BD9A1", kind: "income", icon: "money" },
   { name: "Renda extra", color: "#22C3CC", kind: "income", icon: "coins" },
   { name: "Adiantamento/Pagamento de fatura", color: "#2BD9A1", kind: "expense", icon: null },
+  { name: "Assinaturas", color: "#E50914", kind: "expense", icon: "tv" },
 ] as const;
 export const LOCKED_CATEGORY_NAMES: string[] = DEFAULT_CATEGORIES.map(c => c.name.toLowerCase());
 
@@ -313,7 +339,7 @@ async function loadAll(supaUser: SupaUser) {
   set({ loading: true });
   const uid = supaUser.id;
   const today = new Date().toISOString().slice(0, 10);
-  const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR, recvR, recvInstR] = await Promise.all([
+  const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR, recvR, recvInstR, subsR] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     supabase.from("categories").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("cards").select("*").eq("user_id", uid).order("created_at"),
@@ -324,6 +350,7 @@ async function loadAll(supaUser: SupaUser) {
     supabase.from("debt_installments").select("*").eq("user_id", uid).order("number"),
     supabase.from("receivables").select("*").eq("user_id", uid).order("created_at"),
     supabase.from("receivable_installments").select("*").eq("user_id", uid).order("number"),
+    supabase.from("subscriptions").select("*").eq("user_id", uid).order("created_at"),
   ]);
 
   const profileRow = (profileR.data as Record<string, unknown> | null) ?? { id: uid, email: supaUser.email, name: supaUser.email?.split("@")[0] ?? "" };
@@ -427,6 +454,7 @@ async function loadAll(supaUser: SupaUser) {
     banks: loadedBanks,
     debts,
     receivables,
+    subscriptions: (subsR.data ?? []).map(r => mapSubscription(r as Record<string, unknown>)),
     transactions: loadedTx,
     missions: { date: today, completed, totalPoints, history },
   });
@@ -447,6 +475,7 @@ export function parseDebtTag(tag?: string): string | null {
 // Etiqueta usada nos ganhos gerados automaticamente pelas parcelas a receber.
 // Formato: `__rc__:<receivableId>`
 export const RECEIVABLE_TAG_PREFIX = "__rc__:";
+export const SUBSCRIPTION_TAG_PREFIX = "__sub__:";
 export function parseReceivableTag(tag?: string): string | null {
   if (!tag || !tag.startsWith(RECEIVABLE_TAG_PREFIX)) return null;
   return tag.slice(RECEIVABLE_TAG_PREFIX.length) || null;
