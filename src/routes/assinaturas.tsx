@@ -29,7 +29,8 @@ const services = [
   { name: "ChatGPT", icon: "chatgpt", color: "#10A37F" },
 ] as const;
 
-const emptyForm = { name: "", amount: "", firstChargeDate: new Date().toISOString().slice(0, 10), recurrenceMonths: "1", color: "#E50914", icon: "sparkles", essential: "non_essential" as const };
+type SubscriptionForm = { name: string; amount: string; firstChargeDate: string; recurrenceMonths: string; color: string; icon: string; essential: "essential" | "non_essential" };
+const emptyForm: SubscriptionForm = { name: "", amount: "", firstChargeDate: new Date().toISOString().slice(0, 10), recurrenceMonths: "1", color: "#E50914", icon: "sparkles", essential: "non_essential" };
 
 function ServiceIcon({ icon, className = "size-5" }: { icon: string; className?: string }) {
   const props = { className };
