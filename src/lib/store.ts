@@ -602,6 +602,20 @@ function addMonths(date: Date, n: number) {
   const d = new Date(date.getFullYear(), date.getMonth() + n, date.getDate());
   return d;
 }
+function recurringDates(firstChargeDate: string, recurrenceMonths: number, monthsAhead = 24) {
+  const first = new Date(`${firstChargeDate}T00:00:00`);
+  const horizon = new Date();
+  horizon.setMonth(horizon.getMonth() + monthsAhead);
+  const dates: string[] = [];
+  for (let i = 0; i < 120; i += 1) {
+    const target = new Date(first.getFullYear(), first.getMonth() + i * recurrenceMonths, 1);
+    const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    target.setDate(Math.min(first.getDate(), lastDay));
+    if (target > horizon) break;
+    dates.push(target.toISOString().slice(0, 10));
+  }
+  return dates;
+}
 
 export function useStore() {
   ensureInit();
@@ -647,6 +661,7 @@ export function useStore() {
           installment_no: installmentsTotal > 1 ? i + 1 : null,
           installment_total: installmentsTotal > 1 ? installmentsTotal : null,
           installment_group_id: groupId ?? null, tag: t.tag ?? null,
+          subscription_id: t.subscriptionId ?? null,
         };
       });
       const { data, error } = await supabase.from("transactions").insert(rows).select("*");
@@ -728,6 +743,7 @@ export function useStore() {
       if (p.essential !== undefined) patch.essential = p.essential || null;
       if (p.paymentMethod !== undefined) patch.payment_method = p.paymentMethod || null;
       if (p.tag !== undefined) patch.tag = p.tag || null;
+      if (p.subscriptionId !== undefined) patch.subscription_id = p.subscriptionId || null;
       const { error } = await supabase.from("transactions").update(patch as never).eq("id", i);
       if (error) { console.error(error); return; }
       set({ transactions: memory.transactions.map(x => x.id === i ? { ...x, ...p } : x) });
@@ -952,6 +968,88 @@ export function useStore() {
       const { error } = await supabase.from("banks").delete().eq("id", i);
       if (error) return console.error(error);
       set({ banks: memory.banks.filter(x => x.id !== i) });
+    },
+
+    // ---------- ASSINATURAS ----------
+    addSubscription: async (input: Omit<Subscription, "id" | "createdAt">) => {
+      const uid = memory.currentUserId; if (!uid) return null;
+      const category = memory.categories.find(c => c.name.trim().toLowerCase() === "assinaturas");
+      const { data, error } = await supabase.from("subscriptions").insert({
+        user_id: uid, name: input.name, amount: input.amount, first_charge_date: input.firstChargeDate,
+        recurrence_months: input.recurrenceMonths, color: input.color, icon: input.icon,
+        essential: input.essential, active: input.active,
+      }).select("*").single();
+      if (error || !data) { console.error(error); return null; }
+      const subscription = mapSubscription(data as Record<string, unknown>);
+      const dates = recurringDates(input.firstChargeDate, input.recurrenceMonths);
+      const rows = dates.map(date => ({
+        user_id: uid, type: "expense", amount: input.amount, description: input.name, date,
+        category_id: category?.id ?? null, essential: input.essential, payment_method: null,
+        subscription_id: subscription.id, tag: `${SUBSCRIPTION_TAG_PREFIX}${subscription.id}`,
+        applied_to_balance: false,
+      }));
+      const { data: txData, error: txError } = rows.length
+        ? await supabase.from("transactions").insert(rows as never).select("*")
+        : { data: [], error: null };
+      if (txError) { console.error(txError); await supabase.from("subscriptions").delete().eq("id", subscription.id); return null; }
+      const inserted = (txData ?? []).map(r => mapTx(r as Record<string, unknown>));
+      set({
+        subscriptions: [...memory.subscriptions, subscription],
+        transactions: [...inserted, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
+      });
+      return subscription;
+    },
+    updateSubscription: async (subscriptionId: string, patch: Partial<Omit<Subscription, "id" | "createdAt">>) => {
+      const current = memory.subscriptions.find(s => s.id === subscriptionId); if (!current) return false;
+      const dbPatch: Record<string, unknown> = {};
+      if (patch.name !== undefined) dbPatch.name = patch.name;
+      if (patch.amount !== undefined) dbPatch.amount = patch.amount;
+      if (patch.firstChargeDate !== undefined) dbPatch.first_charge_date = patch.firstChargeDate;
+      if (patch.recurrenceMonths !== undefined) dbPatch.recurrence_months = patch.recurrenceMonths;
+      if (patch.color !== undefined) dbPatch.color = patch.color;
+      if (patch.icon !== undefined) dbPatch.icon = patch.icon;
+      if (patch.essential !== undefined) dbPatch.essential = patch.essential;
+      if (patch.active !== undefined) dbPatch.active = patch.active;
+      const { error } = await supabase.from("subscriptions").update(dbPatch).eq("id", subscriptionId);
+      if (error) { console.error(error); return false; }
+      const next = { ...current, ...patch };
+      const today = new Date().toISOString().slice(0, 10);
+      await supabase.from("transactions").delete().eq("subscription_id", subscriptionId).gte("date", today);
+      let inserted: Transaction[] = [];
+      if (next.active) {
+        const category = memory.categories.find(c => c.name.trim().toLowerCase() === "assinaturas");
+        const existingDates = new Set(memory.transactions.filter(t => t.subscriptionId === subscriptionId && t.date < today).map(t => t.date));
+        const rows = recurringDates(next.firstChargeDate, next.recurrenceMonths)
+          .filter(date => date >= today && !existingDates.has(date))
+          .map(date => ({
+            user_id: memory.currentUserId, type: "expense", amount: next.amount, description: next.name, date,
+            category_id: category?.id ?? null, essential: next.essential, payment_method: null,
+            subscription_id: subscriptionId, tag: `${SUBSCRIPTION_TAG_PREFIX}${subscriptionId}`, applied_to_balance: false,
+          }));
+        if (rows.length) {
+          const { data } = await supabase.from("transactions").insert(rows as never).select("*");
+          inserted = (data ?? []).map(r => mapTx(r as Record<string, unknown>));
+        }
+      }
+      const historical = memory.transactions.map(t => t.subscriptionId === subscriptionId && t.date < today
+        ? { ...t, description: next.name, essential: next.essential }
+        : t).filter(t => t.subscriptionId !== subscriptionId || t.date < today);
+      if (patch.name !== undefined || patch.essential !== undefined) {
+        await supabase.from("transactions").update({ description: next.name, essential: next.essential }).eq("subscription_id", subscriptionId).lt("date", today);
+      }
+      set({ subscriptions: memory.subscriptions.map(s => s.id === subscriptionId ? next : s), transactions: [...inserted, ...historical].sort((a, b) => b.date.localeCompare(a.date)) });
+      return true;
+    },
+    removeSubscription: async (subscriptionId: string) => {
+      const today = new Date().toISOString().slice(0, 10);
+      await supabase.from("transactions").delete().eq("subscription_id", subscriptionId).gte("date", today);
+      const { error } = await supabase.from("subscriptions").delete().eq("id", subscriptionId);
+      if (error) { console.error(error); return false; }
+      set({
+        subscriptions: memory.subscriptions.filter(s => s.id !== subscriptionId),
+        transactions: memory.transactions.filter(t => t.subscriptionId !== subscriptionId || t.date < today).map(t => t.subscriptionId === subscriptionId ? { ...t, subscriptionId: undefined } : t),
+      });
+      return true;
     },
 
     // ---------- DÍVIDAS ----------
