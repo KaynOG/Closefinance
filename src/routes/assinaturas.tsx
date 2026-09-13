@@ -5,6 +5,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
 import { Bot, Gamepad2, Heart, Music2, Pause, Pencil, Play, Plus, ShoppingBag, Sparkles, Trash2, Tv, Video } from "lucide-react";
+import { CATEGORY_ICONS, CATEGORY_ICON_LIST } from "@/routes/categorias";
 
 export const Route = createFileRoute("/assinaturas")({
   head: () => ({ meta: [
@@ -41,6 +42,8 @@ function ServiceIcon({ icon, className = "size-5" }: { icon: string; className?:
   if (icon === "lovable") return <Heart {...props} />;
   if (icon === "youtube") return <Video {...props} />;
   if (icon === "netflix") return <Tv {...props} />;
+  const CategoryIcon = CATEGORY_ICONS[icon];
+  if (CategoryIcon) return <CategoryIcon {...props} />;
   return <Sparkles {...props} />;
 }
 
@@ -95,6 +98,31 @@ function SubscriptionsPage() {
         <Field label="Recorrência"><select value={form.recurrenceMonths} onChange={e => setForm({ ...form, recurrenceMonths: e.target.value })} className={inputCls}><option value="1">Mensal</option><option value="2">A cada 2 meses</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></Field>
         <Field label="Cor"><input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className={`${inputCls} h-11 p-1`} /></Field>
         <Field label="Tipo"><select value={form.essential} onChange={e => setForm({ ...form, essential: e.target.value as "essential" | "non_essential" })} className={inputCls}><option value="essential">Essencial</option><option value="non_essential">Não essencial</option></select></Field>
+        <div className="md:col-span-2">
+          <span className="text-xs font-mono uppercase text-muted-foreground">Ícone</span>
+          <div className="mt-1.5 grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-1.5 max-h-56 overflow-y-auto pr-1">
+            {CATEGORY_ICON_LIST.map(({ id, label }) => {
+              const Icon = CATEGORY_ICONS[id] ?? Sparkles;
+              const active = form.icon === id;
+              return (
+                <Button
+                  key={id}
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setForm({ ...form, icon: id })}
+                  title={label}
+                  aria-label={`Usar ícone ${label}`}
+                  aria-pressed={active}
+                  className={`aspect-square size-full min-h-10 ${active ? "border-primary bg-primary/10" : ""}`}
+                  style={active ? { color: form.color, borderColor: form.color } : undefined}
+                >
+                  <Icon className="size-4" />
+                </Button>
+              );
+            })}
+          </div>
+        </div>
         <div className="md:col-span-2 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit">Salvar assinatura</Button></div>
       </form>
     </GlassCard>}

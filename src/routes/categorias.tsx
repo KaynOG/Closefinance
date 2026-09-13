@@ -36,7 +36,7 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   shopping: ShoppingBag, market: ShoppingCart, fuel: Fuel, tools: Wrench,
 };
 
-const ICON_LIST: { id: string; label: string }[] = [
+export const CATEGORY_ICON_LIST: { id: string; label: string }[] = [
   { id: "tag", label: "Padrão" },
   { id: "home", label: "Casa" }, { id: "apartment", label: "Apartamento" },
   { id: "car", label: "Carro" }, { id: "motorcycle", label: "Moto" },
@@ -118,7 +118,7 @@ function CategoriesPage() {
             <div>
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Ícone</span>
               <div className="mt-1.5 grid grid-cols-6 gap-1.5 max-h-56 overflow-y-auto pr-1">
-                {ICON_LIST.map(({ id, label }) => {
+                {CATEGORY_ICON_LIST.map(({ id, label }) => {
                   const Icon = CATEGORY_ICONS[id] ?? Tag;
                   const active = form.icon === id;
                   return (
@@ -157,7 +157,7 @@ function CategoriesPage() {
                   <div className="flex items-center gap-1.5 mt-1">
                     <select value={c.icon ?? "tag"} onChange={(e) => api.updateCategory(c.id, { icon: e.target.value })}
                       className="bg-transparent text-[10px] font-mono text-muted-foreground outline-none cursor-pointer hover:text-foreground">
-                      {ICON_LIST.map(i => <option key={i.id} value={i.id} className="bg-[#0d2226]">{i.label}</option>)}
+                      {CATEGORY_ICON_LIST.map(i => <option key={i.id} value={i.id} className="bg-[#0d2226]">{i.label}</option>)}
                     </select>
                     <span className="text-[11px] font-mono text-muted-foreground">· {count} transações</span>
                     {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
