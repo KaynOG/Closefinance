@@ -8,6 +8,13 @@
       "when": 1789134594368,
       "tag": "0000_add_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790396629915,
+      "tag": "0001_subscriptions_usage_importance",
+      "breakpoints": true
     }
   ]
 }

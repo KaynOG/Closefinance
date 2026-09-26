@@ -1,11 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { GlassCard, SectionTitle } from "@/components/ui-kit";
+import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
 import { Bot, Gamepad2, Heart, Music2, Pause, Pencil, Play, Plus, ShoppingBag, Sparkles, Trash2, Tv, Video } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_ICON_LIST } from "@/routes/categorias";
+
+const USAGE_OPTIONS = [
+  { value: "daily", label: "Diário" },
+  { value: "weekly", label: "Semanal" },
+  { value: "monthly", label: "Mensal" },
+  { value: "rarely", label: "Quase não uso" },
+] as const;
+
+const IMPORTANCE_OPTIONS = [
+  { value: "important", label: "Importante" },
+  { value: "somewhat", label: "Pouco importante" },
+  { value: "unnecessary", label: "Não necessário" },
+] as const;
 
 export const Route = createFileRoute("/assinaturas")({
   head: () => ({ meta: [
@@ -68,7 +81,8 @@ function SubscriptionsPage() {
     event.preventDefault();
     const amount = parseBRL(form.amount);
     if (!form.name.trim() || amount <= 0 || !form.firstChargeDate) return;
-    const payload = { name: form.name.trim(), amount, firstChargeDate: form.firstChargeDate, recurrenceMonths: Math.max(1, Number(form.recurrenceMonths) || 1), color: form.color, icon: form.icon, essential: form.essential, active: true };
+    const editing = editingId ? subscriptions.find(s => s.id === editingId) : undefined;
+    const payload = { name: form.name.trim(), amount, firstChargeDate: form.firstChargeDate, recurrenceMonths: Math.max(1, Number(form.recurrenceMonths) || 1), color: form.color, icon: form.icon, essential: form.essential, active: true, usageFrequency: editing?.usageFrequency ?? "monthly" as const, importance: editing?.importance ?? "important" as const };
     if (editingId) await api.updateSubscription(editingId, payload);
     else await api.addSubscription(payload);
     setForm(emptyForm); setEditingId(null); setOpen(false);
@@ -79,6 +93,22 @@ function SubscriptionsPage() {
       <div><p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Recorrências</p><h1 className="text-3xl font-bold">Assinaturas <span className="text-sm text-secondary">(BETA)</span></h1></div>
       <Button onClick={() => { setEditingId(null); setForm(emptyForm); setOpen(v => !v); }}><Plus /> Nova</Button>
     </header>
+
+    {(() => {
+      const active = subscriptions.filter(s => s.active);
+      const monthlyTotal = active.reduce((sum, s) => sum + s.amount / s.recurrenceMonths, 0);
+      const yearlyTotal = monthlyTotal * 12;
+      const essentialTotal = active.filter(s => s.essential === "essential").reduce((sum, s) => sum + s.amount / s.recurrenceMonths, 0);
+      const unusedTotal = active.filter(s => s.usageFrequency === "rarely" || s.importance === "unnecessary").reduce((sum, s) => sum + s.amount / s.recurrenceMonths, 0);
+      return (
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <Stat label="Total mensal" value={formatBRL(monthlyTotal)} sub={`${active.length} assinatura${active.length === 1 ? "" : "s"} ativa${active.length === 1 ? "" : "s"}`} accent="violet" />
+          <Stat label="Projeção anual" value={formatBRL(yearlyTotal)} sub="se mantiver o ritmo" accent="teal" />
+          <Stat label="Essenciais" value={formatBRL(essentialTotal)} sub="por mês" accent="success" />
+          <Stat label="Pouco usadas" value={formatBRL(unusedTotal)} sub="potencial de corte/mês" accent="crimson" />
+        </section>
+      );
+    })()}
 
     <GlassCard className="mb-6">
       <SectionTitle title="Serviços populares" subtitle="toque para preencher rapidamente" />
@@ -134,6 +164,28 @@ function SubscriptionsPage() {
           <span className={`text-[10px] font-mono px-2 py-1 border ${sub.essential === "essential" ? "border-secondary text-secondary" : "border-border text-muted-foreground"}`}>{sub.essential === "essential" ? "Essencial" : "Não essencial"}</span>
         </div>
         <div className="mt-4 text-xs font-mono text-muted-foreground">A cada {sub.recurrenceMonths === 1 ? "mês" : `${sub.recurrenceMonths} meses`} · próxima base {new Date(`${sub.firstChargeDate}T00:00:00`).toLocaleDateString("pt-BR")}</div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <label>
+            <span className="text-[10px] font-mono uppercase text-muted-foreground">Frequência de uso</span>
+            <select
+              value={sub.usageFrequency}
+              onChange={e => api.updateSubscription(sub.id, { usageFrequency: e.target.value as Subscription["usageFrequency"] })}
+              className="mt-1 w-full border border-border bg-background px-2 py-1.5 text-xs font-mono outline-none focus:border-primary"
+            >
+              {USAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="text-[10px] font-mono uppercase text-muted-foreground">Importância</span>
+            <select
+              value={sub.importance}
+              onChange={e => api.updateSubscription(sub.id, { importance: e.target.value as Subscription["importance"] })}
+              className="mt-1 w-full border border-border bg-background px-2 py-1.5 text-xs font-mono outline-none focus:border-primary"
+            >
+              {IMPORTANCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+        </div>
         <div className="mt-4 flex justify-end gap-1">
           <Button size="icon" variant="ghost" title="Editar" onClick={() => edit(sub)}><Pencil /></Button>
           <Button size="icon" variant="ghost" title={sub.active ? "Pausar" : "Ativar"} onClick={() => api.updateSubscription(sub.id, { active: !sub.active })}>{sub.active ? <Pause /> : <Play />}</Button>

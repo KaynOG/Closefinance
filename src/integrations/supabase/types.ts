@@ -501,9 +501,11 @@ export type Database = {
           first_charge_date: string
           icon: string
           id: string
+          importance: string
           name: string
           recurrence_months: number
           updated_at: string
+          usage_frequency: string
           user_id: string
         }
         Insert: {
@@ -515,9 +517,11 @@ export type Database = {
           first_charge_date: string
           icon?: string
           id?: string
+          importance?: string
           name: string
           recurrence_months?: number
           updated_at?: string
+          usage_frequency?: string
           user_id: string
         }
         Update: {
@@ -529,9 +533,11 @@ export type Database = {
           first_charge_date?: string
           icon?: string
           id?: string
+          importance?: string
           name?: string
           recurrence_months?: number
           updated_at?: string
+          usage_frequency?: string
           user_id?: string
         }
         Relationships: []
