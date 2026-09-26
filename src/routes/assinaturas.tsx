@@ -81,7 +81,8 @@ function SubscriptionsPage() {
     event.preventDefault();
     const amount = parseBRL(form.amount);
     if (!form.name.trim() || amount <= 0 || !form.firstChargeDate) return;
-    const payload = { name: form.name.trim(), amount, firstChargeDate: form.firstChargeDate, recurrenceMonths: Math.max(1, Number(form.recurrenceMonths) || 1), color: form.color, icon: form.icon, essential: form.essential, active: true };
+    const editing = editingId ? subscriptions.find(s => s.id === editingId) : undefined;
+    const payload = { name: form.name.trim(), amount, firstChargeDate: form.firstChargeDate, recurrenceMonths: Math.max(1, Number(form.recurrenceMonths) || 1), color: form.color, icon: form.icon, essential: form.essential, active: true, usageFrequency: editing?.usageFrequency ?? "monthly" as const, importance: editing?.importance ?? "important" as const };
     if (editingId) await api.updateSubscription(editingId, payload);
     else await api.addSubscription(payload);
     setForm(emptyForm); setEditingId(null); setOpen(false);
