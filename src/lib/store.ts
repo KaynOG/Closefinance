@@ -37,6 +37,8 @@ export interface Subscription {
   icon: string;
   essential: Essential;
   active: boolean;
+  usageFrequency: "daily" | "weekly" | "monthly" | "rarely";
+  importance: "important" | "somewhat" | "unnecessary";
   createdAt: string;
 }
 
@@ -254,7 +256,10 @@ function mapSubscription(row: Record<string, unknown>): Subscription {
     id: String(row.id), name: String(row.name), amount: Number(row.amount),
     firstChargeDate: String(row.first_charge_date), recurrenceMonths: Number(row.recurrence_months),
     color: String(row.color), icon: String(row.icon), essential: row.essential as Essential,
-    active: Boolean(row.active), createdAt: String(row.created_at),
+    active: Boolean(row.active),
+    usageFrequency: (row.usage_frequency as Subscription["usageFrequency"]) ?? "monthly",
+    importance: (row.importance as Subscription["importance"]) ?? "important",
+    createdAt: String(row.created_at),
   };
 }
 function mapDebt(row: Record<string, unknown>, installments: DebtInstallment[]): Debt {
@@ -1010,6 +1015,8 @@ export function useStore() {
       if (patch.icon !== undefined) dbPatch.icon = patch.icon;
       if (patch.essential !== undefined) dbPatch.essential = patch.essential;
       if (patch.active !== undefined) dbPatch.active = patch.active;
+      if (patch.usageFrequency !== undefined) dbPatch.usage_frequency = patch.usageFrequency;
+      if (patch.importance !== undefined) dbPatch.importance = patch.importance;
       const { error } = await supabase.from("subscriptions").update(dbPatch as never).eq("id", subscriptionId);
       if (error) { console.error(error); return false; }
       const next = { ...current, ...patch };
