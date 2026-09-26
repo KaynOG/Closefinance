@@ -1,11 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { GlassCard, SectionTitle } from "@/components/ui-kit";
+import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
 import { Bot, Gamepad2, Heart, Music2, Pause, Pencil, Play, Plus, ShoppingBag, Sparkles, Trash2, Tv, Video } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_ICON_LIST } from "@/routes/categorias";
+
+const USAGE_OPTIONS = [
+  { value: "daily", label: "Diário" },
+  { value: "weekly", label: "Semanal" },
+  { value: "monthly", label: "Mensal" },
+  { value: "rarely", label: "Quase não uso" },
+] as const;
+
+const IMPORTANCE_OPTIONS = [
+  { value: "important", label: "Importante" },
+  { value: "somewhat", label: "Pouco importante" },
+  { value: "unnecessary", label: "Não necessário" },
+] as const;
 
 export const Route = createFileRoute("/assinaturas")({
   head: () => ({ meta: [
