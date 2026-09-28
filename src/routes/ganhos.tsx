@@ -9,6 +9,7 @@ import { TrendAreaChart, CategoryBarChart } from "@/components/charts/lazy";
 import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
 import { playCashRegister } from "@/lib/sound";
+import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/ganhos")({
   head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
@@ -74,9 +75,12 @@ function GanhosPage() {
 
   return (
     <AppShell>
-      <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Receitas</p>
-        <h1 className="text-3xl lg:text-4xl font-bold">Ganhos <TrendingUp className="inline size-7" style={{ color: CYAN }} /></h1>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Receitas</p>
+          <h1 className="text-3xl lg:text-4xl font-bold">Ganhos <TrendingUp className="inline size-7" style={{ color: CYAN }} /></h1>
+        </div>
+        <StatementExport mode="income" />
       </header>
 
       <TutorialBox
