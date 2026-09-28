@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Receipt, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { FinancialHealthBeta } from "@/components/FinancialHealthBeta";
+import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/transacoes")({
   head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
@@ -91,9 +92,12 @@ function TxPage() {
 
   return (
     <AppShell>
-      <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Lançamentos</p>
-        <h1 className="text-3xl font-bold">Transações (BETA)</h1>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Lançamentos</p>
+          <h1 className="text-3xl font-bold">Transações (BETA)</h1>
+        </div>
+        <StatementExport mode="all" />
       </header>
 
       {/* Fatura atual */}

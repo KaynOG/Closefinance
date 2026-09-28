@@ -9,6 +9,7 @@ import { TxEditModal } from "@/components/TxEditModal";
 import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
 import { playExpense } from "@/lib/sound";
+import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/gastos")({
   head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
@@ -115,9 +116,12 @@ function GastosPage() {
 
   return (
     <AppShell>
-      <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Saídas</p>
-        <h1 className="text-3xl lg:text-4xl font-bold">Gastos <TrendingDown className="inline size-7" style={{ color: ORANGE }} /></h1>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Saídas</p>
+          <h1 className="text-3xl lg:text-4xl font-bold">Gastos <TrendingDown className="inline size-7" style={{ color: ORANGE }} /></h1>
+        </div>
+        <StatementExport mode="expense" />
       </header>
 
       <TutorialBox
