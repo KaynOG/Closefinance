@@ -37,8 +37,9 @@ export function StatementExport({ mode }: { mode: Mode }) {
       const [{ jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
       const now = new Date();
       const start = period === "all" || period === "custom" ? null : new Date(now.getFullYear(), now.getMonth() - (Number(period) - 1), 1);
+      const todayStr = now.toISOString().slice(0, 10);
       const startStr = period === "custom" ? from : start ? start.toISOString().slice(0, 10) : "";
-      const endStr = period === "custom" ? to : "";
+      const endStr = period === "custom" ? to : period === "all" ? "" : todayStr;
       const list = transactions
         .filter(t => (mode === "all" ? true : t.type === mode))
         .filter(t => !startStr || t.date >= startStr)
