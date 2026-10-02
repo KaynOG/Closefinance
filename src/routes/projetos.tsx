@@ -339,7 +339,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
             </div>
             <Button variant="ghost" size="icon" onClick={removeProject} aria-label="Apagar projeto" title="Apagar projeto" className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 /></Button>
           </>}
-          <Button variant="ghost" size="icon" onClick={() => setOpen(o => !o)} aria-label={open ? "Ocultar projeto" : "Mostrar projeto"} title={open ? "Ocultar projeto" : "Mostrar projeto" aria-expanded={open} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => setOpen(o => !o)} aria-label={open ? "Ocultar projeto" : "Mostrar projeto"} title={open ? "Ocultar projeto" : "Mostrar projeto"} aria-expanded={open} className="shrink-0">
             <ChevronDown className={`transition-transform ${open ? "" : "-rotate-90"}`} />
           </Button>
         </div>
