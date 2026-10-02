@@ -387,6 +387,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                 <div className="space-y-2">
                   <input className={inputCls} placeholder="Objetivo" value={goal.title} onChange={e => setGoal({ ...goal, title: e.target.value })} />
                   <input className={inputCls} placeholder="Descrição" value={goal.description} onChange={e => setGoal({ ...goal, description: e.target.value })} />
+                  <input className={inputCls} placeholder="Link (opcional)" value={goal.link} onChange={e => setGoal({ ...goal, link: e.target.value })} />
                 </div>
                 <input type="date" className={inputCls} value={goal.date} onChange={e => setGoal({ ...goal, date: e.target.value })} />
                 <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2.5 hover:opacity-90"><Plus className="size-4 inline" /> Objetivo</button>
@@ -443,6 +444,39 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                 <ul className="mt-4 space-y-2">
                   {sortedGoals.map(g => {
                     const Icon = GOAL_ICONS[g.icon]?.icon ?? Target;
+                    if (editingGoal === g.id) {
+                      const DraftIcon = GOAL_ICONS[goalDraft.icon]?.icon ?? Target;
+                      return (
+                        <li key={g.id} className="glass rounded-2xl p-3 space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_150px] gap-2 items-start">
+                            <button type="button" onClick={() => setShowEditIcons(s => !s)} title="Trocar ícone"
+                              className="size-[42px] rounded-xl border border-primary bg-primary/15 text-primary grid place-items-center">
+                              <DraftIcon className="size-5" />
+                            </button>
+                            <div className="space-y-2">
+                              <input className={inputCls} placeholder="Objetivo" value={goalDraft.title} onChange={e => setGoalDraft({ ...goalDraft, title: e.target.value })} />
+                              <input className={inputCls} placeholder="Descrição" value={goalDraft.description} onChange={e => setGoalDraft({ ...goalDraft, description: e.target.value })} />
+                              <input className={inputCls} placeholder="Link (opcional)" value={goalDraft.link} onChange={e => setGoalDraft({ ...goalDraft, link: e.target.value })} />
+                            </div>
+                            <input type="date" className={inputCls} value={goalDraft.date} onChange={e => setGoalDraft({ ...goalDraft, date: e.target.value })} />
+                          </div>
+                          {showEditIcons && (
+                            <div className="grid grid-cols-8 sm:grid-cols-12 lg:grid-cols-16 gap-1.5 max-h-48 overflow-y-auto p-2 rounded-2xl border border-border">
+                              {Object.entries(GOAL_ICONS).map(([id, { icon: Ic, label }]) => (
+                                <button key={id} type="button" title={label} onClick={() => { setGoalDraft({ ...goalDraft, icon: id }); setShowEditIcons(false); }}
+                                  className={`aspect-square rounded-xl grid place-items-center border transition ${goalDraft.icon === id ? "border-primary bg-primary/15 text-primary" : "border-border hover:bg-white/5"}`}>
+                                  <Ic className="size-4" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex justify-end gap-2">
+                            <button onClick={() => setEditingGoal(null)} className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5">Cancelar</button>
+                            <button onClick={() => saveGoal(g)} className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2 text-xs hover:opacity-90"><Check className="size-3.5 inline mr-1" />Salvar</button>
+                          </div>
+                        </li>
+                      );
+                    }
                     return (
                       <li key={g.id} className={`glass rounded-2xl p-3 flex items-center gap-3 ${g.done ? "opacity-70" : ""}`}>
                         <input type="checkbox" checked={g.done} onChange={() => toggleGoal(g)} className="size-4 accent-[var(--primary)] cursor-pointer" />
@@ -451,7 +485,14 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                           <p className={`text-sm font-semibold ${g.done ? "line-through" : ""}`}>{g.title}</p>
                           {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
                         </div>
+                        {g.link && (
+                          <a href={g.link} target="_blank" rel="noopener noreferrer" title={g.link}
+                            className="rounded-lg p-1.5 text-muted-foreground hover:text-primary hover:bg-white/5">
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        )}
                         {g.date && <span className="font-mono text-xs text-muted-foreground">{new Date(g.date + "T00:00:00").toLocaleDateString("pt-BR")}</span>}
+                        <button onClick={() => startEditGoal(g)} title="Editar objetivo" className="rounded-lg p-1.5 text-muted-foreground hover:text-primary hover:bg-white/5"><Pencil className="size-3.5" /></button>
                         <button onClick={() => removeGoal(g)} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="size-3.5" /></button>
                       </li>
                     );
