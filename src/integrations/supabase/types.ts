@@ -377,6 +377,118 @@ export type Database = {
         }
         Relationships: []
       }
+      project_expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          include_in_expenses: boolean
+          name: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          include_in_expenses?: boolean
+          name: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          include_in_expenses?: boolean
+          name?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_expenses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_goals: {
+        Row: {
+          created_at: string
+          date: string | null
+          description: string
+          done: boolean
+          icon: string
+          id: string
+          project_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          description?: string
+          done?: boolean
+          icon?: string
+          id?: string
+          project_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          description?: string
+          done?: boolean
+          icon?: string
+          id?: string
+          project_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_goals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          cover: string | null
+          created_at: string
+          description: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          cover?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          cover?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       receivable_installments: {
         Row: {
           amount: number
