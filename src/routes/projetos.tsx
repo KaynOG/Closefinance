@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import {
@@ -66,7 +67,7 @@ const PROJECT_TAG = "__pj__:";
 const today = () => new Date().toISOString().slice(0, 10);
 const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
 
-interface Project { id: string; name: string; description: string; cover: string | null; created_at: string }
+interface Project { id: string; name: string; description: string; cover: string | null; created_at: string; target_date: string | null }
 interface PExpense { id: string; project_id: string; name: string; amount: number; date: string; include_in_expenses: boolean }
 interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string; link: string | null }
 
@@ -89,7 +90,7 @@ function ProjectsPage() {
   const [expenses, setExpenses] = useState<PExpense[]>([]);
   const [goals, setGoals] = useState<PGoal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", description: "", cover: null as string | null });
+  const [form, setForm] = useState({ name: "", description: "", cover: null as string | null, target_date: "" });
 
   useEffect(() => {
     if (!user) return;
@@ -110,11 +111,11 @@ function ProjectsPage() {
     ev.preventDefault();
     if (!user || !form.name.trim()) return;
     const { data, error } = await supabase.from("projects")
-      .insert({ user_id: user.id, name: form.name.trim(), description: form.description.trim(), cover: form.cover })
+      .insert({ user_id: user.id, name: form.name.trim(), description: form.description.trim(), cover: form.cover, target_date: form.target_date || null })
       .select().single();
     if (error) return toast.error("Não foi possível criar o projeto");
     setProjects(ps => [data as Project, ...ps]);
-    setForm({ name: "", description: "", cover: null });
+    setForm({ name: "", description: "", cover: null, target_date: "" });
     toast.success("Projeto criado!");
   }
 
@@ -139,6 +140,10 @@ function ProjectsPage() {
             <label className="block">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Descrição geral</span>
               <textarea rows={3} className={`mt-1.5 ${inputCls} resize-none`} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="O que você quer realizar?" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Data final para concluir</span>
+              <input type="date" className={`mt-1.5 ${inputCls}`} value={form.target_date} onChange={e => setForm({ ...form, target_date: e.target.value })} />
             </label>
             <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">
               <Plus className="size-4 inline mr-1.5" /> Criar projeto
@@ -168,16 +173,16 @@ function ProjectsPage() {
 
 function CoverPicker({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
   return (
-    <label className="block relative aspect-[16/7] rounded-2xl border border-dashed border-border overflow-hidden cursor-pointer hover:bg-white/5 transition">
+    <label className="block relative size-28 sm:size-32 rounded-xl border border-dashed border-border overflow-hidden cursor-pointer hover:bg-accent transition">
       {value ? (
         <>
           <img src={value} alt="Capa do projeto" className="size-full object-cover" />
-          <button type="button" onClick={(e) => { e.preventDefault(); onChange(null); }}
-            className="absolute top-2 right-2 rounded-lg bg-background/80 p-1.5 hover:bg-background"><X className="size-4" /></button>
+          <Button type="button" variant="secondary" size="icon" aria-label="Remover capa" onClick={(e) => { e.preventDefault(); onChange(null); }}
+            className="absolute top-1 right-1 size-7"><X /></Button>
         </>
       ) : (
         <div className="size-full grid place-items-center text-muted-foreground text-xs font-mono">
-          <div className="text-center"><ImagePlus className="size-6 mx-auto mb-1" />Anexar imagem de capa</div>
+          <div className="text-center px-2"><ImagePlus className="size-6 mx-auto mb-1" />Anexar capa</div>
         </div>
       )}
       <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -300,8 +305,15 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   }
 
   async function changeCover(cover: string | null) {
-    await supabase.from("projects").update({ cover }).eq("id", project.id);
+    const { error } = await supabase.from("projects").update({ cover }).eq("id", project.id);
+    if (error) return toast.error("Não foi possível atualizar a capa");
     setProjects(ps => ps.map(p => p.id === project.id ? { ...p, cover } : p));
+  }
+
+  async function changeTargetDate(target_date: string | null) {
+    const { error } = await supabase.from("projects").update({ target_date }).eq("id", project.id);
+    if (error) return toast.error("Não foi possível atualizar a data final");
+    setProjects(ps => ps.map(p => p.id === project.id ? { ...p, target_date } : p));
   }
 
   const sortedGoals = [...goals].sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
@@ -309,27 +321,35 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
 
   return (
     <GlassCard className="p-0 sm:p-0 overflow-hidden">
-      {project.cover && <img src={project.cover} alt={project.name} className="w-full aspect-[16/5] object-cover" />}
       <div className="p-3.5 sm:p-5">
-        <div className="flex items-start gap-3">
-          <button onClick={() => setOpen(o => !o)} className="flex-1 min-w-0 text-left flex items-start gap-2">
-            <ChevronDown className={`size-5 mt-1 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} />
-            <div className="min-w-0">
-              <h2 className="text-xl font-bold truncate">{project.name}</h2>
-              {project.description && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{project.description}</p>}
-            </div>
-          </button>
-          <div className="text-right shrink-0">
-            <p className="text-[10px] font-mono uppercase text-muted-foreground">Total gasto</p>
-            <p className="font-mono font-bold text-lg">{formatBRL(total)}</p>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          {project.cover ? <img src={project.cover} alt={`Capa de ${project.name}`} className="size-20 sm:size-24 shrink-0 rounded-xl object-cover" /> :
+            <div className="size-20 sm:size-24 shrink-0 rounded-xl bg-muted grid place-items-center text-muted-foreground"><FolderKanban className="size-7" /></div>}
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg sm:text-xl font-bold break-words">{project.name}</h2>
+            {open && <>
+              {project.description && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap break-words">{project.description}</p>}
+              {project.target_date && <p className="text-xs font-mono text-muted-foreground mt-2">Conclusão: {new Date(project.target_date + "T00:00:00").toLocaleDateString("pt-BR")}</p>}
+            </>}
           </div>
-          <button onClick={removeProject} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-white/5" aria-label="Apagar projeto">
-            <Trash2 className="size-4" />
-          </button>
+          {open && <>
+            <div className="text-right shrink-0 hidden sm:block">
+              <p className="text-[10px] font-mono uppercase text-muted-foreground">Total gasto</p>
+              <p className="font-mono font-bold text-lg">{formatBRL(total)}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={removeProject} aria-label="Apagar projeto" title="Apagar projeto" className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 /></Button>
+          </>}
+          <Button variant="ghost" size="icon" onClick={() => setOpen(o => !o)} aria-label={open ? "Ocultar projeto" : "Mostrar projeto"} title={open ? "Ocultar projeto" : "Mostrar projeto"} aria-expanded={open} className="shrink-0">
+            <ChevronDown className={`transition-transform ${open ? "" : "-rotate-90"}`} />
+          </Button>
         </div>
 
         {open && (
           <div className="mt-5 space-y-6">
+            <label className="block max-w-xs">
+              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Data final para concluir</span>
+              <input type="date" className={`mt-1.5 ${inputCls}`} value={project.target_date ?? ""} onChange={e => changeTargetDate(e.target.value || null)} />
+            </label>
             {/* Gastos */}
             <section>
               <h3 className="font-semibold mb-2">Gastos do projeto</h3>
