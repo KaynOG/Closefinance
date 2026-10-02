@@ -1,0 +1,1 @@
+ALTER TABLE public.project_goals ADD COLUMN link text;
