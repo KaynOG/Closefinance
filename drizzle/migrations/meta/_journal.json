@@ -15,6 +15,13 @@
       "when": 1790396629915,
       "tag": "0001_subscriptions_usage_importance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790953601454,
+      "tag": "0002_create_projects",
+      "breakpoints": true
     }
   ]
 }
