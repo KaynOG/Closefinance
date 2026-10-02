@@ -198,7 +198,10 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   const [state, api, user] = useStore();
   const [open, setOpen] = useState(true);
   const [exp, setExp] = useState({ name: "", amount: "", date: today(), include: false });
-  const [goal, setGoal] = useState({ title: "", description: "", date: "", icon: "target" });
+  const [goal, setGoal] = useState({ title: "", description: "", date: "", icon: "target", link: "" });
+  const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [goalDraft, setGoalDraft] = useState({ title: "", description: "", date: "", icon: "target", link: "" });
+  const [showEditIcons, setShowEditIcons] = useState(false);
   const [showIcons, setShowIcons] = useState(false);
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   const doneCount = goals.filter(g => g.done).length;
@@ -249,11 +252,11 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
     if (!user || !goal.title.trim()) return;
     const { data, error } = await supabase.from("project_goals").insert({
       user_id: user.id, project_id: project.id, title: goal.title.trim(), description: goal.description.trim(),
-      date: goal.date || null, icon: goal.icon,
+      date: goal.date || null, icon: goal.icon, link: goal.link.trim() || null,
     }).select().single();
     if (error || !data) return toast.error("Não foi possível adicionar o objetivo");
     setGoals(gs => [...gs, data as PGoal]);
-    setGoal({ title: "", description: "", date: "", icon: "target" });
+    setGoal({ title: "", description: "", date: "", icon: "target", link: "" });
     setShowIcons(false);
   }
 
@@ -266,6 +269,25 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   async function removeGoal(g: PGoal) {
     await supabase.from("project_goals").delete().eq("id", g.id);
     setGoals(gs => gs.filter(x => x.id !== g.id));
+  }
+
+  function startEditGoal(g: PGoal) {
+    setEditingGoal(g.id);
+    setShowEditIcons(false);
+    setGoalDraft({ title: g.title, description: g.description, date: g.date ?? "", icon: g.icon, link: g.link ?? "" });
+  }
+
+  async function saveGoal(g: PGoal) {
+    if (!goalDraft.title.trim()) return toast.error("Dê um nome ao objetivo");
+    const patch = {
+      title: goalDraft.title.trim(), description: goalDraft.description.trim(),
+      date: goalDraft.date || null, icon: goalDraft.icon, link: goalDraft.link.trim() || null,
+    };
+    const { error } = await supabase.from("project_goals").update(patch).eq("id", g.id);
+    if (error) return toast.error("Não foi possível salvar o objetivo");
+    setGoals(gs => gs.map(x => x.id === g.id ? { ...x, ...patch } : x));
+    setEditingGoal(null);
+    toast.success("Objetivo atualizado");
   }
 
   async function removeProject() {
