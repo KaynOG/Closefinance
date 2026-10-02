@@ -5,7 +5,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import {
-  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X,
+  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X, Pencil, ExternalLink,
   Target, Flag, Trophy, Star, Rocket, Home, Car, Plane, Map, Umbrella, Bike, Laptop,
   Smartphone, Camera, Music, Gamepad2, Book, GraduationCap, Briefcase, Building2, Hammer,
   Wrench, Paintbrush, Palette, Heart, Gift, Baby, Dog, Cat, Dumbbell, Coffee, UtensilsCrossed,
@@ -68,7 +68,7 @@ const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 
 
 interface Project { id: string; name: string; description: string; cover: string | null; created_at: string }
 interface PExpense { id: string; project_id: string; name: string; amount: number; date: string; include_in_expenses: boolean }
-interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string }
+interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string; link: string | null }
 
 async function fileToCover(file: File): Promise<string> {
   const url = URL.createObjectURL(file);
@@ -198,7 +198,10 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   const [state, api, user] = useStore();
   const [open, setOpen] = useState(true);
   const [exp, setExp] = useState({ name: "", amount: "", date: today(), include: false });
-  const [goal, setGoal] = useState({ title: "", description: "", date: "", icon: "target" });
+  const [goal, setGoal] = useState({ title: "", description: "", date: "", icon: "target", link: "" });
+  const [editingGoal, setEditingGoal] = useState<string | null>(null);
+  const [goalDraft, setGoalDraft] = useState({ title: "", description: "", date: "", icon: "target", link: "" });
+  const [showEditIcons, setShowEditIcons] = useState(false);
   const [showIcons, setShowIcons] = useState(false);
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   const doneCount = goals.filter(g => g.done).length;
@@ -249,11 +252,11 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
     if (!user || !goal.title.trim()) return;
     const { data, error } = await supabase.from("project_goals").insert({
       user_id: user.id, project_id: project.id, title: goal.title.trim(), description: goal.description.trim(),
-      date: goal.date || null, icon: goal.icon,
+      date: goal.date || null, icon: goal.icon, link: goal.link.trim() || null,
     }).select().single();
     if (error || !data) return toast.error("Não foi possível adicionar o objetivo");
     setGoals(gs => [...gs, data as PGoal]);
-    setGoal({ title: "", description: "", date: "", icon: "target" });
+    setGoal({ title: "", description: "", date: "", icon: "target", link: "" });
     setShowIcons(false);
   }
 
@@ -266,6 +269,25 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   async function removeGoal(g: PGoal) {
     await supabase.from("project_goals").delete().eq("id", g.id);
     setGoals(gs => gs.filter(x => x.id !== g.id));
+  }
+
+  function startEditGoal(g: PGoal) {
+    setEditingGoal(g.id);
+    setShowEditIcons(false);
+    setGoalDraft({ title: g.title, description: g.description, date: g.date ?? "", icon: g.icon, link: g.link ?? "" });
+  }
+
+  async function saveGoal(g: PGoal) {
+    if (!goalDraft.title.trim()) return toast.error("Dê um nome ao objetivo");
+    const patch = {
+      title: goalDraft.title.trim(), description: goalDraft.description.trim(),
+      date: goalDraft.date || null, icon: goalDraft.icon, link: goalDraft.link.trim() || null,
+    };
+    const { error } = await supabase.from("project_goals").update(patch).eq("id", g.id);
+    if (error) return toast.error("Não foi possível salvar o objetivo");
+    setGoals(gs => gs.map(x => x.id === g.id ? { ...x, ...patch } : x));
+    setEditingGoal(null);
+    toast.success("Objetivo atualizado");
   }
 
   async function removeProject() {
@@ -365,6 +387,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                 <div className="space-y-2">
                   <input className={inputCls} placeholder="Objetivo" value={goal.title} onChange={e => setGoal({ ...goal, title: e.target.value })} />
                   <input className={inputCls} placeholder="Descrição" value={goal.description} onChange={e => setGoal({ ...goal, description: e.target.value })} />
+                  <input className={inputCls} placeholder="Link (opcional)" value={goal.link} onChange={e => setGoal({ ...goal, link: e.target.value })} />
                 </div>
                 <input type="date" className={inputCls} value={goal.date} onChange={e => setGoal({ ...goal, date: e.target.value })} />
                 <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2.5 hover:opacity-90"><Plus className="size-4 inline" /> Objetivo</button>
@@ -421,6 +444,39 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                 <ul className="mt-4 space-y-2">
                   {sortedGoals.map(g => {
                     const Icon = GOAL_ICONS[g.icon]?.icon ?? Target;
+                    if (editingGoal === g.id) {
+                      const DraftIcon = GOAL_ICONS[goalDraft.icon]?.icon ?? Target;
+                      return (
+                        <li key={g.id} className="glass rounded-2xl p-3 space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_150px] gap-2 items-start">
+                            <button type="button" onClick={() => setShowEditIcons(s => !s)} title="Trocar ícone"
+                              className="size-[42px] rounded-xl border border-primary bg-primary/15 text-primary grid place-items-center">
+                              <DraftIcon className="size-5" />
+                            </button>
+                            <div className="space-y-2">
+                              <input className={inputCls} placeholder="Objetivo" value={goalDraft.title} onChange={e => setGoalDraft({ ...goalDraft, title: e.target.value })} />
+                              <input className={inputCls} placeholder="Descrição" value={goalDraft.description} onChange={e => setGoalDraft({ ...goalDraft, description: e.target.value })} />
+                              <input className={inputCls} placeholder="Link (opcional)" value={goalDraft.link} onChange={e => setGoalDraft({ ...goalDraft, link: e.target.value })} />
+                            </div>
+                            <input type="date" className={inputCls} value={goalDraft.date} onChange={e => setGoalDraft({ ...goalDraft, date: e.target.value })} />
+                          </div>
+                          {showEditIcons && (
+                            <div className="grid grid-cols-8 sm:grid-cols-12 lg:grid-cols-16 gap-1.5 max-h-48 overflow-y-auto p-2 rounded-2xl border border-border">
+                              {Object.entries(GOAL_ICONS).map(([id, { icon: Ic, label }]) => (
+                                <button key={id} type="button" title={label} onClick={() => { setGoalDraft({ ...goalDraft, icon: id }); setShowEditIcons(false); }}
+                                  className={`aspect-square rounded-xl grid place-items-center border transition ${goalDraft.icon === id ? "border-primary bg-primary/15 text-primary" : "border-border hover:bg-white/5"}`}>
+                                  <Ic className="size-4" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex justify-end gap-2">
+                            <button onClick={() => setEditingGoal(null)} className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5">Cancelar</button>
+                            <button onClick={() => saveGoal(g)} className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2 text-xs hover:opacity-90"><Check className="size-3.5 inline mr-1" />Salvar</button>
+                          </div>
+                        </li>
+                      );
+                    }
                     return (
                       <li key={g.id} className={`glass rounded-2xl p-3 flex items-center gap-3 ${g.done ? "opacity-70" : ""}`}>
                         <input type="checkbox" checked={g.done} onChange={() => toggleGoal(g)} className="size-4 accent-[var(--primary)] cursor-pointer" />
@@ -429,7 +485,14 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                           <p className={`text-sm font-semibold ${g.done ? "line-through" : ""}`}>{g.title}</p>
                           {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
                         </div>
+                        {g.link && (
+                          <a href={g.link} target="_blank" rel="noopener noreferrer" title={g.link}
+                            className="rounded-lg p-1.5 text-muted-foreground hover:text-primary hover:bg-white/5">
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        )}
                         {g.date && <span className="font-mono text-xs text-muted-foreground">{new Date(g.date + "T00:00:00").toLocaleDateString("pt-BR")}</span>}
+                        <button onClick={() => startEditGoal(g)} title="Editar objetivo" className="rounded-lg p-1.5 text-muted-foreground hover:text-primary hover:bg-white/5"><Pencil className="size-3.5" /></button>
                         <button onClick={() => removeGoal(g)} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive"><Trash2 className="size-3.5" /></button>
                       </li>
                     );

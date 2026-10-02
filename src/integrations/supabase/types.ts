@@ -426,6 +426,7 @@ export type Database = {
           done: boolean
           icon: string
           id: string
+          link: string | null
           project_id: string
           title: string
           user_id: string
@@ -437,6 +438,7 @@ export type Database = {
           done?: boolean
           icon?: string
           id?: string
+          link?: string | null
           project_id: string
           title: string
           user_id: string
@@ -448,6 +450,7 @@ export type Database = {
           done?: boolean
           icon?: string
           id?: string
+          link?: string | null
           project_id?: string
           title?: string
           user_id?: string
