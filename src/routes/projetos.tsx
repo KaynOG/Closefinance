@@ -5,7 +5,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import {
-  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X,
+  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X, Pencil, Link2, ExternalLink,
   Target, Flag, Trophy, Star, Rocket, Home, Car, Plane, Map, Umbrella, Bike, Laptop,
   Smartphone, Camera, Music, Gamepad2, Book, GraduationCap, Briefcase, Building2, Hammer,
   Wrench, Paintbrush, Palette, Heart, Gift, Baby, Dog, Cat, Dumbbell, Coffee, UtensilsCrossed,
@@ -68,7 +68,7 @@ const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 
 
 interface Project { id: string; name: string; description: string; cover: string | null; created_at: string }
 interface PExpense { id: string; project_id: string; name: string; amount: number; date: string; include_in_expenses: boolean }
-interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string }
+interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string; link: string | null }
 
 async function fileToCover(file: File): Promise<string> {
   const url = URL.createObjectURL(file);
