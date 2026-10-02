@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep project target dates on `public.projects` and edit them from the project view, because deadlines belong to each project rather than its individual goals.
