@@ -5,7 +5,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import {
-  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X, Pencil, Link2, ExternalLink,
+  Plus, Trash2, ImagePlus, Check, ChevronDown, FolderKanban, X, Pencil, ExternalLink,
   Target, Flag, Trophy, Star, Rocket, Home, Car, Plane, Map, Umbrella, Bike, Laptop,
   Smartphone, Camera, Music, Gamepad2, Book, GraduationCap, Briefcase, Building2, Hammer,
   Wrench, Paintbrush, Palette, Heart, Gift, Baby, Dog, Cat, Dumbbell, Coffee, UtensilsCrossed,
