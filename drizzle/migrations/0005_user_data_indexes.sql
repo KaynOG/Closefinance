@@ -1,0 +1,13 @@
+CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON public.transactions(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_categories_user ON public.categories(user_id);
+CREATE INDEX IF NOT EXISTS idx_cards_user ON public.cards(user_id);
+CREATE INDEX IF NOT EXISTS idx_banks_user ON public.banks(user_id);
+CREATE INDEX IF NOT EXISTS idx_mission_history_user ON public.mission_history(user_id, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_debts_user ON public.debts(user_id);
+CREATE INDEX IF NOT EXISTS idx_debt_inst_user ON public.debt_installments(user_id);
+CREATE INDEX IF NOT EXISTS idx_receivables_user ON public.receivables(user_id);
+CREATE INDEX IF NOT EXISTS idx_recv_inst_user ON public.receivable_installments(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_projects_user ON public.projects(user_id);
+CREATE INDEX IF NOT EXISTS idx_project_expenses_project ON public.project_expenses(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_goals_project ON public.project_goals(project_id);

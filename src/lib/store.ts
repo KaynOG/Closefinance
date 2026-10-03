@@ -216,7 +216,27 @@ const EMPTY_STATE: AppState = {
 
 let memory: AppState = EMPTY_STATE;
 const listeners = new Set<() => void>();
-function notify() { listeners.forEach(l => l()); }
+const CACHE_KEY = "cf_state_cache_v1";
+let persistTimer: number | undefined;
+function persist() {
+  if (typeof window === "undefined") return;
+  if (persistTimer) window.clearTimeout(persistTimer);
+  persistTimer = window.setTimeout(() => {
+    try {
+      if (memory.loading || !memory.currentUserId) return;
+      localStorage.setItem(CACHE_KEY, JSON.stringify(memory));
+    } catch { /* quota */ }
+  }, 400);
+}
+function readCache(uid: string): AppState | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as AppState;
+    return s.currentUserId === uid ? { ...s, loading: false } : null;
+  } catch { return null; }
+}
+function notify() { listeners.forEach(l => l()); persist(); }
 function set(patch: Partial<AppState>) { memory = { ...memory, ...patch }; notify(); }
 
 const id = () => crypto.randomUUID();
@@ -340,9 +360,19 @@ export const DEFAULT_CATEGORIES = [
 export const LOCKED_CATEGORY_NAMES: string[] = DEFAULT_CATEGORIES.map(c => c.name.toLowerCase());
 
 // ============= LOAD =============
+let loadingUid: string | null = null;
 async function loadAll(supaUser: SupaUser) {
-  set({ loading: true });
   const uid = supaUser.id;
+  if (loadingUid === uid) return;
+  loadingUid = uid;
+  try { await loadAllInner(supaUser); } finally { loadingUid = null; }
+}
+async function loadAllInner(supaUser: SupaUser) {
+  const uid = supaUser.id;
+  if (memory.currentUserId !== uid) {
+    const cached = readCache(uid);
+    if (cached) { memory = cached; notify(); } else set({ loading: true });
+  }
   const today = new Date().toISOString().slice(0, 10);
   const [profileR, catsR, cardsR, banksR, txR, missR, debtsR, debtInstR, recvR, recvInstR, subsR] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
@@ -559,6 +589,7 @@ export function monthExpenseTotal(transactions: Transaction[], cards: Card[], re
 
 function clearAll() {
   memory = { ...EMPTY_STATE, loading: false };
+  try { localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
   notify();
 }
 
