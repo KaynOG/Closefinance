@@ -83,7 +83,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   if (!user || !mounted) {
     return (
       <div className="min-h-screen grid place-items-center gap-3 text-sm text-muted-foreground font-mono">
-        {state.loading ? (
+        {state.loading || !mounted ? (
           <span className="block size-9 rounded-full border-2 border-primary/25 border-t-primary animate-spin" />
         ) : null}
       </div>
