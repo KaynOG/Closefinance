@@ -36,6 +36,13 @@
       "when": 1790964965287,
       "tag": "0004_project_target_date",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791069719617,
+      "tag": "0005_user_data_indexes",
+      "breakpoints": true
     }
   ]
 }
