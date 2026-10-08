@@ -511,6 +511,10 @@ export function parseDebtTag(tag?: string): string | null {
 // Formato: `__rc__:<receivableId>`
 export const RECEIVABLE_TAG_PREFIX = "__rc__:";
 export const SUBSCRIPTION_TAG_PREFIX = "__sub__:";
+export function parseSubscriptionTag(tag?: string): string | null {
+  if (!tag || !tag.startsWith(SUBSCRIPTION_TAG_PREFIX)) return null;
+  return tag.slice(SUBSCRIPTION_TAG_PREFIX.length) || null;
+}
 export function parseReceivableTag(tag?: string): string | null {
   if (!tag || !tag.startsWith(RECEIVABLE_TAG_PREFIX)) return null;
   return tag.slice(RECEIVABLE_TAG_PREFIX.length) || null;
