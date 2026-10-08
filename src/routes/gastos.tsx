@@ -20,7 +20,7 @@ const ORANGE = "#FF6B1A";
 const ORANGE_DEEP = "#C2410C";
 
 function GastosPage() {
-  const [{ transactions, categories, cards, banks, debts }, api] = useStore();
+  const [{ transactions, categories, cards, banks, debts, subscriptions }, api] = useStore();
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
   const [editing, setEditing] = useState<Transaction | null>(null);
