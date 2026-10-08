@@ -40,6 +40,31 @@ function GastosPage() {
 
   const invoiceCat = categories.find(c => c.name === "Adiantamento/Pagamento de fatura");
 
+  // Etiqueta exibida na planilha: cada lançamento automático ganha um rótulo
+  // próprio em vez do código interno (ex.: __cp__ vira "Parcela crédito").
+  function tagLabel(t: Transaction) {
+    const pf = parseInvoicePaymentTag(t.tag);
+    if (pf) {
+      const cn = cards.find(c => c.id === pf.cardId)?.name ?? "cartão";
+      return <span style={{ color: "#2BD9A1" }}>Pgto fatura · {cn}{pf.userTag ? ` · ${pf.userTag}` : ""}</span>;
+    }
+    const dv = parseDebtTag(t.tag);
+    if (dv) {
+      const dn = debts.find(d => d.id === dv)?.name ?? "dívida";
+      return <span style={{ color: "#FF6B1A" }}>Parcela dívida{t.installmentTotal ? ` ${t.installmentNo}/${t.installmentTotal}` : ""} · {dn}</span>;
+    }
+    if (isCardPurchaseTx(t)) {
+      const cn = cards.find(c => c.id === t.cardId)?.name;
+      return <span style={{ color: "var(--credit)" }}>Parcela crédito{t.installmentTotal ? ` ${t.installmentNo}/${t.installmentTotal}` : ""}{cn ? ` · ${cn}` : ""}</span>;
+    }
+    const subId = parseSubscriptionTag(t.tag);
+    if (subId) {
+      const sn = subscriptions.find(s => s.id === subId)?.name ?? "assinatura";
+      return <span>Assinatura · <span className="text-destructive">{sn}</span></span>;
+    }
+    return <>{t.tag || "—"}</>;
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const amt = parseBRL(form.amount);
