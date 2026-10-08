@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, parseDebtTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
+import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, parseInvoicePaymentTag, parseDebtTag, parseSubscriptionTag, isCashFlowExpense, computeInvoicesForMonth, type Essential, type PaymentMethod, type Transaction } from "@/lib/store";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingDown } from "lucide-react";
 import { TrendAreaChart, CategoryBarChart } from "@/components/charts/lazy";
@@ -20,7 +20,7 @@ const ORANGE = "#FF6B1A";
 const ORANGE_DEEP = "#C2410C";
 
 function GastosPage() {
-  const [{ transactions, categories, cards, banks, debts }, api] = useStore();
+  const [{ transactions, categories, cards, banks, debts, subscriptions }, api] = useStore();
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
   const [editing, setEditing] = useState<Transaction | null>(null);
@@ -346,7 +346,7 @@ function GastosPage() {
                               </td>
                               <td className="py-2.5 px-3">{cat ? <span className="inline-flex items-center gap-1.5 text-xs"><span className="size-2 rounded-full" style={{ background: cat.color }} />{cat.name}</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
                               <td className="py-2.5 px-3 text-[10px] font-mono text-muted-foreground">{pmLabel}</td>
-                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{(() => { const pf = parseInvoicePaymentTag(t.tag); if (pf) { const cn = cards.find(c => c.id === pf.cardId)?.name ?? "cartão"; return <span style={{ color: "#2BD9A1" }}>Pgto fatura · {cn}{pf.userTag ? ` · ${pf.userTag}` : ""}</span>; } const dv = parseDebtTag(t.tag); if (dv) { const dn = debts.find(d => d.id === dv)?.name ?? "dívida"; return <span style={{ color: "#B388FF" }}>Dívida · {dn}</span>; } return t.tag || "—"; })()}</td>
+                              <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{(() => { const pf = parseInvoicePaymentTag(t.tag); if (pf) { const cn = cards.find(c => c.id === pf.cardId)?.name ?? "cartão"; return <span style={{ color: "#2BD9A1" }}>Pgto fatura · {cn}{pf.userTag ? ` · ${pf.userTag}` : ""}</span>; } const dv = parseDebtTag(t.tag); if (dv) { const dn = debts.find(d => d.id === dv)?.name ?? "dívida"; return <span style={{ color: "#B388FF" }}>Dívida · {dn}</span>; } const subId = parseSubscriptionTag(t.tag); if (subId) { const sn = subscriptions.find(s => s.id === subId)?.name ?? "assinatura"; return <span>Assinatura · <span className="text-destructive">{sn}</span></span>; } return t.tag || "—"; })()}</td>
                               <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
                               <td className="py-2.5 px-3 whitespace-nowrap">
                                 <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
