@@ -241,3 +241,8 @@ export function installGlobalClickSounds() {
   }, { passive: true });
 }
 
+
+/** Interruptor ligado — subida brilhante em duas notas. */
+export function playToggleOn() { playSequence(["open", "chime"], 70); }
+/** Interruptor desligado — descida suave e grave. */
+export function playToggleOff() { playSequence(["close", "pop"], 80); }
