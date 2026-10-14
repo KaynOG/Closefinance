@@ -58,8 +58,19 @@ function addMonthsISO(iso: string, n: number) {
 function fmtDate(iso: string) { return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR"); }
 
 function DividasPage() {
-  const [{ debts, banks, categories }, api] = useStore();
+  const [{ debts, banks, categories, currentUserId }, api] = useStore();
   const [showForm, setShowForm] = useState(false);
+  const [paidOpen, setPaidOpen] = useState(false);
+  const archivedKey = `cf_paid_debts_${currentUserId ?? "anon"}`;
+  const [archived, setArchived] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(archivedKey) || "[]"); } catch { return []; }
+  });
+  function persistArchived(next: string[]) {
+    setArchived(next);
+    try { localStorage.setItem(archivedKey, JSON.stringify(next)); } catch { /* ignore */ }
+  }
+  const activeDebts = debts.filter(d => !archived.includes(d.id));
+  const paidDebts = debts.filter(d => archived.includes(d.id));
 
   const totals = useMemo(() => {
     let total = 0, paid = 0, openAmount = 0, nextDate: string | null = null, nextAmount = 0;
@@ -119,7 +130,7 @@ function DividasPage() {
         />
       )}
 
-      {debts.length === 0 && !showForm ? (
+      {activeDebts.length === 0 && paidDebts.length === 0 && !showForm ? (
         <GlassCard>
           <p className="text-sm text-muted-foreground">
             Você ainda não cadastrou dívidas. Crie uma para gerar automaticamente as parcelas como gastos —
@@ -129,14 +140,20 @@ function DividasPage() {
         </GlassCard>
       ) : (
         <div className="space-y-4">
-          {debts.map(d => (
+          {activeDebts.map(d => (
             <DebtCard
               key={d.id}
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
-              onTogglePaid={(inst) => {
+              onTogglePaid={async (inst) => {
                 if (!inst.paid && !confirm(`Tem certeza de que a parcela ${inst.number} de "${d.name}" foi paga? A data dela será ajustada para hoje.`)) return;
-                api.setInstallmentPaid(d.id, inst.id, !inst.paid);
+                await api.setInstallmentPaid(d.id, inst.id, !inst.paid);
+                if (!inst.paid && d.installments.every(i => i.paid || i.id === inst.id)) {
+                  if (confirm(`🎉 Parabéns! Você quitou todas as parcelas de "${d.name}"!\n\nDeseja mover essa dívida para o bloco "Dívidas pagas" no final da página?`)) {
+                    persistArchived([...archived, d.id]);
+                    notify(`"${d.name}" movida para Dívidas pagas.`);
+                  }
+                }
               }}
               onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
@@ -149,6 +166,61 @@ function DividasPage() {
             />
           ))}
         </div>
+      )}
+
+      {paidDebts.length > 0 && (
+        <GlassCard className="mt-6">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-lg grid place-items-center bg-[#2BD9A1]/15 text-[#2BD9A1]"><Check className="size-4" /></div>
+              <div>
+                <h2 className="text-base font-semibold">Dívidas pagas</h2>
+                <p className="text-[11px] font-mono text-muted-foreground">{paidDebts.length} {paidDebts.length === 1 ? "dívida quitada" : "dívidas quitadas"} 🎉</p>
+              </div>
+            </div>
+            <button onClick={() => setPaidOpen(o => !o)} data-no-sound aria-expanded={paidOpen}
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-mono hover:bg-white/5 transition active:scale-95 flex items-center gap-1.5">
+              {paidOpen ? <><ChevronUp className="size-3.5" /> Ocultar</> : <><ChevronDown className="size-3.5" /> Mostrar</>}
+            </button>
+          </div>
+          {paidOpen && (
+            <ul className="mt-4 divide-y divide-white/5">
+              {paidDebts.map(d => {
+                const Icon = DEBT_ICONS[(d.icon as DebtIconKey)] ?? Wallet;
+                const total = d.installments.reduce((s, i) => s + i.amount, 0);
+                return (
+                  <li key={d.id} className="flex items-center gap-3 py-3">
+                    <div className="size-9 rounded-xl grid place-items-center shrink-0"
+                      style={{ background: `${d.color}22`, color: d.color, border: `1px solid ${d.color}55` }}>
+                      <Icon className="size-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{d.name}</p>
+                      <p className="text-[11px] font-mono text-muted-foreground">
+                        {d.installments.length} parcelas · {formatBRL(total)} quitados
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { persistArchived(archived.filter(id => id !== d.id)); notify(`"${d.name}" voltou para a lista de dívidas.`); }}
+                      className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-[11px] font-mono hover:bg-white/5">
+                      Restaurar
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`Apagar a dívida quitada "${d.name}" e todos os gastos das parcelas?`)) return;
+                        await api.removeDebt(d.id);
+                        persistArchived(archived.filter(id => id !== d.id));
+                        notify("Dívida removida.");
+                      }}
+                      className="shrink-0 rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover dívida">
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </GlassCard>
       )}
     </AppShell>
   );

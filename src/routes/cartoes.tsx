@@ -131,7 +131,6 @@ function CardsPage() {
 
           <CardSyncBar />
           <CardPurchases />
-          <ExternalPurchases />
         </>
       )}
 
@@ -288,6 +287,8 @@ function CardsPage() {
           })}
         </div>
       </div>
+
+      <ExternalPurchases />
     </AppShell>
   );
 }
