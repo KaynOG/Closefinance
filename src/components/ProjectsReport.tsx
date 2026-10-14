@@ -3,7 +3,7 @@ import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { formatBRL } from "@/lib/store";
 
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--primary)", "var(--destructive)"];
+const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)", "var(--chart-7)"];
 
 type P = { id: string; name: string };
 type E = { project_id: string; name: string; amount: number; date: string };
