@@ -378,9 +378,14 @@
 }
 
 :root {
-  --glass-tint: color-mix(in oklab, var(--background) 64%, transparent);
-  --glass-depth: color-mix(in oklab, var(--background) 84%, oklch(0.08 0 0));
-  --glass-edge: color-mix(in oklab, var(--primary) 28%, var(--border));
+  /* Vidro mais esmaecido: deixa o fundo da tela aparecer atrás das caixas. */
+  --glass-tint: color-mix(in oklab, var(--background) 44%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 66%, oklch(0.08 0 0));
+  --glass-edge: var(--border);
+  /* Brilho só nas quinas: a borda em si continua neutra e discreta. */
+  --glass-corner: color-mix(in oklab, var(--primary) 80%, transparent);
+  --glass-corner-bloom: color-mix(in oklab, var(--primary) 22%, transparent);
+  --glass-corner-size: 4.5rem;
   --glass-highlight: color-mix(in oklab, var(--primary) 13%, transparent);
   --glass-reflection: color-mix(in oklab, var(--foreground) 9%, transparent);
   --glass-shadow: 0 10px 28px -24px color-mix(in oklab, var(--primary) 32%, transparent);
@@ -388,10 +393,50 @@
   --control-shadow: 0 7px 16px -10px color-mix(in oklab, var(--primary) 48%, transparent);
 }
 :root.light {
-  --glass-tint: color-mix(in oklab, var(--background) 58%, transparent);
-  --glass-depth: color-mix(in oklab, var(--background) 82%, transparent);
+  --glass-tint: color-mix(in oklab, var(--background) 52%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 74%, transparent);
+  --glass-corner: color-mix(in oklab, var(--primary) 55%, transparent);
+  --glass-corner-bloom: color-mix(in oklab, var(--primary) 14%, transparent);
   --glass-reflection: color-mix(in oklab, var(--popover) 60%, transparent);
   --glass-highlight: color-mix(in oklab, var(--primary) 7%, transparent);
+}
+
+/* Brilho das quinas: 4 halos nos cantos, sem contornar a caixa inteira. */
+/* position:relative só quando o elemento não tem posição própria (absolute/fixed/sticky vencem). */
+@layer base {
+  .glass, .glass-strong { position: relative; isolation: isolate; }
+}
+/* Halo suave irradiando de cada quina (atrás do conteúdo). */
+.glass::before, .glass-strong::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner-bloom), transparent 78%);
+  pointer-events: none;
+}
+.glass::after, .glass-strong::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background:
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner), transparent 85%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(1.2px);
+  pointer-events: none;
 }
 
 @utility glass {
