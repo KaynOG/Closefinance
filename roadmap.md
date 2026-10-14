@@ -1,9 +1,9 @@
 # Ajustes solicitados
 
-- [ ] Substituir todos os avisos, confirmações e perguntas do navegador por janelas temáticas do app.
-- [ ] Disponibilizar edição explícita de nome, datas e valores em dívidas e devedores, mantendo lançamentos vinculados.
-- [ ] Ordenar ranking por pontos decrescentes, incluindo o próprio usuário.
-- [ ] Verificar os fluxos e as janelas em computador e celular.
+- [x] Substituir todos os avisos, confirmações e perguntas do navegador por janelas temáticas do app.
+- [x] Disponibilizar edição explícita de nome, datas e valores em dívidas e devedores, mantendo lançamentos vinculados.
+- [x] Ordenar ranking por pontos decrescentes, incluindo o próprio usuário.
+- [x] Verificar os fluxos e as janelas em computador e celular.
 
 - [x] Adicionar as dez categorias padrão sem duplicar categorias existentes.
 - [x] Ordenar dívidas e devedores por data ou ordem personalizada persistente.
