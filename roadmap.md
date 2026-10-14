@@ -1,7 +1,7 @@
 # Ajustes solicitados
 
-- [ ] Padronizar todos os seletores de ícones com controles temáticos internos.
-- [ ] Diferenciar tons dos gráficos sem sair da família da cor escolhida e verificar nas telas.
+- [x] Padronizar todos os seletores de ícones com controles temáticos internos.
+- [x] Diferenciar tons dos gráficos sem sair da família da cor escolhida e verificar nas telas.
 
 - [x] Criar quadro mensal de metas em Educação com seis grupos e percentuais editáveis.
 - [x] Vincular categorias aos grupos, persistir escolhas e preservar no backup.
