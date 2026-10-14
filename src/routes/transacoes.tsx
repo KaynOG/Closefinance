@@ -102,6 +102,7 @@ function TxPage() {
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant="outline"
               type="button"
               onClick={syncInvoices}
               disabled={syncing}
@@ -145,11 +146,11 @@ function TxPage() {
           <SectionTitle title="Novo lançamento" subtitle="entrada ou gasto" />
           <form onSubmit={submit} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              <Button type="button" onClick={() => setForm({ ...form, type: "income" })}
+              <Button variant="outline" type="button" aria-pressed={form.type === "income"} onClick={() => setForm({ ...form, type: "income" })}
                 className={`rounded-xl p-3 text-sm font-medium border transition ${form.type === "income" ? "bg-success/15 border-success text-success" : "border-border hover:bg-muted/40"}`}>
                 <ArrowDownCircle className="size-4 inline mr-1.5" /> Entrada
               </Button>
-              <Button type="button" onClick={() => setForm({ ...form, type: "expense" })}
+              <Button variant="outline" type="button" aria-pressed={form.type === "expense"} onClick={() => setForm({ ...form, type: "expense" })}
                 className={`rounded-xl p-3 text-sm font-medium border transition ${form.type === "expense" ? "bg-danger/15 border-danger text-danger" : "border-border hover:bg-muted/40"}`}>
                 <ArrowUpCircle className="size-4 inline mr-1.5" /> Gasto
               </Button>
@@ -169,9 +170,9 @@ function TxPage() {
               <>
                 <Field label="Classificação">
                   <div className="grid grid-cols-2 gap-2">
-                    <Button type="button" onClick={() => setForm({ ...form, essential: "essential" })}
+                    <Button variant="outline" type="button" aria-pressed={form.essential === "essential"} onClick={() => setForm({ ...form, essential: "essential" })}
                       className={`rounded-xl p-2.5 text-xs font-mono border transition ${form.essential === "essential" ? "bg-primary/20 border-primary" : "border-border hover:bg-muted/40"}`}>Essencial</Button>
-                    <Button type="button" onClick={() => setForm({ ...form, essential: "non_essential" })}
+                    <Button variant="outline" type="button" aria-pressed={form.essential === "non_essential"} onClick={() => setForm({ ...form, essential: "non_essential" })}
                       className={`rounded-xl p-2.5 text-xs font-mono border transition ${form.essential === "non_essential" ? "bg-danger/20 border-danger" : "border-border hover:bg-muted/40"}`}>Não essencial</Button>
                   </div>
                 </Field>
