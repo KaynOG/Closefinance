@@ -43,6 +43,13 @@
       "when": 1791069719617,
       "tag": "0005_user_data_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791977606516,
+      "tag": "0006_baby_and_hidden_tabs",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,8 @@ import {
   FolderKanban,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { usePrefs } from "@/lib/prefs";
+import { Baby } from "lucide-react";
 import { getRank } from "@/lib/ranks";
 import { Logo } from "./Logo";
 import { installGlobalClickSounds } from "@/lib/sound";
@@ -33,7 +35,7 @@ import { RouteLoader } from "./RouteLoader";
 const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
 
 
-const nav = [
+const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/ganhos", label: "Ganhos", icon: TrendingUp },
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
@@ -48,6 +50,7 @@ const nav = [
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/missoes", label: "Missões", icon: Trophy },
   { to: "/educacao", label: "Educação", icon: BookOpen },
+  { to: "/bebe", label: "Bebê a caminho", icon: Baby },
   { to: "/perfil", label: "Perfil & Ajustes", icon: UserIcon },
 ] as const;
 
@@ -59,6 +62,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [deferred, setDeferred] = useState(false);
+  const prefs = usePrefs();
+  const nav = NAV_ALL.filter(n => (n.to === "/bebe" ? prefs.babyMode : !prefs.hiddenTabs.includes(n.to)));
 
   useEffect(() => {
     setMounted(true);

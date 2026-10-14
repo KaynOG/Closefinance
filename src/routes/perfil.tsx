@@ -14,6 +14,9 @@ import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
 import { BACKGROUNDS, getBackgroundId, setBackgroundId, onBackgroundChange } from "@/lib/backgrounds";
 import { InstallAppCard } from "@/components/InstallAppCard";
 import { LicenseCard } from "@/components/LicenseCard";
+import { usePrefs, setBabyMode, setTabHidden, HIDEABLE_TABS } from "@/lib/prefs";
+import { playToggleOn, playToggleOff } from "@/lib/sound";
+import { Baby, EyeOff } from "lucide-react";
 
 
 export const Route = createFileRoute("/perfil")({
@@ -208,6 +211,7 @@ function PersonalDataCollapsible({ form, setForm, save, saved }: {
               </div>
               <p className="mt-2 text-[11px] font-mono text-muted-foreground">As patentes serão exibidas no gênero correspondente (ex.: Mestre / Mestra).</p>
             </div>
+            <BabyToggle />
             <div className="md:col-span-2 flex items-center gap-3 pt-2">
               <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm flex items-center gap-2 glow-violet active:scale-[0.98] transition">
                 <Save className="size-4" /> Salvar alterações
@@ -399,6 +403,8 @@ function SecurityPanel() {
         </GlassCard>
       </div>
 
+      <HiddenTabsCard />
+
       <GlassCard hideKey="perfil-prefs" hideLabel="Preferências">
         <div className="space-y-4">
           <div>
@@ -538,5 +544,54 @@ function GenderBtn({ current, value, label, icon, onClick }: { current: Gender; 
       className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-mono transition ${active ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:bg-white/5"}`}>
       {icon}{label}
     </button>
+  );
+}
+
+function ToggleSwitch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} data-no-sound
+      onClick={() => { const v = !checked; v ? playToggleOn() : playToggleOff(); onChange(v); }}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors duration-200 ${checked ? "bg-primary border-primary" : "bg-muted border-border"}`}>
+      <span className={`inline-block size-4 rounded-full bg-background shadow transition-transform duration-200 ${checked ? "translate-x-6" : "translate-x-1"}`} />
+    </button>
+  );
+}
+
+function BabyToggle() {
+  const { babyMode } = usePrefs();
+  return (
+    <div className="md:col-span-2 flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3">
+      <div className="flex items-center gap-2.5">
+        <Baby className="size-5 text-primary" />
+        <div>
+          <p className="text-sm font-semibold">Bebê a caminho?</p>
+          <p className="text-[11px] font-mono text-muted-foreground">libera a aba "Bebê a caminho" para registrar o enxoval</p>
+        </div>
+      </div>
+      <ToggleSwitch checked={babyMode} onChange={setBabyMode} label="Bebê a caminho" />
+    </div>
+  );
+}
+
+function HiddenTabsCard() {
+  const { hiddenTabs } = usePrefs();
+  return (
+    <GlassCard hideKey="perfil-tabs" hideLabel="Abas visíveis">
+      <SectionTitle title="Abas visíveis" subtitle="desligue para ocultar a aba do menu" />
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {HIDEABLE_TABS.map(t => {
+          const visible = !hiddenTabs.includes(t.to);
+          return (
+            <li key={t.to} className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-medium flex items-center gap-2">{!visible && <EyeOff className="size-3.5 text-muted-foreground" />}{t.label}</p>
+                {t.note && <p className="text-[10px] font-mono text-muted-foreground">{t.note}</p>}
+              </div>
+              <ToggleSwitch checked={visible} onChange={v => setTabHidden(t.to, !v)} label={`Mostrar ${t.label}`} />
+            </li>
+          );
+        })}
+      </ul>
+    </GlassCard>
   );
 }

@@ -56,6 +56,50 @@ export type Database = {
         }
         Relationships: []
       }
+      baby_expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          date: string
+          essential: string
+          id: string
+          name: string
+          payment_method: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          essential?: string
+          id?: string
+          name: string
+          payment_method?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          date?: string
+          essential?: string
+          id?: string
+          name?: string
+          payment_method?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "baby_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banks: {
         Row: {
           account_balance: number
@@ -320,12 +364,14 @@ export type Database = {
       profiles: {
         Row: {
           avatar: string | null
+          baby_mode: boolean
           birthdate: string | null
           cash_amount: number
           created_at: string
           email: string | null
           friend_code: string | null
           gender: string | null
+          hidden_tabs: string[]
           id: string
           job: string | null
           license_expires_at: string | null
@@ -339,12 +385,14 @@ export type Database = {
         }
         Insert: {
           avatar?: string | null
+          baby_mode?: boolean
           birthdate?: string | null
           cash_amount?: number
           created_at?: string
           email?: string | null
           friend_code?: string | null
           gender?: string | null
+          hidden_tabs?: string[]
           id: string
           job?: string | null
           license_expires_at?: string | null
@@ -358,12 +406,14 @@ export type Database = {
         }
         Update: {
           avatar?: string | null
+          baby_mode?: boolean
           birthdate?: string | null
           cash_amount?: number
           created_at?: string
           email?: string | null
           friend_code?: string | null
           gender?: string | null
+          hidden_tabs?: string[]
           id?: string
           job?: string | null
           license_expires_at?: string | null
