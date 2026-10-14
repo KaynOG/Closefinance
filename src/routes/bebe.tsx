@@ -7,6 +7,9 @@ import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import { usePrefs } from "@/lib/prefs";
 import { Baby, Heart, Star, Moon, Cloud, Trash2, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { BabyMonthlyBar, BabyEssentialPie } from "@/components/charts/lazy";
+
+const MONTHS_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 export const Route = createFileRoute("/bebe")({
   head: () => ({
@@ -53,6 +56,28 @@ function BebePage() {
     const ess = items.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0);
     const non = items.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0);
     return { ess, non, all: ess + non };
+  }, [items]);
+
+  const dash = useMemo(() => {
+    const now = new Date();
+    const months: { key: string; label: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MONTHS_SHORT[d.getMonth()] });
+    }
+    const monthly = months.map(m => {
+      const rows = items.filter(i => i.date.startsWith(m.key));
+      return {
+        month: m.label,
+        Essenciais: rows.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0),
+        "Não essenciais": rows.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0),
+      };
+    });
+    const thisKey = months[months.length - 1].key;
+    const thisMonth = items.filter(i => i.date.startsWith(thisKey));
+    const mEss = thisMonth.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0);
+    const mNon = thisMonth.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0);
+    return { monthly, mEss, mNon, hasData: items.length > 0 };
   }, [items]);
 
   async function add(e: React.FormEvent) {
@@ -127,6 +152,35 @@ function BebePage() {
           </div>
         ))}
       </section>
+
+      {dash.hasData && (
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="rounded-3xl border-2 p-5" style={{ borderColor: soft("var(--baby-mint)", 45), background: soft("var(--baby-mint)", 10) }}>
+            <h2 className="font-semibold mb-1 flex items-center gap-2"><Star className="size-4" style={{ color: "var(--baby-mint)" }} /> Gastos ao longo dos meses</h2>
+            <p className="text-xs text-muted-foreground mb-3">Últimos 6 meses do enxoval</p>
+            <div className="h-56"><BabyMonthlyBar data={dash.monthly} /></div>
+          </div>
+          <div className="rounded-3xl border-2 p-5" style={{ borderColor: soft("var(--baby-peach)", 45), background: soft("var(--baby-peach)", 10) }}>
+            <h2 className="font-semibold mb-1 flex items-center gap-2"><Heart className="size-4" style={{ color: "var(--baby-peach)" }} /> Essenciais × não essenciais</h2>
+            <p className="text-xs text-muted-foreground mb-3">Somente este mês</p>
+            {dash.mEss + dash.mNon > 0 ? (
+              <div className="h-56">
+                <BabyEssentialPie data={[
+                  { name: "Essenciais", value: dash.mEss, color: "var(--baby-mint)" },
+                  { name: "Não essenciais", value: dash.mNon, color: "var(--baby-peach)" },
+                ]} />
+              </div>
+            ) : (
+              <div className="h-56 grid place-items-center text-center">
+                <div>
+                  <Cloud className="size-8 mx-auto mb-2" style={{ color: "var(--baby-sky)" }} />
+                  <p className="text-xs text-muted-foreground">Nenhum gasto neste mês ainda.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <div className="rounded-3xl border-2 p-5 mb-6" style={{ borderColor: soft("var(--baby-sky)", 40), background: soft("var(--baby-sky)", 8) }}>
         <h2 className="font-semibold mb-4 flex items-center gap-2"><Plus className="size-4" /> Novo item para o bebê</h2>
