@@ -403,6 +403,19 @@
 
 /* Brilho das quinas: 4 halos nos cantos, sem contornar a caixa inteira. */
 .glass, .glass-strong { position: relative; }
+/* Halo suave irradiando de cada quina (atrás do conteúdo). */
+.glass::before, .glass-strong::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner-bloom), transparent 78%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner-bloom), transparent 78%);
+  pointer-events: none;
+}
 .glass::after, .glass-strong::after {
   content: "";
   position: absolute;
