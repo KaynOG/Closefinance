@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
-import { useStore, MISSIONS_CATALOG, getDailyMissions, type MissionState } from "@/lib/store";
+import { useStore, MISSIONS_CATALOG, getDailyMissions, formatBRL, type MissionState } from "@/lib/store";
 import { RANKS, getRank } from "@/lib/ranks";
+import { analyzeHealth, reflectionQuestions } from "@/lib/financial-health";
 import { useMemo, useState } from "react";
-import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Flame, CheckCircle2, Circle, Sparkles, Lock, ChevronDown, ChevronUp, HeartPulse, Lightbulb } from "lucide-react";
 import { FriendsRanking } from "@/components/FriendsRanking";
 
 
@@ -124,6 +125,10 @@ function MissoesPage() {
       </section>
 
       <section className="mb-6">
+        <HealthTips />
+      </section>
+
+      <section className="mb-6">
         <FriendsRanking myPoints={missions.totalPoints} />
       </section>
 
@@ -131,6 +136,58 @@ function MissoesPage() {
         <HistoryBlock missions={missions} byDay={byDay} />
       </GlassCard>
     </AppShell>
+  );
+}
+
+function HealthTips() {
+  const [state] = useStore();
+  const a = useMemo(() => analyzeHealth(state.transactions, state.categories, state.cards), [state.transactions, state.categories, state.cards]);
+  const questions = useMemo(() => reflectionQuestions(a), [a]);
+  const tips = a.insights.filter(i => i.severity !== "good").slice(0, 5);
+  const good = a.insights.filter(i => i.severity === "good");
+  return (
+    <GlassCard>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary"><HeartPulse className="size-4" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Missões de saúde financeira</h2>
+            <p className="text-[11px] font-mono text-muted-foreground">desafios baseados nos seus gastos dos últimos meses</p>
+          </div>
+        </div>
+        <div className="text-right font-mono">
+          <p className="text-[10px] uppercase text-muted-foreground">Saúde</p>
+          <p className="text-sm font-bold" style={{ color: a.grade.color }}>{a.score} · {a.grade.label}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ul className="space-y-2">
+          {[...good, ...tips].map(t => (
+            <li key={t.id} className="rounded-2xl border border-border p-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Lightbulb className={`size-4 ${t.severity === "critical" ? "text-destructive" : t.severity === "good" ? "text-[#2BD9A1]" : "text-secondary"}`} />
+                <p className="text-sm font-semibold">{t.title}</p>
+                {t.monthlySaving > 0 && <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#2BD9A1]/15 text-[#2BD9A1]">~{formatBRL(t.monthlySaving)}/mês</span>}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{t.description}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="rounded-2xl bg-white/5 border border-border p-4">
+          <p className="text-sm font-semibold mb-3 flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Para refletir</p>
+          <ul className="space-y-3">
+            {questions.map((q, i) => (
+              <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary/50 pl-3">{q}</li>
+            ))}
+          </ul>
+          <div className="mt-4 grid grid-cols-3 gap-2 font-mono text-[11px]">
+            <div><p className="text-muted-foreground">Mês passado</p><p className="font-semibold">{formatBRL(a.prevExpense)}</p></div>
+            <div><p className="text-muted-foreground">Média 3m</p><p className="font-semibold">{formatBRL(a.avgExpense)}</p></div>
+            <div><p className="text-muted-foreground">Este mês</p><p className="font-semibold">{formatBRL(a.current.expense)}</p></div>
+          </div>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
