@@ -35,7 +35,7 @@ import { RouteLoader } from "./RouteLoader";
 const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
 
 
-const nav = [
+const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/ganhos", label: "Ganhos", icon: TrendingUp },
   { to: "/gastos", label: "Gastos", icon: TrendingDown },
