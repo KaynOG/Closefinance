@@ -1,8 +1,8 @@
 # Ajustes solicitados
 
-- [ ] Editar cor e ícone em dívidas e devedores.
-- [ ] Oferecer logos reais de assinaturas e bancos, inclusive na edição; preservar no backup.
-- [ ] Verificar seleção, persistência e imagens nas telas.
+- [x] Editar cor e ícone em dívidas e devedores.
+- [x] Oferecer logos reais de assinaturas e bancos, inclusive na edição; preservar no backup.
+- [x] Verificar seleção, persistência e imagens nas telas.
 
 - [x] Padronizar todos os seletores de ícones com controles temáticos internos.
 - [x] Diferenciar tons dos gráficos sem sair da família da cor escolhida e verificar nas telas.
