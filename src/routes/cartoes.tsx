@@ -131,7 +131,6 @@ function CardsPage() {
 
           <CardSyncBar />
           <CardPurchases />
-          <ExternalPurchases />
         </>
       )}
 

@@ -58,8 +58,19 @@ function addMonthsISO(iso: string, n: number) {
 function fmtDate(iso: string) { return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR"); }
 
 function DividasPage() {
-  const [{ debts, banks, categories }, api] = useStore();
+  const [{ debts, banks, categories, currentUserId }, api] = useStore();
   const [showForm, setShowForm] = useState(false);
+  const [paidOpen, setPaidOpen] = useState(false);
+  const archivedKey = `cf_paid_debts_${currentUserId ?? "anon"}`;
+  const [archived, setArchived] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(archivedKey) || "[]"); } catch { return []; }
+  });
+  function persistArchived(next: string[]) {
+    setArchived(next);
+    try { localStorage.setItem(archivedKey, JSON.stringify(next)); } catch { /* ignore */ }
+  }
+  const activeDebts = debts.filter(d => !archived.includes(d.id));
+  const paidDebts = debts.filter(d => archived.includes(d.id));
 
   const totals = useMemo(() => {
     let total = 0, paid = 0, openAmount = 0, nextDate: string | null = null, nextAmount = 0;
