@@ -18,7 +18,7 @@ export function IconPicker({ options, value, onChange, compact = false, label = 
   const grid = <div className="icon-picker-grid" role="group" aria-label={label}>
     {filtered.map(({ id, label: name, icon: Icon, image }) => <Button key={id} type="button" variant="ghost" size="icon"
       title={name} aria-label={`Usar ícone ${name}`} aria-pressed={value === id}
-      className="icon-picker-option" onClick={() => { onChange(id); setOpen(false); }}>{image ? <img src={image} alt="" className="size-7 object-contain" loading="lazy" /> : <Icon />}</Button>)}
+      className="icon-picker-option" onClick={() => { onChange(id); setOpen(false); }}>{image ? <span className="brand-logo-surface size-8"><img src={image} alt="" className="size-6 object-contain" loading="lazy" /></span> : <Icon />}</Button>)}
     {filtered.length === 0 && <p className="col-span-full py-4 text-center text-sm text-muted-foreground">Nenhum ícone encontrado.</p>}
   </div>;
   if (!compact) return grid;
