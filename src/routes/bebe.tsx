@@ -58,6 +58,28 @@ function BebePage() {
     return { ess, non, all: ess + non };
   }, [items]);
 
+  const dash = useMemo(() => {
+    const now = new Date();
+    const months: { key: string; label: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: MONTHS_SHORT[d.getMonth()] });
+    }
+    const monthly = months.map(m => {
+      const rows = items.filter(i => i.date.startsWith(m.key));
+      return {
+        name: m.label,
+        Essenciais: rows.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0),
+        "Não essenciais": rows.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0),
+      };
+    });
+    const thisKey = months[months.length - 1].key;
+    const thisMonth = items.filter(i => i.date.startsWith(thisKey));
+    const mEss = thisMonth.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0);
+    const mNon = thisMonth.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0);
+    return { monthly, mEss, mNon, hasData: items.length > 0 };
+  }, [items]);
+
   async function add(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
