@@ -50,6 +50,13 @@
       "when": 1791977606516,
       "tag": "0006_baby_and_hidden_tabs",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791978405305,
+      "tag": "0007_baby_savings_and_sub_usage",
+      "breakpoints": true
     }
   ]
 }

@@ -100,6 +100,33 @@ export type Database = {
           },
         ]
       }
+      baby_savings: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       banks: {
         Row: {
           account_balance: number
@@ -655,6 +682,41 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_usage_logs: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          subscription_id: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          subscription_id: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          subscription_id?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usage_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
             referencedColumns: ["id"]
           },
         ]
