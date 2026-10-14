@@ -79,7 +79,7 @@ export function AppDatePicker({ value, onChange, type = "date", min, max, requir
           <Calendar locale={ptBR} mode="single" selected={selected} month={visible} onMonthChange={setVisible} captionLayout="dropdown" startMonth={new Date(firstYear, 0)} endMonth={new Date(lastYear, 11)}
             disabled={date => Boolean((start && date < start) || (end && date > end))} onSelect={date => { if (date) choose(format(date, "yyyy-MM-dd")); }} autoFocus className="pointer-events-auto rounded-lg bg-popover p-3"
             components={{ Dropdown: ({ options, value: current, onChange: change, "aria-label": ariaLabel }) => (
-              <AppSelect aria-label={ariaLabel} value={current ?? ""} onChange={event => change?.({ target: { value: event.target.value } } as React.ChangeEvent<HTMLSelectElement>)} className="h-8 w-auto max-w-36 border-transparent px-2 py-1 text-xs">
+              <AppSelect aria-label={ariaLabel} value={typeof current === "string" || typeof current === "number" ? current : ""} onChange={event => change?.({ target: { value: event.target.value } } as React.ChangeEvent<HTMLSelectElement>)} className="h-8 w-auto max-w-36 border-transparent px-2 py-1 text-xs">
                 {options?.map(option => <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>)}
               </AppSelect>
             ) }} />
