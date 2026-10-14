@@ -8,6 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { Baby, Heart, Star, Moon, Cloud, Trash2, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { BabyMonthlyBar, BabyEssentialPie } from "@/components/charts/lazy";
+import { BabyFund } from "@/components/BabyFund";
 
 const MONTHS_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -153,6 +154,7 @@ function BebePage() {
         ))}
       </section>
 
+      {user && <BabyFund userId={user.id} />}
       {dash.hasData && (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <div className="rounded-3xl border-2 p-5" style={{ borderColor: soft("var(--baby-mint)", 45), background: soft("var(--baby-mint)", 10) }}>
@@ -207,7 +209,7 @@ function BebePage() {
             ))}
           </div>
           <button type="submit" className="lg:col-span-3 md:col-span-2 rounded-full bg-primary text-primary-foreground font-semibold py-3 text-sm active:scale-[0.98] transition">
-            Guardar com carinho 💛
+            Registrar com carinho 💛
           </button>
         </form>
       </div>
