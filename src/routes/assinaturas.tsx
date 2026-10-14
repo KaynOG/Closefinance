@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -138,7 +139,7 @@ function SubscriptionsPage() {
       <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Serviço"><input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputCls} /></Field>
         <Field label="Valor"><input required inputMode="decimal" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="R$ 0,00" className={inputCls} /></Field>
-        <Field label="Primeira cobrança"><input required type="date" value={form.firstChargeDate} onChange={e => setForm({ ...form, firstChargeDate: e.target.value })} className={inputCls} /></Field>
+        <Field label="Primeira cobrança"><AppDatePicker aria-label="Primeira cobrança" required type="date" value={form.firstChargeDate} onChange={e => setForm({ ...form, firstChargeDate: e.target.value })} className={inputCls} /></Field>
         <Field label="Recorrência"><select value={form.recurrenceMonths} onChange={e => setForm({ ...form, recurrenceMonths: e.target.value })} className={inputCls}><option value="1">Mensal</option><option value="2">A cada 2 meses</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></Field>
         <Field label="Cor"><ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="h-11 w-full" /></Field>
         <Field label="Tipo"><select value={form.essential} onChange={e => setForm({ ...form, essential: e.target.value as "essential" | "non_essential" })} className={inputCls}><option value="essential">Essencial</option><option value="non_essential">Não essencial</option></select></Field>
@@ -211,7 +212,7 @@ function PlanChange({ sub, onApply }: { sub: Subscription; onApply: (amount: num
       <label className="col-span-2 sm:col-span-1"><span className="text-[10px] font-mono uppercase text-muted-foreground">Valor do novo plano</span>
         <input value={amount} onChange={e => setAmount(e.target.value)} placeholder={formatBRL(sub.amount)} inputMode="decimal" className={inputCls} /></label>
       <label className="col-span-2 sm:col-span-1"><span className="text-[10px] font-mono uppercase text-muted-foreground">A partir do mês</span>
-        <input type="month" value={month} onChange={e => setMonth(e.target.value)} className={inputCls} /></label>
+        <AppDatePicker aria-label="Mês" type="month" value={month} onChange={e => setMonth(e.target.value)} className={inputCls} /></label>
       <p className="col-span-2 text-[10px] font-mono text-muted-foreground">O novo valor vale desse mês em diante, inclusive meses passados, e atualiza o gráfico.</p>
       <Button size="sm" className="col-span-2" disabled={busy} onClick={apply}>{busy ? "Salvando…" : "Aplicar novo valor"}</Button>
     </div>}

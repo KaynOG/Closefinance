@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { IconPicker } from "@/components/IconPicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
@@ -169,7 +170,7 @@ function ProjectsPage() {
             </label>
             <label className="block">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Data final para concluir</span>
-              <input type="date" className={`mt-1.5 ${inputCls}`} value={form.target_date} onChange={e => setForm({ ...form, target_date: e.target.value })} />
+              <AppDatePicker aria-label="Data" type="date" className={`mt-1.5 ${inputCls}`} value={form.target_date} onChange={e => setForm({ ...form, target_date: e.target.value })} />
             </label>
             <Button type="submit" className="w-full glow-violet">
               <Plus className="size-4 inline mr-1.5" /> Criar projeto
@@ -382,7 +383,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
           <div className="mt-5 space-y-6">
             <label className="block max-w-xs">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Data final para concluir</span>
-              <input type="date" className={`mt-1.5 ${inputCls}`} value={project.target_date ?? ""} onChange={e => changeTargetDate(e.target.value || null)} />
+              <AppDatePicker aria-label="Data" type="date" className={`mt-1.5 ${inputCls}`} value={project.target_date ?? ""} onChange={e => changeTargetDate(e.target.value || null)} />
             </label>
             {/* Gastos */}
             <section>
@@ -421,7 +422,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
               <form onSubmit={addExpense} className="mt-3 grid grid-cols-2 md:grid-cols-[1fr_130px_150px_auto_auto] gap-2 items-center">
                 <input className={`${inputCls} col-span-2 md:col-span-1`} placeholder="Nome do gasto" value={exp.name} onChange={e => setExp({ ...exp, name: e.target.value })} />
                 <input className={inputCls} placeholder="Valor" inputMode="decimal" value={exp.amount} onChange={e => setExp({ ...exp, amount: e.target.value })} />
-                <input type="date" className={inputCls} value={exp.date} onChange={e => setExp({ ...exp, date: e.target.value })} />
+                <AppDatePicker aria-label="Data" type="date" className={inputCls} value={exp.date} onChange={e => setExp({ ...exp, date: e.target.value })} />
                 <label className="flex items-center gap-2 text-xs font-mono text-muted-foreground cursor-pointer">
                   <input type="checkbox" checked={exp.include} onChange={e => setExp({ ...exp, include: e.target.checked })} className="size-4 accent-[var(--primary)]" />
                   Incluir nos gastos
@@ -443,7 +444,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                   <input className={inputCls} placeholder="Descrição" value={goal.description} onChange={e => setGoal({ ...goal, description: e.target.value })} />
                   <input className={inputCls} placeholder="Link (opcional)" value={goal.link} onChange={e => setGoal({ ...goal, link: e.target.value })} />
                 </div>
-                <input type="date" className={inputCls} value={goal.date} onChange={e => setGoal({ ...goal, date: e.target.value })} />
+                <AppDatePicker aria-label="Data" type="date" className={inputCls} value={goal.date} onChange={e => setGoal({ ...goal, date: e.target.value })} />
                 <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2.5 hover:opacity-90"><Plus className="size-4 inline" /> Objetivo</button>
               </form>
               {showIcons && (
@@ -505,7 +506,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                               <input className={inputCls} placeholder="Descrição" value={goalDraft.description} onChange={e => setGoalDraft({ ...goalDraft, description: e.target.value })} />
                               <input className={inputCls} placeholder="Link (opcional)" value={goalDraft.link} onChange={e => setGoalDraft({ ...goalDraft, link: e.target.value })} />
                             </div>
-                            <input type="date" className={inputCls} value={goalDraft.date} onChange={e => setGoalDraft({ ...goalDraft, date: e.target.value })} />
+                            <AppDatePicker aria-label="Data" type="date" className={inputCls} value={goalDraft.date} onChange={e => setGoalDraft({ ...goalDraft, date: e.target.value })} />
                           </div>
                           {showEditIcons && (
                             <IconPicker options={Object.entries(GOAL_ICONS).map(([id, option]) => ({ id, ...option }))} value={goalDraft.icon} onChange={icon => { setGoalDraft({ ...goalDraft, icon }); setShowEditIcons(false); }} />

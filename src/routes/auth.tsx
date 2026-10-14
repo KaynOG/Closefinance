@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useStore, parseBRL } from "@/lib/store";
@@ -331,6 +332,7 @@ type IconFieldProps = {
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
 };
 function IconField({ icon, value, onChange, placeholder, type, inputMode }: IconFieldProps) {
+  if (type === "date") return <AppDatePicker aria-label="Data de nascimento" value={value} onChange={event => onChange(event.target.value)} />;
   return (
     <label className="relative block">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</span>

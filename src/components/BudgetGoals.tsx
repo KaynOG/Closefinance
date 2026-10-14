@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, RotateCcw, Save, Target } from "lucide-react";
@@ -52,7 +53,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" aria-label="Mês anterior" title="Mês anterior" onClick={() => moveMonth(-1)}><ChevronLeft /></Button>
-          <input aria-label="Mês do quadro de metas" type="month" max={localMonth()} value={month} onChange={e => { if (e.target.value && e.target.value <= localMonth()) onMonthChange(e.target.value); }} className="min-w-0 rounded-md border border-border bg-background p-2 font-mono text-sm text-foreground" />
+          <AppDatePicker aria-label="Mês do quadro de metas" type="month" max={localMonth()} value={month} onChange={e => { if (e.target.value && e.target.value <= localMonth()) onMonthChange(e.target.value); }} className="min-w-0 rounded-md border border-border bg-background p-2 font-mono text-sm text-foreground" />
           <Button variant="ghost" size="icon" aria-label="Próximo mês" title="Próximo mês" disabled={month >= localMonth()} onClick={() => moveMonth(1)}><ChevronRight /></Button>
         </div>
       </div>

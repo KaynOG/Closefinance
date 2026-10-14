@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,7 +68,7 @@ export function InstallmentRecordEditor({ name, kind, installments, onRename, on
             {rows.map((row, index) => <fieldset key={row.id} className="border-t border-border pt-3">
               <legend className="text-xs font-mono text-muted-foreground">Parcela {installments[index]?.number ?? index + 1}</legend>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="min-w-0 text-sm">Data<input required aria-label={`Data da parcela ${index + 1}`} type="date" value={row.dueDate} onChange={e => setRows(p => p.map(r => r.id === row.id ? { ...r, dueDate: e.target.value } : r))} className={field} /></label>
+                <label className="min-w-0 text-sm">Data<AppDatePicker required aria-label={`Data da parcela ${index + 1}`} type="date" value={row.dueDate} onChange={e => setRows(p => p.map(r => r.id === row.id ? { ...r, dueDate: e.target.value } : r))} className={field} /></label>
                 <label className="min-w-0 text-sm">Valor (R$)<input required aria-label={`Valor da parcela ${index + 1}`} inputMode="decimal" value={row.amount} onChange={e => setRows(p => p.map(r => r.id === row.id ? { ...r, amount: e.target.value } : r))} className={field} /></label>
               </div>
             </fieldset>)}

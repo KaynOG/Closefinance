@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { appAlert } from "@/lib/app-dialog";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
@@ -204,7 +205,7 @@ function PersonalDataCollapsible({ form, setForm, save, saved }: {
               <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={input} />
             </Field>
             <Field label="Data de nascimento" icon={<CalIcon className="size-4" />}>
-              <input type="date" value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className={input} />
+              <AppDatePicker aria-label="Data de nascimento" type="date" value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} className={input} />
             </Field>
             <Field label="Meta financeira anual (R$)" icon={<Target className="size-4" />}>
               <input value={form.yearlyGoal} onChange={e => setForm({ ...form, yearlyGoal: e.target.value })} inputMode="decimal" placeholder="0,00" className={input} />

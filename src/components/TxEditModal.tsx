@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { useState } from "react";
 import { parseBRL } from "@/lib/store";
 import type { Transaction, Category, Card, Bank, PaymentMethod, TxType, Essential } from "@/lib/store";
@@ -56,7 +57,7 @@ export function TxEditModal({ tx, categories, cards, banks, onSave, onClose }: T
           <button type="button" data-no-sound onClick={onClose} className="rounded-lg p-1.5 hover:bg-white/10"><X className="size-4" /></button>
         </div>
 
-        <Row label="Data"><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inp} /></Row>
+        <Row label="Data"><AppDatePicker aria-label="Data" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inp} /></Row>
         <Row label="Descrição"><input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={inp} /></Row>
         <Row label="Valor (R$)"><input value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} inputMode="decimal" className={inp} /></Row>
         <Row label="Categoria">
