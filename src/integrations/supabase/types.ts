@@ -132,6 +132,7 @@ export type Database = {
           account_balance: number
           color: string
           created_at: string
+          icon: string | null
           id: string
           name: string
           note: string | null
@@ -142,6 +143,7 @@ export type Database = {
           account_balance?: number
           color?: string
           created_at?: string
+          icon?: string | null
           id?: string
           name: string
           note?: string | null
@@ -152,6 +154,7 @@ export type Database = {
           account_balance?: number
           color?: string
           created_at?: string
+          icon?: string | null
           id?: string
           name?: string
           note?: string | null

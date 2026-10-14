@@ -78,6 +78,13 @@
       "when": 1791987346377,
       "tag": "0010_financial_budget_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791990528604,
+      "tag": "0011_bank_brand_icon",
+      "breakpoints": true
     }
   ]
 }
