@@ -4,6 +4,7 @@ import type { User as SupaUser } from "@supabase/supabase-js";
 import { playCheck, playMissionComplete } from "@/lib/sound";
 import { isTabHidden } from "@/lib/prefs";
 import { notify as notifyToast } from "@/lib/notify";
+import { isBudgetGroup, readBudgetPlan, type BudgetGroup, type BudgetPlan } from "@/lib/budget-goals";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
@@ -49,6 +50,7 @@ export interface Category {
   color: string;
   icon?: string;
   kind?: "income" | "expense" | "both";
+  budgetGroup?: BudgetGroup | null;
 }
 
 export interface Card {
@@ -131,6 +133,7 @@ export interface User {
   birthdate?: string;
   job?: string;
   yearlyGoal?: number;
+  budgetPlan?: BudgetPlan;
   avatar?: string;
   gender?: Gender;
   cashAmount?: number;
@@ -268,7 +271,7 @@ function mapTx(row: Record<string, unknown>): Transaction {
   };
 }
 function mapCat(row: Record<string, unknown>): Category {
-  return { id: String(row.id), name: String(row.name), color: String(row.color), icon: (row.icon as string) ?? undefined, kind: (row.kind as Category["kind"]) ?? "expense" };
+  return { id: String(row.id), name: String(row.name), color: String(row.color), icon: (row.icon as string) ?? undefined, kind: (row.kind as Category["kind"]) ?? "expense", budgetGroup: isBudgetGroup(row.budget_group) ? row.budget_group : null };
 }
 function mapCard(row: Record<string, unknown>): Card {
   return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color), usedManual: row.used_manual != null ? Number(row.used_manual) : 0 };
@@ -351,6 +354,7 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
     birthdate: (p.birthdate as string) ?? undefined,
     job: (p.job as string) ?? undefined,
     yearlyGoal: p.yearly_goal != null ? Number(p.yearly_goal) : undefined,
+    budgetPlan: readBudgetPlan(p.budget_plan),
     avatar: (p.avatar as string) ?? undefined,
     gender: ((p.gender as Gender) ?? "other"),
     cashAmount: p.cash_amount != null ? Number(p.cash_amount) : 0,
@@ -954,7 +958,7 @@ export function useStore() {
     // ---------- CATEGORIES ----------
     addCategory: async (c: Omit<Category, "id">) => {
       const uid = memory.currentUserId; if (!uid) return;
-      const { data, error } = await supabase.from("categories").insert({ user_id: uid, name: c.name, color: c.color, icon: c.icon ?? null, kind: c.kind ?? "expense" }).select("*").single();
+      const { data, error } = await supabase.from("categories").insert({ user_id: uid, name: c.name, color: c.color, icon: c.icon ?? null, kind: c.kind ?? "expense", budget_group: c.budgetGroup ?? null }).select("*").single();
       if (error || !data) return console.error(error);
       set({ categories: [...memory.categories, mapCat(data as Record<string, unknown>)] });
     },
@@ -964,8 +968,9 @@ export function useStore() {
       if (p.color !== undefined) patch.color = p.color;
       if (p.icon !== undefined) patch.icon = p.icon || null;
       if (p.kind !== undefined) patch.kind = p.kind;
+      if (p.budgetGroup !== undefined) patch.budget_group = p.budgetGroup;
       const { error } = await supabase.from("categories").update(patch as never).eq("id", i);
-      if (error) return console.error(error);
+      if (error) { notifyToast("Não foi possível salvar a categoria."); return; }
       set({ categories: memory.categories.map(x => x.id === i ? { ...x, ...p } : x) });
     },
     removeCategory: async (i: string) => {
@@ -1611,12 +1616,14 @@ export function useStore() {
       if (patch.birthdate !== undefined) p.birthdate = patch.birthdate || null;
       if (patch.job !== undefined) p.job = patch.job || null;
       if (patch.yearlyGoal !== undefined) p.yearly_goal = patch.yearlyGoal ?? null;
+      if (patch.budgetPlan !== undefined) p.budget_plan = patch.budgetPlan;
       if (patch.avatar !== undefined) p.avatar = patch.avatar || null;
       if (patch.gender !== undefined) p.gender = patch.gender;
       if (patch.cashAmount !== undefined) p.cash_amount = patch.cashAmount;
       const { error } = await supabase.from("profiles").update(p as never).eq("id", uid);
-      if (error) return console.error(error);
+      if (error) { notifyToast("Não foi possível salvar suas alterações."); return { ok: false as const }; }
       set({ users: memory.users.map(u => u.id === uid ? { ...u, ...patch } : u) });
+      return { ok: true as const };
     },
     setCash: async (amount: number) => {
       const uid = memory.currentUserId; if (!uid) return;
@@ -1697,7 +1704,7 @@ export function useStore() {
       const [babyExpenses, babySavings, projects, projectExpenses, projectGoals, subscriptionUsage] = await Promise.all([
         q("baby_expenses"), q("baby_savings"), q("projects"), q("project_expenses"), q("project_goals"), q("subscription_usage_logs"),
       ]);
-      const prof = uid ? (await supabase.from("profiles").select("baby_mode,hidden_tabs,yearly_goal").eq("id", uid).maybeSingle()).data : null;
+      const prof = uid ? (await supabase.from("profiles").select("baby_mode,hidden_tabs,yearly_goal,budget_plan").eq("id", uid).maybeSingle()).data : null;
       const local: Record<string, string> = {};
       if (typeof window !== "undefined") {
         for (let i = 0; i < localStorage.length; i++) {
@@ -1790,8 +1797,12 @@ export function useStore() {
 
         for (const c of incomingCats) {
           const dup = existingCats.find(x => norm(x.name) === norm(c.name));
-          if (dup) { catIdMap.set(c.id, dup.id); continue; }
-          const { data } = await supabase.from("categories").insert({ user_id: uid, name: c.name, color: c.color, icon: c.icon ?? null, kind: c.kind ?? "expense" }).select("id").single();
+          if (dup) {
+            catIdMap.set(c.id, dup.id);
+            if (c.budgetGroup !== undefined) await supabase.from("categories").update({ budget_group: isBudgetGroup(c.budgetGroup) ? c.budgetGroup : null }).eq("id", dup.id);
+            continue;
+          }
+          const { data } = await supabase.from("categories").insert({ user_id: uid, name: c.name, color: c.color, icon: c.icon ?? null, kind: c.kind ?? "expense", budget_group: isBudgetGroup(c.budgetGroup) ? c.budgetGroup : null }).select("id").single();
           if (data) catIdMap.set(c.id, String((data as Record<string, unknown>).id));
         }
         const cardIdMap = new Map<string, string>();
@@ -1888,6 +1899,13 @@ export function useStore() {
         if (d.profilePrefs && typeof d.profilePrefs === "object") {
           const pp = d.profilePrefs as Row;
           await supabase.from("profiles").update({ baby_mode: Boolean(pp.baby_mode), hidden_tabs: Array.isArray(pp.hidden_tabs) ? pp.hidden_tabs as string[] : [], yearly_goal: pp.yearly_goal != null ? Number(pp.yearly_goal) : null } as never).eq("id", uid);
+        }
+        const importedPlan = d.profilePrefs?.budget_plan ?? d.user?.budgetPlan;
+        if (importedPlan) {
+          const incomingPlan = readBudgetPlan(importedPlan);
+          const previousPlan = memory.users.find(u => u.id === uid)?.budgetPlan;
+          const budgetPlan = mode === "merge" ? { months: { ...previousPlan?.months, ...incomingPlan.months } } : incomingPlan;
+          await supabase.from("profiles").update({ budget_plan: budgetPlan } as never).eq("id", uid);
         }
         if (d.local && typeof d.local === "object" && typeof window !== "undefined") {
           for (const [k, v] of Object.entries(d.local as Record<string, string>)) {
