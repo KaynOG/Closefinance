@@ -130,7 +130,7 @@ function DividasPage() {
         />
       )}
 
-      {debts.length === 0 && !showForm ? (
+      {activeDebts.length === 0 && paidDebts.length === 0 && !showForm ? (
         <GlassCard>
           <p className="text-sm text-muted-foreground">
             Você ainda não cadastrou dívidas. Crie uma para gerar automaticamente as parcelas como gastos —
@@ -140,14 +140,20 @@ function DividasPage() {
         </GlassCard>
       ) : (
         <div className="space-y-4">
-          {debts.map(d => (
+          {activeDebts.map(d => (
             <DebtCard
               key={d.id}
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
-              onTogglePaid={(inst) => {
+              onTogglePaid={async (inst) => {
                 if (!inst.paid && !confirm(`Tem certeza de que a parcela ${inst.number} de "${d.name}" foi paga? A data dela será ajustada para hoje.`)) return;
-                api.setInstallmentPaid(d.id, inst.id, !inst.paid);
+                await api.setInstallmentPaid(d.id, inst.id, !inst.paid);
+                if (!inst.paid && d.installments.every(i => i.paid || i.id === inst.id)) {
+                  if (confirm(`🎉 Parabéns! Você quitou todas as parcelas de "${d.name}"!\n\nDeseja mover essa dívida para o bloco "Dívidas pagas" no final da página?`)) {
+                    persistArchived([...archived, d.id]);
+                    notify(`"${d.name}" movida para Dívidas pagas.`);
+                  }
+                }
               }}
               onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
