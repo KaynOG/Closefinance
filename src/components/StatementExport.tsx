@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { AppSelect } from "@/components/AppSelect";
 import { useState } from "react";
 import { FileDown } from "lucide-react";
@@ -147,9 +148,9 @@ export function StatementExport({ mode }: { mode: Mode }) {
       </AppSelect>
       {period === "custom" && (
         <div className="flex items-center gap-1.5 text-xs font-mono">
-          <input type="date" aria-label="Data inicial" value={from} max={to} onChange={e => setFrom(e.target.value)} className={dateCls} />
+          <AppDatePicker type="date" aria-label="Data inicial" value={from} max={to} onChange={e => setFrom(e.target.value)} className={dateCls} />
           <span className="text-muted-foreground">até</span>
-          <input type="date" aria-label="Data final" value={to} min={from} onChange={e => setTo(e.target.value)} className={dateCls} />
+          <AppDatePicker type="date" aria-label="Data final" value={to} min={from} onChange={e => setTo(e.target.value)} className={dateCls} />
         </div>
       )}
       <button type="button" onClick={generate} disabled={busy}

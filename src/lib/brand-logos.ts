@@ -27,6 +27,8 @@ import lovable from "@/assets/brands/lovable.svg.asset.json";
 import chatgpt from "@/assets/brands/chatgpt.svg.asset.json";
 import claude from "@/assets/brands/claude.svg.asset.json";
 import disney from "@/assets/brands/disney.svg.asset.json";
+import c6 from "@/assets/brands/c6.svg.asset.json";
+import bv from "@/assets/brands/bv.svg.asset.json";
 export const BANK_LOGOS: IconOption[] = [
   { id: "nubank", label: "Nubank", icon: Landmark, image: nubank.url },
   { id: "itau", label: "Itaú", icon: Landmark, image: itau.url },
@@ -44,6 +46,8 @@ export const BANK_LOGOS: IconOption[] = [
   { id: "sicoob", label: "Sicoob", icon: Landmark, image: sicoob.url },
   { id: "xp", label: "Banco XP", icon: Landmark, image: xp.url },
   { id: "safra", label: "Banco Safra", icon: Landmark, image: safra.url },
+  { id: "c6", label: "C6 Bank", icon: Landmark, image: c6.url },
+  { id: "bv", label: "Banco BV / BV Financeira", icon: Landmark, image: bv.url },
 ];
 export const SERVICE_LOGOS: IconOption[] = [
   { id: "xbox", label: "Xbox Game Pass", icon: Sparkles, image: xbox.url },
@@ -67,6 +71,7 @@ export function bankLogoId(name: string) {
     ["picpay", ["picpay", "pic pay"]], ["infinitepay", ["infinitepay", "infinity pay", "infinite pay"]],
     ["bradesco", ["bradesco"]], ["caixa", ["caixa"]], ["neon", ["neon"]], ["inter", ["inter"]],
     ["btg", ["btg"]], ["sicredi", ["sicredi"]], ["sicoob", ["sicoob"]], ["xp", ["banco xp", "xp investimentos", "xp"]], ["safra", ["safra"]],
+    ["c6", ["c6", "c6 bank", "banco c6"]], ["bv", ["bv", "banco bv", "bv financeira", "votorantim"]],
   ];
   return aliases.find(([, names]) => names.some(alias => value === alias || value.includes(alias)))?.[0];
 }

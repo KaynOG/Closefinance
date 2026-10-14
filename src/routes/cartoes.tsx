@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
@@ -507,7 +508,7 @@ function CardPurchases() {
                 <input type="number" min={1} max={60} value={form.count} onChange={e => setForm({ ...form, count: e.target.value })} className={inputCls} />
               </Field>
               <Field label="Data da compra">
-                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
+                <AppDatePicker aria-label="Data da compra" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
               </Field>
               <div className="flex items-end gap-2">
                 <button type="submit" data-sound="success" className="flex-1 rounded-xl bg-primary text-primary-foreground font-semibold py-2.5 text-sm active:scale-[0.98] transition">
@@ -698,7 +699,7 @@ function ExternalPurchases() {
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex: Geladeira" className={inputCls} />
               </Field>
               <Field label="Data da compra">
-                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
+                <AppDatePicker aria-label="Data da compra" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
               </Field>
               <Field label="Como informar o valor">
                 <div className="grid grid-cols-2 gap-2">

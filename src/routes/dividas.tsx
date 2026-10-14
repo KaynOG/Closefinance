@@ -1,3 +1,5 @@
+import { AppSelect } from "@/components/AppSelect";
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { IconPicker } from "@/components/IconPicker";
 import { Button } from "@/components/ui/button";
 import { InstallmentRecordEditor } from "@/components/InstallmentRecordEditor";
@@ -369,7 +371,7 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
           </Field>
 
           <Field label="Data da 1ª parcela">
-            <input type="date" value={form.firstDate}
+            <AppDatePicker aria-label="Data da 1ª parcela" type="date" value={form.firstDate}
               onChange={e => {
                 const v = e.target.value;
                 setForm({ ...form, firstDate: v });
@@ -379,16 +381,16 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
           </Field>
 
           <Field label="Banco debitado automaticamente">
-            <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
+            <AppSelect aria-label="Banco" value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
               <option value="">Nenhum (só registrar o gasto)</option>
               {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+            </AppSelect>
           </Field>
           <Field label="Categoria do gasto">
-            <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+            <AppSelect aria-label="Categoria" value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
               <option value="">Sem categoria</option>
               {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            </AppSelect>
           </Field>
         </div>
 
@@ -430,7 +432,7 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
             {preview.map((r, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-[11px] font-mono text-muted-foreground w-10 shrink-0">{i + 1}/{preview.length}</span>
-                <input type="date" value={r.dueDate} onChange={e => editRow(i, { dueDate: e.target.value })} className={inputCls} />
+                <AppDatePicker aria-label="Data" type="date" value={r.dueDate} onChange={e => editRow(i, { dueDate: e.target.value })} className={inputCls} />
                 <input value={r.amount} onChange={e => editRow(i, { amount: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
                 {mode === "custom" && (
                   <button type="button" onClick={() => removeRow(i)} aria-label="Remover parcela"
@@ -583,7 +585,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpda
 
                     <label className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                       <CalendarDays className="size-3.5 shrink-0" />
-                      <input type="date" value={inst.dueDate}
+                      <AppDatePicker aria-label="Data" type="date" value={inst.dueDate}
                         onChange={e => onUpdateInstallment(inst, { dueDate: e.target.value })}
                         className="bg-transparent outline-none w-full" />
                     </label>

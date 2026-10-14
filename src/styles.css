@@ -657,17 +657,17 @@
 
 /* Evita o "risco" (barra de rolagem horizontal) causado por animações */
 :root {
-  --panel-lift-shadow: 0 12px 26px -18px color-mix(in oklab, var(--foreground) 25%, transparent), 0 4px 18px -12px color-mix(in oklab, var(--primary) 40%, transparent);
-  --dashboard-lift-shadow: 0 26px 42px -20px color-mix(in oklab, var(--foreground) 32%, transparent), 0 12px 30px -16px color-mix(in oklab, var(--primary) 42%, transparent);
+  --panel-lift-shadow: 0 16px 30px -20px rgb(0 0 0 / 45%);
+  --dashboard-lift-shadow: var(--panel-lift-shadow);
 }
 .collapse-reveal { display: grid; grid-template-rows: 0fr; visibility: hidden; opacity: 0; transition: grid-template-rows 260ms ease, opacity 200ms ease, visibility 260ms; }
 .collapse-reveal.is-open { grid-template-rows: 1fr; visibility: visible; opacity: 1; }
 .panel-depth, .nav-depth { transition: transform 260ms ease, translate 260ms ease, rotate 260ms ease, box-shadow 260ms ease; }
 .nav-depth svg { transition: transform 260ms ease; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .panel-depth:hover:not(:has(.panel-depth:hover)) { translate: 0 -3px; rotate: x 0.5deg; box-shadow: var(--glass-shadow), var(--panel-lift-shadow); }
-  .dashboard-depth .panel-depth { transform-style: preserve-3d; transition: translate 350ms cubic-bezier(0.22, 1, 0.36, 1), rotate 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms ease; }
-  .dashboard-depth .panel-depth:hover:not(:has(.panel-depth:hover)) { translate: 0 -9px 14px; rotate: 1 0.45 0 3deg; box-shadow: var(--glass-shadow), var(--dashboard-lift-shadow); z-index: 2; }
+  .panel-depth:hover:not(:has(.panel-depth:hover)) { transform: perspective(1200px) translateY(-4px) rotateX(2deg) rotateY(-1deg); box-shadow: var(--panel-lift-shadow); z-index: 2; }
+  .dashboard-depth .panel-depth { transform-style: preserve-3d; transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), translate 350ms cubic-bezier(0.22, 1, 0.36, 1), rotate 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms ease; }
+  .dashboard-depth .panel-depth:hover:not(:has(.panel-depth:hover)) { transform: perspective(1200px) translateY(-4px) rotateX(2deg) rotateY(-1deg); box-shadow: var(--dashboard-lift-shadow); z-index: 2; }
   .nav-depth:hover { transform: perspective(600px) translateY(-1px) rotateY(-3deg); box-shadow: var(--panel-lift-shadow); }
   .nav-depth:hover svg { transform: perspective(400px) translateZ(8px) rotate(-5deg) scale(1.08); }
   .nav-depth:active { transform: scale(0.98); }

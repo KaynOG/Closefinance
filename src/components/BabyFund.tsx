@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +53,7 @@ export function BabyFund({ userId }: { userId: string }) {
         </div>
       </div>
       <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <input type="month" value={month} onChange={e => setMonth(e.target.value)} className={field} style={{ borderColor: soft(c, 60) }} aria-label="Mês" />
+        <AppDatePicker type="month" value={month} onChange={e => setMonth(e.target.value)} className={field} style={{ borderColor: soft(c, 60) }} aria-label="Mês" />
         <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Valor poupado (R$)" inputMode="decimal" className={field} style={{ borderColor: soft(c, 60) }} />
         <input value={note} onChange={e => setNote(e.target.value)} placeholder="Observação (opcional)" className={field} style={{ borderColor: soft(c, 60) }} />
         <button type="submit" className="rounded-full bg-primary text-primary-foreground font-semibold py-2.5 text-sm">Poupar 🐷</button>

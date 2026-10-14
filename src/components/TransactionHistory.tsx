@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { AppSelect } from "@/components/AppSelect";
 import { useMemo, useState } from "react";
 import { ArrowDownCircle, ArrowUpCircle, ChevronDown, Receipt, RotateCcw, Trash2 } from "lucide-react";
@@ -37,8 +38,8 @@ export function TransactionHistory({ transactions, invoices, categories, cards, 
       <div id="transaction-history" className="overflow-hidden">
         <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 xl:grid-cols-4">
           <FilterField label="Buscar descrição"><input className={inputClass} value={filters.search} onChange={e => set("search", e.target.value)} placeholder="Buscar…" /></FilterField>
-          <FilterField label="Data inicial"><input type="date" className={inputClass} value={filters.start} onChange={e => set("start", e.target.value)} /></FilterField>
-          <FilterField label="Data final"><input type="date" className={inputClass} value={filters.end} onChange={e => set("end", e.target.value)} /></FilterField>
+          <FilterField label="Data inicial"><AppDatePicker aria-label="Data inicial" type="date" className={inputClass} value={filters.start} onChange={e => set("start", e.target.value)} /></FilterField>
+          <FilterField label="Data final"><AppDatePicker aria-label="Data final" type="date" className={inputClass} value={filters.end} onChange={e => set("end", e.target.value)} /></FilterField>
           <FilterField label="Ordem"><AppSelect aria-label="Ordem" className={inputClass} value={filters.sort} onChange={e => set("sort", e.target.value)}><option value="newest">Mais recentes primeiro</option><option value="oldest">Mais antigos primeiro</option></AppSelect></FilterField>
           <FilterField label="Categoria"><AppSelect aria-label="Categoria" className={inputClass} value={filters.category} onChange={e => set("category", e.target.value)}><option value="all">Todas</option><option value="none">Sem categoria</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</AppSelect></FilterField>
           <FilterField label="Cartão"><AppSelect aria-label="Cartão" className={inputClass} value={filters.card} onChange={e => set("card", e.target.value)}><option value="all">Todos</option>{cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</AppSelect></FilterField>

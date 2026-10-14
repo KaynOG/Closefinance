@@ -1,3 +1,4 @@
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -193,7 +194,7 @@ function BebePage() {
         <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <input className={field} style={fieldStyle} placeholder="Ex.: Berço, fraldas, body…" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input className={field} style={fieldStyle} placeholder="Valor (R$)" inputMode="decimal" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
-          <input type="date" className={field} style={fieldStyle} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+          <AppDatePicker aria-label="Data" type="date" className={field} style={fieldStyle} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
           <select className={field} style={fieldStyle} value={form.category_id} onChange={e => setForm({ ...form, category_id: e.target.value })}>
             <option value="">Sem categoria</option>
             {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
