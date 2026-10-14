@@ -11,7 +11,12 @@ import { FinancialHealthBeta } from "@/components/FinancialHealthBeta";
 import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/transacoes")({
-  head: () => ({ meta: [{ title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Transações — CloseFinance" },
+      { property: "og:description", content: "Cadastre entradas, salários e gastos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Transações — CloseFinance" }, { name: "description", content: "Cadastre entradas, salários e gastos." }] }),
   component: TxPage,
 });
 

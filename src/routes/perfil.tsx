@@ -20,7 +20,12 @@ import { Baby, EyeOff } from "lucide-react";
 
 
 export const Route = createFileRoute("/perfil")({
-  head: () => ({ meta: [{ title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Perfil — CloseFinance" },
+      { property: "og:description", content: "Gerencie seu perfil, foto, dados e backup." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Perfil — CloseFinance" }, { name: "description", content: "Gerencie seu perfil, foto, dados e backup." }] }),
   component: PerfilPage,
 });
 

@@ -5,7 +5,13 @@ import { Logo } from "@/components/Logo";
 import { Lock, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Redefinir senha — CloseFinance" }] }),
+  head: () => ({ meta: [
+      { name: "description", content: "Redefina a senha da sua conta CloseFinance com segurança." },
+      { property: "og:title", content: "Redefinir senha — CloseFinance" },
+      { property: "og:description", content: "Redefina a senha da sua conta CloseFinance com segurança." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Redefinir senha — CloseFinance" }] }),
   component: ResetPasswordPage,
 });
 

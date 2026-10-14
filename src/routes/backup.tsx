@@ -9,7 +9,12 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/backup")({
-  head: () => ({ meta: [{ title: "Backup — CloseFinance" }, { name: "description", content: "Exporte e importe seus dados financeiros para backup e restauração." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Backup — CloseFinance" },
+      { property: "og:description", content: "Exporte e importe seus dados financeiros para backup e restauração." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Backup — CloseFinance" }, { name: "description", content: "Exporte e importe seus dados financeiros para backup e restauração." }] }),
   component: BackupPage,
 });
 

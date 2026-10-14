@@ -16,7 +16,12 @@ import type { LucideIcon } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/categorias")({
-  head: () => ({ meta: [{ title: "Categorias — CloseFinance" }, { name: "description", content: "Crie e personalize categorias de gastos." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Categorias — CloseFinance" },
+      { property: "og:description", content: "Crie e personalize categorias de gastos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Categorias — CloseFinance" }, { name: "description", content: "Crie e personalize categorias de gastos." }] }),
   component: CategoriesPage,
 });
 

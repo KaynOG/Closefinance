@@ -8,7 +8,12 @@ import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/cartoes")({
-  head: () => ({ meta: [{ title: "Cartões — CloseFinance" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Cartões — CloseFinance" },
+      { property: "og:description", content: "Gerencie seus cartões, limites e datas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Cartões — CloseFinance" }, { name: "description", content: "Gerencie seus cartões, limites e datas." }] }),
   component: CardsPage,
 });
 

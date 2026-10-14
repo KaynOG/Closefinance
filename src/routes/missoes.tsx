@@ -12,7 +12,12 @@ import { FriendsRanking } from "@/components/FriendsRanking";
 
 
 export const Route = createFileRoute("/missoes")({
-  head: () => ({ meta: [{ title: "Missões — CloseFinance" }, { name: "description", content: "Acompanhe suas missões diárias e pontuação." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Missões — CloseFinance" },
+      { property: "og:description", content: "Acompanhe suas missões diárias e pontuação." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Missões — CloseFinance" }, { name: "description", content: "Acompanhe suas missões diárias e pontuação." }] }),
   component: MissoesPage,
 });
 

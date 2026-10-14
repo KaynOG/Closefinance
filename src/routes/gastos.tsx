@@ -12,7 +12,12 @@ import { playExpense } from "@/lib/sound";
 import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/gastos")({
-  head: () => ({ meta: [{ title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Gastos — CloseFinance" },
+      { property: "og:description", content: "Planilha moderna de gastos com gráficos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Gastos — CloseFinance" }, { name: "description", content: "Planilha moderna de gastos com gráficos." }] }),
   component: GastosPage,
 });
 

@@ -8,7 +8,12 @@ import { useStore } from "@/lib/store";
 import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck, TrendingDown, Wallet, HeartPulse, Receipt, Calendar, Sparkles, BadgePercent, Rocket, Briefcase, GraduationCap, LineChart, Coins, ChevronDown, ChevronUp } from "lucide-react";
 
 export const Route = createFileRoute("/educacao")({
-  head: () => ({ meta: [{ title: "Educação financeira — CloseFinance" }, { name: "description", content: "Conceitos e práticas para evoluir suas finanças." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Educação financeira — CloseFinance" },
+      { property: "og:description", content: "Conceitos e práticas para evoluir suas finanças." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Educação financeira — CloseFinance" }, { name: "description", content: "Conceitos e práticas para evoluir suas finanças." }] }),
   component: EduPage,
 });
 
