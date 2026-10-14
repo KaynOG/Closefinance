@@ -383,7 +383,7 @@
   --glass-depth: color-mix(in oklab, var(--background) 66%, oklch(0.08 0 0));
   --glass-edge: var(--border);
   /* Brilho só nas quinas: a borda em si continua neutra e discreta. */
-  --glass-corner: color-mix(in oklab, var(--primary) 62%, transparent);
+  --glass-corner: color-mix(in oklab, var(--primary) 72%, transparent);
   --glass-corner-size: 4.5rem;
   --glass-highlight: color-mix(in oklab, var(--primary) 13%, transparent);
   --glass-reflection: color-mix(in oklab, var(--foreground) 9%, transparent);
@@ -404,18 +404,19 @@
 .glass::after, .glass-strong::after {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: inherit;
-  padding: 1px;
+  padding: 2px;
   background:
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner), transparent 82%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner), transparent 82%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner), transparent 82%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner), transparent 82%);
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner), transparent 85%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner), transparent 85%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  filter: blur(1.2px);
   pointer-events: none;
 }
 
