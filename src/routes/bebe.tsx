@@ -67,7 +67,7 @@ function BebePage() {
     const monthly = months.map(m => {
       const rows = items.filter(i => i.date.startsWith(m.key));
       return {
-        name: m.label,
+        month: m.label,
         Essenciais: rows.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0),
         "Não essenciais": rows.filter(i => i.essential !== "essential").reduce((s, i) => s + i.amount, 0),
       };
