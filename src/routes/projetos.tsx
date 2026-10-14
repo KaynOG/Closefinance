@@ -22,6 +22,7 @@ import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ProjectsReport } from "@/components/ProjectsReport";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { EXTRA_GOAL_ICONS } from "@/lib/extra-icons";
 
 export const Route = createFileRoute("/projetos")({
   head: () => ({ meta: [
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/projetos")({
 });
 
 export const GOAL_ICONS: Record<string, { icon: LucideIcon; label: string }> = {
+  ...EXTRA_GOAL_ICONS,
   target: { icon: Target, label: "Alvo" }, flag: { icon: Flag, label: "Bandeira" },
   trophy: { icon: Trophy, label: "Troféu" }, star: { icon: Star, label: "Estrela" },
   rocket: { icon: Rocket, label: "Foguete" }, home: { icon: Home, label: "Casa" },

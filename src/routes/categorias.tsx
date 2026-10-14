@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
 import { BUDGET_GROUPS, isBudgetGroup } from "@/lib/budget-goals";
+import { EXTRA_ICONS } from "@/lib/extra-icons";
 
 export const Route = createFileRoute("/categorias")({
   head: () => ({ meta: [
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/categorias")({
 const PALETTE = ["#540BD3", "#FFCC00", "#006F77", "#820432", "#2BD9A1", "#FF4D6D", "#B388FF", "#22C3CC", "#FF6B1A", "#FFD700"];
 
 export const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  ...EXTRA_ICONS,
   tag: Tag,
   home: Home, apartment: Building2, car: Car, money: DollarSign, cash: Banknote, coins: Coins,
   food: UtensilsCrossed, card: CreditCard, leisure: PartyPopper, gamepad: Gamepad2, film: Film,

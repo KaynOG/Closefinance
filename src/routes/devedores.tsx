@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { RecordOrderControls, RecordMoveButtons, useRecordOrder } from "@/components/RecordOrderControls";
 import { orderRecords, moveRecord } from "@/lib/record-order";
 import { playCashRegister } from "@/lib/sound";
+import { EXTRA_ICONS } from "@/lib/extra-icons";
 
 export const Route = createFileRoute("/devedores")({
   head: () => ({
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/devedores")({
 });
 
 export const RECEIVABLE_ICONS = {
+  ...EXTRA_ICONS,
   wallet: Wallet, coins: HandCoins, deal: Handshake, people: Users, work: Briefcase,
   company: Building2, bank: Landmark, savings: PiggyBank, gift: Gift,
   freela: Laptop, bill: Receipt,
