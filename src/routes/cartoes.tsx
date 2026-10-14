@@ -287,6 +287,8 @@ function CardsPage() {
           })}
         </div>
       </div>
+
+      <ExternalPurchases />
     </AppShell>
   );
 }
