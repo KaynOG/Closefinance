@@ -24,3 +24,5 @@ export const CategoryBarChart = withSuspense(lazy(() => import("./CategoryBarCha
 export const FlowAreaChart = withSuspense(lazy(() => import("./FlowAreaChart")));
 export const CatStackBarChart = withSuspense(lazy(() => import("./CatStackBarChart")));
 export const CatPieChart = withSuspense(lazy(() => import("./CatPieChart")));
+export const BabyMonthlyBar = withSuspense(lazy(() => import("./BabyCharts").then(m => ({ default: m.BabyMonthlyBar }))));
+export const BabyEssentialPie = withSuspense(lazy(() => import("./BabyCharts").then(m => ({ default: m.BabyEssentialPie }))));
