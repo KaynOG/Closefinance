@@ -1642,11 +1642,25 @@ export function useStore() {
     },
 
     // ---------- BACKUP ----------
-    exportData: (_scope: "user" | "all" = "user") => {
+    exportData: async (_scope: "user" | "all" = "user") => {
       const user = memory.users.find(u => u.id === memory.currentUserId) ?? null;
+      const uid = memory.currentUserId;
+      const q = async (t: string) => uid ? ((await supabase.from(t as never).select("*").eq("user_id", uid)).data ?? []) : [];
+      const [babyExpenses, babySavings, projects, projectExpenses, projectGoals, subscriptionUsage] = await Promise.all([
+        q("baby_expenses"), q("baby_savings"), q("projects"), q("project_expenses"), q("project_goals"), q("subscription_usage_logs"),
+      ]);
+      const prof = uid ? (await supabase.from("profiles").select("baby_mode,hidden_tabs,yearly_goal").eq("id", uid).maybeSingle()).data : null;
+      const local: Record<string, string> = {};
+      if (typeof window !== "undefined") {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i)!;
+          if (k === "cf_state_cache_v1" || k.startsWith("sb-")) continue;
+          if (k.startsWith("cf_") || k.startsWith("cf.") || k.startsWith("closefinance")) local[k.replace(uid ?? "§", "{uid}")] = localStorage.getItem(k) ?? "";
+        }
+      }
       const cards = memory.cards.map(c => ({ ...c, usedManual: c.usedManual ?? 0 }));
       return JSON.stringify({
-        app: "CloseFinance", version: 3, exportedAt: new Date().toISOString(),
+        app: "CloseFinance", version: 4, exportedAt: new Date().toISOString(),
         data: {
           transactions: memory.transactions,
           categories: memory.categories,
@@ -1658,6 +1672,8 @@ export function useStore() {
           cashAmount: user?.cashAmount ?? 0,
           user,
           missions: memory.missions,
+          babyExpenses, babySavings, projects, projectExpenses, projectGoals, subscriptionUsage,
+          profilePrefs: prof, local,
         },
       }, null, 2);
     },
@@ -1670,6 +1686,7 @@ export function useStore() {
         await supabase.from("receivables").delete().eq("user_id", uid);
         await supabase.from("transactions").delete().eq("user_id", uid);
         await supabase.from("subscriptions").delete().eq("user_id", uid);
+        await Promise.all(["baby_expenses", "baby_savings", "projects"].map(t => supabase.from(t as never).delete().eq("user_id", uid)));
         await supabase.from("cards").delete().eq("user_id", uid);
         await supabase.from("banks").delete().eq("user_id", uid);
         // Categorias são mantidas de propósito — inclusive as padrão fixas (Salário, Renda extra, Pagamento de fatura)
@@ -1703,6 +1720,7 @@ export function useStore() {
             supabase.from("debts").delete().eq("user_id", uid),
             supabase.from("receivables").delete().eq("user_id", uid),
             supabase.from("subscriptions").delete().eq("user_id", uid),
+            ...["baby_expenses", "baby_savings", "projects"].map(t => supabase.from(t as never).delete().eq("user_id", uid)),
           ]);
           await Promise.all([
             supabase.from("transactions").delete().eq("user_id", uid),
@@ -1793,12 +1811,61 @@ export function useStore() {
             user_id: uid, name: sub.name, amount: sub.amount, first_charge_date: sub.firstChargeDate,
             recurrence_months: sub.recurrenceMonths, color: sub.color, icon: sub.icon,
             essential: sub.essential, active: sub.active,
+            usage_frequency: sub.usageFrequency ?? "monthly", importance: sub.importance ?? "important",
           }).select("id").single();
           if (data) subscriptionIdMap.set(sub.id, String((data as Record<string, unknown>).id));
         }
 
+        type Row = Record<string, unknown>;
+        const arr = (x: unknown): Row[] => Array.isArray(x) ? x as Row[] : [];
+        const projIdMap = new Map<string, string>();
+        const projExpIdMap = new Map<string, string>();
+        for (const pr of arr(d.projects)) {
+          const { data } = await supabase.from("projects").insert({ user_id: uid, name: String(pr.name ?? ""), description: String(pr.description ?? ""), cover: (pr.cover as string) ?? null, target_date: (pr.target_date as string) ?? null, sort_order: Number(pr.sort_order ?? 0) }).select("id").single();
+          if (data) projIdMap.set(String(pr.id), data.id);
+        }
+        for (const e of arr(d.projectExpenses)) {
+          const pid = projIdMap.get(String(e.project_id)); if (!pid) continue;
+          const { data } = await supabase.from("project_expenses").insert({ user_id: uid, project_id: pid, name: String(e.name ?? ""), amount: Number(e.amount ?? 0), date: String(e.date), include_in_expenses: Boolean(e.include_in_expenses) }).select("id").single();
+          if (data) projExpIdMap.set(String(e.id), data.id);
+        }
+        const goalRows = arr(d.projectGoals).filter(g => projIdMap.has(String(g.project_id))).map(g => ({ user_id: uid, project_id: projIdMap.get(String(g.project_id))!, title: String(g.title ?? ""), description: String(g.description ?? ""), date: (g.date as string) ?? null, done: Boolean(g.done), icon: String(g.icon ?? "target"), link: (g.link as string) ?? null }));
+        if (goalRows.length) await supabase.from("project_goals").insert(goalRows);
+        const babyRows = arr(d.babyExpenses).map(b => ({ user_id: uid, name: String(b.name ?? ""), amount: Number(b.amount ?? 0), date: String(b.date), essential: String(b.essential ?? "essential"), category_id: b.category_id ? catIdMap.get(String(b.category_id)) ?? null : null, payment_method: String(b.payment_method ?? "pix") }));
+        if (babyRows.length) await supabase.from("baby_expenses").insert(babyRows);
+        const savRows = arr(d.babySavings).map(b => ({ user_id: uid, month: String(b.month), amount: Number(b.amount ?? 0), note: (b.note as string) ?? null }));
+        if (savRows.length) await supabase.from("baby_savings").insert(savRows);
+        const usageRows = arr(d.subscriptionUsage).filter(u => subscriptionIdMap.has(String(u.subscription_id))).map(u => ({ user_id: uid, subscription_id: subscriptionIdMap.get(String(u.subscription_id))!, week_start: String(u.week_start), level: String(u.level) }));
+        if (usageRows.length) await supabase.from("subscription_usage_logs").upsert(usageRows, { onConflict: "subscription_id,week_start" });
+        if (d.profilePrefs && typeof d.profilePrefs === "object") {
+          const pp = d.profilePrefs as Row;
+          await supabase.from("profiles").update({ baby_mode: Boolean(pp.baby_mode), hidden_tabs: Array.isArray(pp.hidden_tabs) ? pp.hidden_tabs as string[] : [], yearly_goal: pp.yearly_goal != null ? Number(pp.yearly_goal) : null } as never).eq("id", uid);
+        }
+        if (d.local && typeof d.local === "object" && typeof window !== "undefined") {
+          for (const [k, v] of Object.entries(d.local as Record<string, string>)) {
+            const key = k.replace("{uid}", uid);
+            if (mode === "merge" && key.startsWith("cf_ext_purchases_")) {
+              try { const cur = JSON.parse(localStorage.getItem(key) || "[]"); const inc = JSON.parse(v || "[]"); const ids = new Set(cur.map((x: { id: string }) => x.id)); localStorage.setItem(key, JSON.stringify([...cur, ...inc.filter((x: { id: string }) => !ids.has(x.id))])); } catch { /* ignore */ }
+            } else localStorage.setItem(key, v);
+          }
+        }
+
         const remapTag = (tag?: string | null): string | null => {
           if (!tag) return null;
+          if (tag.startsWith(SUBSCRIPTION_TAG_PREFIX)) {
+            const id = subscriptionIdMap.get(tag.slice(SUBSCRIPTION_TAG_PREFIX.length));
+            return id ? `${SUBSCRIPTION_TAG_PREFIX}${id}` : null;
+          }
+          if (tag.startsWith("__pj__:")) {
+            const id = projExpIdMap.get(tag.slice(7));
+            return id ? `__pj__:${id}` : null;
+          }
+          if (tag.startsWith(INVOICE_PAYMENT_TAG_PREFIX)) {
+            const rest = tag.slice(INVOICE_PAYMENT_TAG_PREFIX.length);
+            const [cid, ...u] = rest.split("|");
+            const nid = cardIdMap.get(cid) ?? cid;
+            return `${INVOICE_PAYMENT_TAG_PREFIX}${nid}${u.length ? "|" + u.join("|") : ""}`;
+          }
           if (tag.startsWith(DEBT_TAG_PREFIX)) {
             const id = debtIdMap.get(tag.slice(DEBT_TAG_PREFIX.length));
             return id ? `${DEBT_TAG_PREFIX}${id}` : null;
