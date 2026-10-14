@@ -591,3 +591,210 @@ function CardPurchases() {
     </GlassCard>
   );
 }
+
+// ---------------- COMPRAS JÁ PARCELADAS (somente acompanhamento) ----------------
+type ExtPurchase = {
+  id: string;
+  cardId: string;
+  description: string;
+  total: number;
+  count: number;
+  paid: number;
+  date: string;
+};
+
+function ExternalPurchases() {
+  const [{ cards, currentUserId }] = useStore();
+  const storageKey = `cf_ext_purchases_${currentUserId ?? "anon"}`;
+  const [items, setItems] = useState<ExtPurchase[]>(() => {
+    try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { return []; }
+  });
+  const [open, setOpen] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [mode, setMode] = useState<"total" | "parcela">("total");
+  const [form, setForm] = useState({
+    cardId: "", description: "", total: "", perInstallment: "", count: "1", paid: "0",
+    date: new Date().toISOString().slice(0, 10),
+  });
+
+  useEffect(() => {
+    if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id }));
+  }, [cards, form.cardId]);
+
+  function persist(next: ExtPurchase[]) {
+    setItems(next);
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ignore */ }
+  }
+
+  const count = Math.max(1, Math.min(60, parseInt(form.count) || 1));
+  const paid = Math.max(0, Math.min(count, parseInt(form.paid) || 0));
+  const totalNum = mode === "total"
+    ? (parseBRL(form.total) || 0)
+    : (parseBRL(form.perInstallment) || 0) * count;
+  const perInst = count > 0 ? totalNum / count : 0;
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.cardId) return notify("Escolha um cartão.");
+    if (!form.description.trim()) return notify("Descreva a compra.");
+    if (totalNum <= 0) return notify("Informe o valor da compra.");
+    persist([...items, {
+      id: crypto.randomUUID(),
+      cardId: form.cardId,
+      description: form.description.trim(),
+      total: Number(totalNum.toFixed(2)),
+      count, paid,
+      date: form.date,
+    }]);
+    notify("Compra parcelada registrada — apenas acompanhamento, não entra nos gastos.");
+    setForm(f => ({ ...f, description: "", total: "", perInstallment: "", count: "1", paid: "0" }));
+    setShowForm(false);
+  }
+
+  const totalRemaining = items.reduce((s, p) => s + (p.total / p.count) * (p.count - p.paid), 0);
+
+  return (
+    <GlassCard className="mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="size-9 rounded-lg grid place-items-center bg-[#FFCC00]/15 text-[#FFCC00] shrink-0"><CC className="size-4" /></div>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold">Compras já parceladas</h3>
+            <p className="text-[11px] font-mono text-muted-foreground">
+              só acompanhamento · não entra como gasto nem na fatura
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setShowForm(v => !v); setOpen(true); }}
+            className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition">
+            <Plus className="size-4" /> Registrar compra
+          </button>
+          <button onClick={() => setOpen(o => !o)} data-no-sound aria-expanded={open}
+            className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+            {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          {showForm && (
+            <form onSubmit={submit} className="rounded-2xl border border-border bg-white/5 p-3 grid md:grid-cols-3 gap-3">
+              <Field label="Cartão">
+                <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                  {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </Field>
+              <Field label="O que foi comprado">
+                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex: Geladeira" className={inputCls} />
+              </Field>
+              <Field label="Data da compra">
+                <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Como informar o valor">
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setMode("total")}
+                    className={`rounded-xl py-2 text-[11px] font-mono border transition ${mode === "total" ? "bg-primary/20 border-primary" : "border-border text-muted-foreground hover:bg-white/5"}`}>Valor total</button>
+                  <button type="button" onClick={() => setMode("parcela")}
+                    className={`rounded-xl py-2 text-[11px] font-mono border transition ${mode === "parcela" ? "bg-primary/20 border-primary" : "border-border text-muted-foreground hover:bg-white/5"}`}>Valor da parcela</button>
+                </div>
+              </Field>
+              {mode === "total" ? (
+                <Field label="Valor total (R$)">
+                  <input value={form.total} onChange={e => setForm({ ...form, total: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+                </Field>
+              ) : (
+                <Field label="Valor de cada parcela (R$)">
+                  <input value={form.perInstallment} onChange={e => setForm({ ...form, perInstallment: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+                </Field>
+              )}
+              <Field label="Nº de parcelas">
+                <input type="number" min={1} max={60} value={form.count} onChange={e => setForm({ ...form, count: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Parcelas já pagas">
+                <input type="number" min={0} max={count} value={form.paid} onChange={e => setForm({ ...form, paid: e.target.value })} className={inputCls} />
+              </Field>
+              <div className="flex items-end gap-2">
+                <button type="submit" data-sound="success" className="flex-1 rounded-xl bg-primary text-primary-foreground font-semibold py-2.5 text-sm active:scale-[0.98] transition">
+                  Registrar
+                </button>
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-border px-4 py-2.5 text-xs font-mono hover:bg-white/5">
+                  Cancelar
+                </button>
+              </div>
+              <p className="md:col-span-3 text-[11px] font-mono text-muted-foreground">
+                {count}x de {formatBRL(perInst)} · total {formatBRL(totalNum)} · restam {count - paid} parcelas ({formatBRL(perInst * (count - paid))})
+              </p>
+            </form>
+          )}
+
+          {items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma compra parcelada registrada por aqui ainda.</p>
+          ) : (
+            <>
+              <div className="rounded-2xl border border-border bg-white/5 p-3 flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Total ainda a pagar</p>
+                <p className="font-mono text-lg" style={{ color: "#FFCC00" }}>{formatBRL(totalRemaining)}</p>
+              </div>
+              <div className="space-y-3">
+                {items.map(p => {
+                  const card = cards.find(c => c.id === p.cardId);
+                  const color = card?.color ?? "#FFCC00";
+                  const per = p.total / p.count;
+                  const remaining = per * (p.count - p.paid);
+                  const pct = p.count > 0 ? Math.round((p.paid / p.count) * 100) : 0;
+                  return (
+                    <div key={p.id} className="rounded-2xl border border-border p-3">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm break-words">{p.description}</p>
+                          <p className="text-[11px] font-mono text-muted-foreground break-words">
+                            {card?.name ?? "cartão removido"} · compra em {fmtDate(p.date)} · {p.count}x de {formatBRL(per)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => { if (confirm(`Remover o registro de "${p.description}"?`)) { persist(items.filter(i => i.id !== p.id)); notify("Registro removido."); } }}
+                          className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover registro">
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                      <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-xs font-mono">
+                        <div>
+                          <p className="text-muted-foreground">Pagas</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <button type="button" data-no-sound aria-label="Diminuir parcelas pagas"
+                              onClick={() => persist(items.map(i => i.id === p.id ? { ...i, paid: Math.max(0, i.paid - 1) } : i))}
+                              className="size-6 rounded-md border border-border hover:bg-white/10 grid place-items-center">−</button>
+                            <span className="text-sm">{p.paid}/{p.count}</span>
+                            <button type="button" data-no-sound aria-label="Aumentar parcelas pagas"
+                              onClick={() => persist(items.map(i => i.id === p.id ? { ...i, paid: Math.min(i.count, i.paid + 1) } : i))}
+                              className="size-6 rounded-md border border-border hover:bg-white/10 grid place-items-center">+</button>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Faltam</p>
+                          <p className="text-sm mt-0.5">{p.count - p.paid} parcelas</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Resta pagar</p>
+                          <p className="text-sm mt-0.5" style={{ color: "#FFCC00" }}>{formatBRL(remaining)}</p>
+                        </div>
+                      </div>
+                      {p.paid >= p.count && (
+                        <p className="mt-2 text-[11px] font-mono" style={{ color: "#2BD9A1" }}>Compra quitada 🎉</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </GlassCard>
+  );
+}
