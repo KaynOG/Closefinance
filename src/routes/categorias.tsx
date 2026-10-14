@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { IconPicker } from "@/components/IconPicker";
 import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, LOCKED_CATEGORY_NAMES } from "@/lib/store";
@@ -140,19 +141,7 @@ function CategoriesPage() {
             </label>}
             <div>
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Ícone</span>
-              <div className="mt-1.5 grid grid-cols-6 gap-1.5 max-h-56 overflow-y-auto pr-1">
-                {CATEGORY_ICON_LIST.map(({ id, label }) => {
-                  const Icon = CATEGORY_ICONS[id] ?? Tag;
-                  const active = form.icon === id;
-                  return (
-                    <button key={id} type="button" onClick={() => setForm({ ...form, icon: id })} title={label}
-                      className={`aspect-square rounded-xl grid place-items-center border transition ${active ? "border-white bg-white/10" : "border-border hover:bg-white/5"}`}
-                      style={active ? { color: form.color, background: form.color + "22", borderColor: form.color } : {}}>
-                      <Icon className="size-4" />
-                    </button>
-                  );
-                })}
-              </div>
+              <IconPicker options={CATEGORY_ICON_LIST.map(option => ({ ...option, icon: CATEGORY_ICONS[option.id] ?? Tag }))} value={form.icon} onChange={icon => setForm({ ...form, icon })} />
             </div>
             <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">
               <Plus className="size-4 inline mr-1.5" /> Adicionar
@@ -178,10 +167,7 @@ function CategoriesPage() {
                     className="w-full bg-transparent text-sm font-semibold outline-none border-b border-transparent focus:border-white/20 disabled:opacity-60"
                   />
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                    <select value={c.icon ?? "tag"} onChange={(e) => api.updateCategory(c.id, { icon: e.target.value })}
-                      className="bg-transparent text-[10px] font-mono text-muted-foreground outline-none cursor-pointer hover:text-foreground">
-                      {CATEGORY_ICON_LIST.map(i => <option key={i.id} value={i.id} className="bg-[#0d2226]">{i.label}</option>)}
-                    </select>
+                    <IconPicker compact label={`Ícone de ${c.name}`} options={CATEGORY_ICON_LIST.map(option => ({ ...option, icon: CATEGORY_ICONS[option.id] ?? Tag }))} value={c.icon ?? "tag"} onChange={icon => api.updateCategory(c.id, { icon })} />
                     <span className="text-[11px] font-mono text-muted-foreground">· {count} transações</span>
                     {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
                   </div>

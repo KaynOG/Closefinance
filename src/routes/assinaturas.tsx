@@ -4,6 +4,7 @@ import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { IconPicker } from "@/components/IconPicker";
 import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
@@ -137,28 +138,7 @@ function SubscriptionsPage() {
         <Field label="Tipo"><select value={form.essential} onChange={e => setForm({ ...form, essential: e.target.value as "essential" | "non_essential" })} className={inputCls}><option value="essential">Essencial</option><option value="non_essential">Não essencial</option></select></Field>
         <div className="md:col-span-2">
           <span className="text-xs font-mono uppercase text-muted-foreground">Ícone</span>
-          <div className="mt-1.5 grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-1.5 max-h-56 overflow-y-auto pr-1">
-            {CATEGORY_ICON_LIST.map(({ id, label }) => {
-              const Icon = CATEGORY_ICONS[id] ?? Sparkles;
-              const active = form.icon === id;
-              return (
-                <Button
-                  key={id}
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setForm({ ...form, icon: id })}
-                  title={label}
-                  aria-label={`Usar ícone ${label}`}
-                  aria-pressed={active}
-                  className={`aspect-square size-full min-h-10 ${active ? "border-primary bg-primary/10" : ""}`}
-                  style={active ? { color: form.color, borderColor: form.color } : undefined}
-                >
-                  <Icon className="size-4" />
-                </Button>
-              );
-            })}
-          </div>
+          <IconPicker options={CATEGORY_ICON_LIST.map(option => ({ ...option, icon: CATEGORY_ICONS[option.id] ?? Sparkles }))} value={form.icon} onChange={icon => setForm({ ...form, icon })} />
         </div>
         <div className="md:col-span-2 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit">Salvar assinatura</Button></div>
       </form>
