@@ -18,5 +18,6 @@
 - Keep glass treatments and chart glow in shared semantic CSS tokens so every accent and light/dark mode inherits the same visual treatment.
 - Use the shared ColorPicker for custom colors, because in-app accessible dialogs must replace browser-native color dialogs.
 - Use the shared IconPicker for all icon-selection grids and compact menus, so selection stays accessible and inherits the active theme without browser-native lists.
+- Keep static service and bank logos in the shared brand catalog as CDN asset pointers, with persisted catalog IDs on records and in backups, so logo choices survive reloads and restoration without runtime lookup services.
 - Share six-group monthly budget calculations through `budget-goals`; persist category group links and month-specific plans on existing owner-scoped rows and include them in backup, because comparisons must remain consistent across devices and restoration.
 - Keep saved/invested balances separate from monthly contributions in budget comparisons, because cumulative assets are not a month's income allocation; exclude invoice settlements and future transactions to prevent double counting and forecasts.
