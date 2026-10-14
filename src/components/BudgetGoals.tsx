@@ -4,11 +4,12 @@ import { ChevronLeft, ChevronRight, RotateCcw, Save, Target } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { CatPieChart } from "@/components/charts/lazy";
-import { useStore, money } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { notify } from "@/lib/notify";
 import { BUDGET_GROUPS, DEFAULT_PERCENTAGES, localMonth, monthBudget, type BudgetMonth } from "@/lib/budget-goals";
 
 const dotClasses = { freedom: "bg-budget-freedom", comfort: "bg-budget-comfort", pleasures: "bg-budget-pleasures", knowledge: "bg-budget-knowledge", fixed: "bg-budget-fixed", goals: "bg-budget-goals" };
+const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function BudgetGoals() {
   const [month, setMonth] = useState(localMonth());
@@ -26,7 +27,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
   const currentSavings = state.banks.reduce((sum, b) => sum + b.savedAmount, 0);
   const label = new Date(`${month}-01T12:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const targetData = BUDGET_GROUPS.map(g => ({ name: g.name, value: values.percentages[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
-  const actualData = BUDGET_GROUPS.map(g => ({ name: g.name, value: actual.groups[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
+  const actualData: Array<{ name: string; value: number; color: string }> = BUDGET_GROUPS.map(g => ({ name: g.name, value: actual.groups[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
   if (actual.unassigned > 0) actualData.push({ name: "Sem vínculo", value: actual.unassigned, color: "var(--muted-foreground)" });
   if (actual.remaining > 0) actualData.push({ name: "Não destinado", value: actual.remaining, color: "var(--border)" });
   function moveMonth(delta: number) {

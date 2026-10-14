@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { monthBudget, readBudgetPlan, DEFAULT_PERCENTAGES } from "./budget-goals";
-import type { Transaction, Category } from "./store";
+import { monthBudget, readBudgetPlan, DEFAULT_PERCENTAGES } from "../src/lib/budget-goals";
+import type { Transaction, Category } from "../src/lib/store";
 
 describe("monthly budget goals", () => {
   const cats: Category[] = [{ id: "fixed", name: "Aluguel", color: "", budgetGroup: "fixed" }];
