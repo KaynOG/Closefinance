@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
+import { ProjectsReport } from "@/components/ProjectsReport";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 export const Route = createFileRoute("/projetos")({
   head: () => ({ meta: [
@@ -67,7 +69,7 @@ const PROJECT_TAG = "__pj__:";
 const today = () => new Date().toISOString().slice(0, 10);
 const inputCls = "w-full rounded-xl bg-white/5 border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white/10 transition font-mono";
 
-interface Project { id: string; name: string; description: string; cover: string | null; created_at: string; target_date: string | null }
+interface Project { id: string; name: string; description: string; cover: string | null; created_at: string; target_date: string | null; sort_order: number }
 interface PExpense { id: string; project_id: string; name: string; amount: number; date: string; include_in_expenses: boolean }
 interface PGoal { id: string; project_id: string; title: string; description: string; date: string | null; done: boolean; icon: string; link: string | null }
 
@@ -96,7 +98,7 @@ function ProjectsPage() {
     if (!user) return;
     (async () => {
       const [p, e, g] = await Promise.all([
-        supabase.from("projects").select("*").order("created_at", { ascending: false }),
+        supabase.from("projects").select("*").order("sort_order").order("created_at", { ascending: false }),
         supabase.from("project_expenses").select("*").order("date"),
         supabase.from("project_goals").select("*").order("date", { nullsFirst: false }),
       ]);
@@ -107,11 +109,21 @@ function ProjectsPage() {
     })();
   }, [user?.id]);
 
+  async function move(idx: number, dir: -1 | 1) {
+    const j = idx + dir;
+    if (j < 0 || j >= projects.length) return;
+    const next = [...projects];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    const ordered = next.map((p, i) => ({ ...p, sort_order: i }));
+    setProjects(ordered);
+    await Promise.all(ordered.map(p => supabase.from("projects").update({ sort_order: p.sort_order }).eq("id", p.id)));
+  }
+
   async function createProject(ev: React.FormEvent) {
     ev.preventDefault();
     if (!user || !form.name.trim()) return;
     const { data, error } = await supabase.from("projects")
-      .insert({ user_id: user.id, name: form.name.trim(), description: form.description.trim(), cover: form.cover, target_date: form.target_date || null })
+      .insert({ user_id: user.id, name: form.name.trim(), description: form.description.trim(), cover: form.cover, target_date: form.target_date || null, sort_order: projects.length ? Math.min(...projects.map(x => x.sort_order ?? 0)) - 1 : 0 })
       .select().single();
     if (error) return toast.error("Não foi possível criar o projeto");
     setProjects(ps => [data as Project, ...ps]);
@@ -159,14 +171,21 @@ function ProjectsPage() {
               <FolderKanban className="size-10 mx-auto text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">Nenhum projeto ainda. Crie o primeiro ao lado.</p>
             </GlassCard>
-          ) : projects.map(p => (
-            <ProjectBlock key={p.id} project={p}
+          ) : projects.map((p, idx) => (
+            <div key={p.id} className="relative">
+            <div className="flex justify-end gap-1 mb-1">
+              <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0} aria-label="Mover para cima" className="rounded-lg border border-border p-1 disabled:opacity-30"><ArrowUp className="size-3.5" /></button>
+              <button type="button" onClick={() => move(idx, 1)} disabled={idx === projects.length - 1} aria-label="Mover para baixo" className="rounded-lg border border-border p-1 disabled:opacity-30"><ArrowDown className="size-3.5" /></button>
+            </div>
+            <ProjectBlock project={p}
               expenses={expenses.filter(e => e.project_id === p.id)}
               goals={goals.filter(g => g.project_id === p.id)}
               setProjects={setProjects} setExpenses={setExpenses} setGoals={setGoals} />
+            </div>
           ))}
         </div>
       </div>
+      {!loading && <ProjectsReport projects={projects} expenses={expenses} />}
     </AppShell>
   );
 }

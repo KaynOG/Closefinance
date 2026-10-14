@@ -549,6 +549,7 @@ export type Database = {
           description: string
           id: string
           name: string
+          sort_order: number
           target_date: string | null
           user_id: string
         }
@@ -558,6 +559,7 @@ export type Database = {
           description?: string
           id?: string
           name: string
+          sort_order?: number
           target_date?: string | null
           user_id: string
         }
@@ -567,6 +569,7 @@ export type Database = {
           description?: string
           id?: string
           name?: string
+          sort_order?: number
           target_date?: string | null
           user_id?: string
         }
