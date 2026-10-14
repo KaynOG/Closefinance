@@ -125,8 +125,7 @@ export function FinancialHealthBeta({
     ...projection.flatMap(p => [Math.abs(p.current), Math.abs(p.projected)])
   );
 
-  const scoreColor =
-    score >= 75 ? "#2BD9A1" : score >= 50 ? "#FFCC00" : score >= 30 ? "#FF8FA3" : "#FF4D6D";
+  const scoreColor = analysis.grade.color;
 
   return (
     <GlassCard>
@@ -204,6 +203,67 @@ export function FinancialHealthBeta({
               tone={baseNet >= 0 ? "income" : "expense"}
               icon={<Sparkles className="size-3" />}
             />
+          </div>
+
+          {/* Classificação + pilares */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-3 font-mono">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-[10px] uppercase text-muted-foreground">Classificação</span>
+              <span className="text-sm font-bold" style={{ color: analysis.grade.color }}>{analysis.grade.label}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">{analysis.grade.message}</p>
+            <ul className="space-y-2">
+              {analysis.pillars.map(p => (
+                <li key={p.id}>
+                  <div className="flex justify-between text-[11px]">
+                    <span>{p.label}</span>
+                    <span className="text-muted-foreground">{p.points}/{p.max}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mt-1">
+                    <div className="h-full bg-primary transition-all" style={{ width: `${(p.points / p.max) * 100}%` }} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{p.hint}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Comparação com meses passados */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-3 font-mono">
+            <div className="flex flex-wrap justify-between gap-2 mb-3 text-[11px]">
+              <span>Média de gastos (3 meses): <b>{formatBRL(analysis.avgExpense)}</b></span>
+              <span>Média de renda: <b>{formatBRL(analysis.avgIncome)}</b></span>
+              <span>Ritmo deste mês: <b>{formatBRL(analysis.paceExpense)}</b></span>
+            </div>
+            {(() => {
+              const ms = [...analysis.months].reverse();
+              const max = Math.max(1, ...ms.flatMap(m => [m.income, m.expense]));
+              return (
+                <div className="flex items-end justify-between gap-2 h-28">
+                  {ms.map((m, i) => (
+                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1 h-full">
+                      <div className="flex-1 flex items-end gap-0.5">
+                        <div className="w-2.5 rounded-t bg-[#2BD9A1]" style={{ height: `${(m.income / max) * 100}%` }} title={`Renda ${formatBRL(m.income)}`} />
+                        <div className="w-2.5 rounded-t bg-[#FF4D6D]" style={{ height: `${(m.expense / max) * 100}%` }} title={`Gastos ${formatBRL(m.expense)}`} />
+                      </div>
+                      <span className={`text-[9px] ${i === ms.length - 1 ? "text-primary" : "text-muted-foreground"}`}>{m.label}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            {analysis.catChanges.length > 0 && (
+              <ul className="mt-3 space-y-1 text-[11px]">
+                {analysis.catChanges.slice(0, 4).map(c => (
+                  <li key={c.id} className="flex justify-between gap-2">
+                    <span className="truncate">{c.name}</span>
+                    <span className={c.diff > 0 ? "text-[#FF8FA3]" : "text-[#2BD9A1]"}>
+                      {formatBRL(c.current)} ({c.diff >= 0 ? "+" : ""}{formatBRL(c.diff)} vs média)
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Tips */}
