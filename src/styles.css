@@ -383,7 +383,7 @@
   --glass-depth: color-mix(in oklab, var(--background) 66%, oklch(0.08 0 0));
   --glass-edge: var(--border);
   /* Brilho só nas quinas: a borda em si continua neutra e discreta. */
-  --glass-corner: color-mix(in oklab, var(--primary) 46%, transparent);
+  --glass-corner: color-mix(in oklab, var(--primary) 62%, transparent);
   --glass-corner-size: 4.5rem;
   --glass-highlight: color-mix(in oklab, var(--primary) 13%, transparent);
   --glass-reflection: color-mix(in oklab, var(--foreground) 9%, transparent);
@@ -392,9 +392,9 @@
   --control-shadow: 0 7px 16px -10px color-mix(in oklab, var(--primary) 48%, transparent);
 }
 :root.light {
-  --glass-tint: color-mix(in oklab, var(--background) 42%, transparent);
-  --glass-depth: color-mix(in oklab, var(--background) 62%, transparent);
-  --glass-corner: color-mix(in oklab, var(--primary) 30%, transparent);
+  --glass-tint: color-mix(in oklab, var(--background) 46%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 66%, transparent);
+  --glass-corner: color-mix(in oklab, var(--primary) 40%, transparent);
   --glass-reflection: color-mix(in oklab, var(--popover) 60%, transparent);
   --glass-highlight: color-mix(in oklab, var(--primary) 7%, transparent);
 }
