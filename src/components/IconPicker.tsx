@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-export type IconOption = { id: string; label: string; icon: LucideIcon };
+export type IconOption = { id: string; label: string; icon: LucideIcon; image?: string };
 
 export function IconPicker({ options, value, onChange, compact = false, label = "Escolher ícone" }: {
   options: IconOption[]; value: string; onChange: (value: string) => void; compact?: boolean; label?: string;
@@ -16,16 +16,16 @@ export function IconPicker({ options, value, onChange, compact = false, label = 
   const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const filtered = options.filter(option => normalize(option.label).includes(normalize(search)));
   const grid = <div className="icon-picker-grid" role="group" aria-label={label}>
-    {filtered.map(({ id, label: name, icon: Icon }) => <Button key={id} type="button" variant="ghost" size="icon"
+    {filtered.map(({ id, label: name, icon: Icon, image }) => <Button key={id} type="button" variant="ghost" size="icon"
       title={name} aria-label={`Usar ícone ${name}`} aria-pressed={value === id}
-      className="icon-picker-option" onClick={() => { onChange(id); setOpen(false); }}><Icon /></Button>)}
+      className="icon-picker-option" onClick={() => { onChange(id); setOpen(false); }}>{image ? <img src={image} alt="" className="size-7 object-contain" loading="lazy" /> : <Icon />}</Button>)}
     {filtered.length === 0 && <p className="col-span-full py-4 text-center text-sm text-muted-foreground">Nenhum ícone encontrado.</p>}
   </div>;
   if (!compact) return grid;
   return <Dialog open={open} onOpenChange={next => { setOpen(next); if (!next) setSearch(""); }}>
     <DialogTrigger asChild><Button type="button" variant="ghost" size="sm" aria-label={label}
       className="h-7 max-w-full gap-1.5 px-1.5 font-mono text-xs text-muted-foreground hover:text-primary">
-      <SelectedIcon /><span className="truncate">{selected?.label ?? "Ícone"}</span><ChevronDown className="size-3" />
+      {selected?.image ? <img src={selected.image} alt="" className="size-5 object-contain" /> : <SelectedIcon />}<span className="truncate">{selected?.label ?? "Ícone"}</span><ChevronDown className="size-3" />
     </Button></DialogTrigger>
     <DialogContent className="max-w-md bg-popover text-popover-foreground">
       <DialogHeader><DialogTitle>Escolher ícone</DialogTitle><DialogDescription>{selected?.label ?? "Ícone"}</DialogDescription></DialogHeader>
