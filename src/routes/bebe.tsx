@@ -7,6 +7,9 @@ import { formatBRL, parseBRL, useStore } from "@/lib/store";
 import { usePrefs } from "@/lib/prefs";
 import { Baby, Heart, Star, Moon, Cloud, Trash2, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart } from "@/components/charts/BarChart";
+import { PieChart } from "@/components/charts/PieChart";
+import { useChartColors, MONTHS_SHORT } from "@/lib/theme-colors";
 
 export const Route = createFileRoute("/bebe")({
   head: () => ({
