@@ -4,6 +4,7 @@ import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
@@ -132,7 +133,7 @@ function SubscriptionsPage() {
         <Field label="Valor"><input required inputMode="decimal" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="R$ 0,00" className={inputCls} /></Field>
         <Field label="Primeira cobrança"><input required type="date" value={form.firstChargeDate} onChange={e => setForm({ ...form, firstChargeDate: e.target.value })} className={inputCls} /></Field>
         <Field label="Recorrência"><select value={form.recurrenceMonths} onChange={e => setForm({ ...form, recurrenceMonths: e.target.value })} className={inputCls}><option value="1">Mensal</option><option value="2">A cada 2 meses</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></Field>
-        <Field label="Cor"><input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className={`${inputCls} h-11 p-1`} /></Field>
+        <Field label="Cor"><ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="h-11 w-full" /></Field>
         <Field label="Tipo"><select value={form.essential} onChange={e => setForm({ ...form, essential: e.target.value as "essential" | "non_essential" })} className={inputCls}><option value="essential">Essencial</option><option value="non_essential">Não essencial</option></select></Field>
         <div className="md:col-span-2">
           <span className="text-xs font-mono uppercase text-muted-foreground">Ícone</span>

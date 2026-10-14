@@ -9,6 +9,7 @@ import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon,
 import { BackupContent } from "./backup";
 import { isSoundEnabled, onSoundChange, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
 import { areTutorialsEnabled, setTutorialsEnabled } from "@/lib/tutorials";
@@ -470,22 +471,24 @@ function AccentPicker() {
   return (
     <div>
       <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2">Tema de cor</p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Tema de cor">
         {ACCENTS.map(opt => {
           const active = a === opt.id;
           return (
-            <button
+            <Button
               key={opt.id}
               type="button"
               data-sound="soft"
               onClick={() => setAccent(opt.id)}
               title={opt.name}
-              className={`group relative rounded-xl border p-2 transition active:scale-95 ${active ? "border-primary bg-primary/10" : "border-border hover:bg-white/5"}`}
+              aria-pressed={active}
+              variant="ghost"
+              className={`group relative h-auto justify-start rounded-lg border px-3 py-3 transition ${active ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30" : "border-border bg-muted/30 text-foreground hover:bg-muted"}`}
             >
-              <span className="block h-8 w-full rounded-lg" style={{ background: opt.color }} />
-              <span className="mt-1.5 block text-[10px] font-mono text-center">{opt.name}</span>
-              {active && <span className="absolute top-1 right-1 text-[9px] font-mono text-primary">●</span>}
-            </button>
+              <span aria-hidden="true" className="theme-swatch size-6 shrink-0 rounded-full border border-border" data-swatch={opt.id} />
+              <span className="text-xs font-mono">{opt.name}</span>
+              {active && <CheckCircle2 className="ml-auto size-4 text-primary" />}
+            </Button>
           );
         })}
       </div>
@@ -503,19 +506,22 @@ function BackgroundPicker() {
         {BACKGROUNDS.map(opt => {
           const active = id === opt.id;
           return (
-            <button
+            <Button
               key={opt.id}
               type="button"
               data-sound="soft"
               onClick={() => setBackgroundId(opt.id)}
               title={opt.name}
-              className={`group relative rounded-xl border overflow-hidden transition active:scale-95 ${active ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"}`}
+              aria-pressed={active}
+              variant="ghost"
+              className={`group relative block h-auto rounded-lg border p-0 overflow-hidden text-foreground transition ${active ? "border-primary ring-2 ring-primary/40" : "border-border hover:border-primary/40"}`}
+              aria-label={opt.name}
             >
               <div
-                className="h-20 w-full grid place-items-center text-[10px] font-mono text-muted-foreground"
+                className="h-20 w-full bg-muted grid place-items-center text-[10px] font-mono text-muted-foreground"
                 style={opt.url
                   ? { backgroundImage: `url(${opt.url})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : { background: "repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 8px, rgba(255,255,255,0.09) 8px 16px)" }}
+                  : undefined}
               >
                 {!opt.url && <span>sem fundo</span>}
               </div>
@@ -523,7 +529,7 @@ function BackgroundPicker() {
                 <span className="block text-[10px] font-mono text-center truncate">{opt.name}</span>
               </div>
               {active && <span className="absolute top-1 right-1 text-[9px] font-mono text-primary bg-background/80 rounded px-1">●</span>}
-            </button>
+            </Button>
           );
         })}
       </div>

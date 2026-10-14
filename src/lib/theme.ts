@@ -1,5 +1,5 @@
 export type Theme = "light" | "dark";
-export type Accent = "violet" | "crimson" | "teal" | "graphite" | "purple";
+export type Accent = "violet" | "crimson" | "teal" | "graphite" | "purple" | "red" | "blue" | "green";
 
 const KEY = "closefinance:theme";
 const AKEY = "closefinance:accent";
@@ -12,6 +12,9 @@ export const ACCENTS: { id: Accent; name: string; color: string }[] = [
   { id: "teal", name: "Limão", color: "#e2e043" },
   { id: "graphite", name: "Grafite", color: "#292c40" },
   { id: "purple", name: "Roxo", color: "#8b2fe6" },
+  { id: "red", name: "Vermelho", color: "#dc2626" },
+  { id: "blue", name: "Azul", color: "#2563eb" },
+  { id: "green", name: "Verde", color: "#15803d" },
 ];
 
 export function getTheme(): Theme {
@@ -22,7 +25,7 @@ export function getTheme(): Theme {
 export function getAccent(): Accent {
   if (typeof window === "undefined") return "violet";
   const v = localStorage.getItem(AKEY);
-  return (["violet", "crimson", "teal", "graphite", "purple"] as Accent[]).includes(v as Accent) ? (v as Accent) : "violet";
+  return ACCENTS.find((accent) => accent.id === v)?.id ?? "violet";
 }
 
 

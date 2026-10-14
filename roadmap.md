@@ -1,5 +1,9 @@
 # Ajustes solicitados
 
+- [x] Melhorar contraste de textos e superfícies no modo claro.
+- [x] Adicionar quatro wallpapers líquidos de vidro e temas Vermelho, Azul e Verde.
+- [x] Harmonizar seletor de cores e brilhos tonais; verificar escolhas e persistência.
+
 - [x] Adicionar controle flutuante de som ao lado do tema.
 - [x] Centralizar gráfico de assinaturas do mês sem cortes.
 - [x] Refinar vidro, contraste, brilho temático e movimento nos botões e gráficos.
