@@ -14,6 +14,7 @@ import { Route as AssinaturasRouteImport } from './routes/assinaturas'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BackupRouteImport } from './routes/backup'
 import { Route as BancosRouteImport } from './routes/bancos'
+import { Route as BebeRouteImport } from './routes/bebe'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CartoesRouteImport } from './routes/cartoes'
 import { Route as CategoriasRouteImport } from './routes/categorias'
@@ -53,6 +54,11 @@ const BackupRoute = BackupRouteImport.update({
 const BancosRoute = BancosRouteImport.update({
   id: '/bancos',
   path: '/bancos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BebeRoute = BebeRouteImport.update({
+  id: '/bebe',
+  path: '/bebe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarioRoute = CalendarioRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
   '/bancos': typeof BancosRoute
+  '/bebe': typeof BebeRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
   '/bancos': typeof BancosRoute
+  '/bebe': typeof BebeRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/backup': typeof BackupRoute
   '/bancos': typeof BancosRoute
+  '/bebe': typeof BebeRoute
   '/calendario': typeof CalendarioRoute
   '/cartoes': typeof CartoesRoute
   '/categorias': typeof CategoriasRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/backup'
     | '/bancos'
+    | '/bebe'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/backup'
     | '/bancos'
+    | '/bebe'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/backup'
     | '/bancos'
+    | '/bebe'
     | '/calendario'
     | '/cartoes'
     | '/categorias'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BackupRoute: typeof BackupRoute
   BancosRoute: typeof BancosRoute
+  BebeRoute: typeof BebeRoute
   CalendarioRoute: typeof CalendarioRoute
   CartoesRoute: typeof CartoesRoute
   CategoriasRoute: typeof CategoriasRoute
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/bancos'
       fullPath: '/bancos'
       preLoaderRoute: typeof BancosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bebe': {
+      id: '/bebe'
+      path: '/bebe'
+      fullPath: '/bebe'
+      preLoaderRoute: typeof BebeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendario': {
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BackupRoute: BackupRoute,
   BancosRoute: BancosRoute,
+  BebeRoute: BebeRoute,
   CalendarioRoute: CalendarioRoute,
   CartoesRoute: CartoesRoute,
   CategoriasRoute: CategoriasRoute,
