@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { CatPieChart } from "@/components/charts/lazy";
 import { useStore } from "@/lib/store";
 import { notify } from "@/lib/notify";
-import { BUDGET_GROUPS, DEFAULT_PERCENTAGES, localMonth, monthBudget, type BudgetMonth } from "@/lib/budget-goals";
+import { BUDGET_GROUPS, DEFAULT_PERCENTAGES, localMonth, monthBudget, rebalance, type BudgetMonth } from "@/lib/budget-goals";
 
 const dotClasses = { freedom: "bg-budget-freedom", comfort: "bg-budget-comfort", pleasures: "bg-budget-pleasures", knowledge: "bg-budget-knowledge", fixed: "bg-budget-fixed", goals: "bg-budget-goals" };
 const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -76,7 +76,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
                 <label id={`budget-label-${g.id}`} className="flex min-w-0 items-center gap-2 font-medium"><span className={`size-2.5 shrink-0 rounded-full ${dotClasses[g.id]}`} />{g.name}</label>
                 <span className="shrink-0 font-mono text-primary">{values.percentages[g.id]}%</span>
               </div>
-              <Slider className="budget-slider" aria-labelledby={`budget-label-${g.id}`} min={0} max={100} step={1} value={[values.percentages[g.id]]} onValueChange={([value]) => { if (value !== undefined) setDraft({ ...values, percentages: { ...values.percentages, [g.id]: value } }); }} />
+              <Slider className="budget-slider" aria-labelledby={`budget-label-${g.id}`} min={0} max={100} step={1} value={[values.percentages[g.id]]} onValueChange={([value]) => { if (value !== undefined) setDraft({ ...values, percentages: rebalance(values.percentages, g.id, value) }); }} />
             </div>)}
           </div>
           <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">

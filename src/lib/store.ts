@@ -383,6 +383,8 @@ export const DEFAULT_CATEGORIES = [
   { name: "Saúde", color: "#FF4D6D", kind: "expense", icon: "doctor" },
   { name: "Animal", color: "#006F77", kind: "expense", icon: "vet" },
   { name: "Financiamento", color: "#820432", kind: "expense", icon: "money" },
+  { name: "Poupar", color: "#2BD9A1", kind: "expense", icon: "coins", budgetGroup: "freedom" },
+  { name: "Investimento", color: "#22C3CC", kind: "expense", icon: "money", budgetGroup: "freedom" },
 ] as const;
 
 // ============= LOAD =============
@@ -427,6 +429,7 @@ async function loadAllInner(supaUser: SupaUser) {
   if (missingCategories.length) {
     const { data: added } = await supabase.from("categories").insert(missingCategories.map(def => ({
       user_id: uid, name: def.name, color: def.color, kind: def.kind, icon: def.icon ?? null,
+      budget_group: "budgetGroup" in def ? def.budgetGroup : null,
     }))).select("*");
     cats = [...cats, ...(added ?? []).map(row => mapCat(row as Record<string, unknown>))];
   }

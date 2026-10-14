@@ -74,11 +74,11 @@
 
 :root {
   --budget-freedom: var(--primary);
-  --budget-comfort: color-mix(in oklab, var(--primary) 65%, var(--foreground));
-  --budget-pleasures: color-mix(in oklab, var(--primary) 55%, var(--secondary));
-  --budget-knowledge: color-mix(in oklab, var(--primary) 60%, var(--success));
-  --budget-fixed: var(--secondary);
-  --budget-goals: color-mix(in oklab, var(--primary) 55%, var(--muted-foreground));
+  --budget-fixed: oklch(from var(--primary) calc(l - 0.12) c calc(h + 180));
+  --budget-comfort: oklch(from var(--primary) calc(l + 0.08) c calc(h + 60));
+  --budget-pleasures: oklch(from var(--primary) l c calc(h - 60));
+  --budget-knowledge: oklch(from var(--primary) calc(l + 0.04) c calc(h + 120));
+  --budget-goals: oklch(from var(--primary) calc(l - 0.06) c calc(h - 120));
 }
 
 .budget-slider [data-orientation="horizontal"] > span { transition: width 100ms ease-out; }

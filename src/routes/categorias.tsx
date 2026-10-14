@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, LOCKED_CATEGORY_NAMES } from "@/lib/store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import {
   Plus, Trash2, Tag,
   Home, Car, DollarSign, UtensilsCrossed, CreditCard, PartyPopper, Gamepad2, Film,
@@ -68,6 +69,9 @@ export const CATEGORY_ICON_LIST: { id: string; label: string }[] = [
 
 function CategoriesPage() {
   const [{ categories, transactions }, api] = useStore();
+  const [showGroups, setShowGroups] = useState(false);
+  useEffect(() => { setShowGroups(localStorage.getItem("cf_cat_budget_groups") === "1"); }, []);
+  const toggleGroups = (on: boolean) => { setShowGroups(on); localStorage.setItem("cf_cat_budget_groups", on ? "1" : "0"); };
   const [form, setForm] = useState({ name: "", color: PALETTE[0], icon: "tag", budgetGroup: "" });
 
   function submit(e: React.FormEvent) {
@@ -122,14 +126,18 @@ function CategoriesPage() {
                 <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
               </div>
             </label>
-            <label className="block">
+            <label className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2">
+              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Grupo de meta</span>
+              <Switch checked={showGroups} onCheckedChange={toggleGroups} aria-label="Grupo de meta" />
+            </label>
+            {showGroups && <label className="block">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Grupo de meta</span>
               <select aria-label="Grupo de meta da nova categoria" value={form.budgetGroup} onChange={e => setForm({ ...form, budgetGroup: e.target.value })}
                 className="mt-1.5 w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm text-foreground">
                 <option value="">Sem vínculo</option>
                 {BUDGET_GROUPS.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
-            </label>
+            </label>}
             <div>
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Ícone</span>
               <div className="mt-1.5 grid grid-cols-6 gap-1.5 max-h-56 overflow-y-auto pr-1">
@@ -177,12 +185,12 @@ function CategoriesPage() {
                     <span className="text-[11px] font-mono text-muted-foreground">· {count} transações</span>
                     {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
                   </div>
-                  <select aria-label={`Grupo de meta de ${c.name}`} value={c.budgetGroup ?? ""}
+                  {showGroups && <select aria-label={`Grupo de meta de ${c.name}`} value={c.budgetGroup ?? ""}
                     onChange={e => api.updateCategory(c.id, { budgetGroup: isBudgetGroup(e.target.value) ? e.target.value : null })}
                     className="mt-2 w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground">
                     <option value="">Grupo de meta: sem vínculo</option>
                     {BUDGET_GROUPS.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>
+                  </select>}
                 </div>
                 <ColorPicker value={c.color} onChange={color => api.updateCategory(c.id, { color })} className="size-7" />
                 {isLocked ? (
