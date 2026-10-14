@@ -13,6 +13,7 @@ import {
   type Category,
   type Card,
 } from "@/lib/store";
+import { analyzeHealth } from "@/lib/financial-health";
 import {
   Activity,
   ChevronDown,
@@ -66,141 +67,11 @@ export function FinancialHealthBeta({
     }
   }, [applied]);
 
-  const { income, expense, nonEssential, topCategory, tips, score, savingsRate } = useMemo(() => {
-    const now = new Date();
-    const income = transactions
-      .filter(t => t.type === "income" && isSameMonth(t.date, now))
-      .reduce((s, t) => s + t.amount, 0);
-    const expense = monthExpenseTotal(transactions, cards, now);
-
-    const cashExpenses = transactions.filter(t => isSameMonth(t.date, now) && isCashFlowExpense(t));
-    const creditExpenses = transactions.filter(t => isSameMonth(t.date, now) && isCreditPurchase(t));
-    const allExpenseTx = [...cashExpenses, ...creditExpenses];
-
-    const nonEssential = allExpenseTx
-      .filter(t => t.essential === "non_essential")
-      .reduce((s, t) => s + t.amount, 0);
-
-    // Top category
-    const byCat = new Map<string, number>();
-    for (const t of allExpenseTx) {
-      const k = t.categoryId || "__none__";
-      byCat.set(k, (byCat.get(k) || 0) + t.amount);
-    }
-    let topCategory: { name: string; amount: number } | null = null;
-    for (const [k, v] of byCat) {
-      if (!topCategory || v > topCategory.amount) {
-        const cat = categories.find(c => c.id === k);
-        topCategory = { name: cat?.name ?? "Sem categoria", amount: v };
-      }
-    }
-
-    const savingsRate = income > 0 ? (income - expense) / income : 0;
-    const tips: Tip[] = [];
-
-    if (income === 0 && expense === 0) {
-      tips.push({
-        id: "no-data",
-        title: "Comece registrando seus lançamentos",
-        description:
-          "Sem transações no mês ainda. Adicione seus ganhos e gastos para receber uma análise personalizada.",
-        monthlySaving: 0,
-        severity: "info",
-      });
-    } else {
-      if (expense > income && income > 0) {
-        tips.push({
-          id: "overspending",
-          title: "Você está gastando mais do que ganha",
-          description: `Seus gastos (${formatBRL(expense)}) superam a renda (${formatBRL(
-            income
-          )}). Priorize cortar o excedente de ${formatBRL(expense - income)} até o fim do mês.`,
-          monthlySaving: expense - income,
-          severity: "critical",
-        });
-      }
-
-      if (nonEssential > 0 && expense > 0 && nonEssential / expense > 0.3) {
-        const cut = nonEssential * 0.3;
-        tips.push({
-          id: "cut-non-essential",
-          title: "Reduza 30% dos gastos não essenciais",
-          description: `Gastos não essenciais somam ${formatBRL(
-            nonEssential
-          )} (${Math.round((nonEssential / expense) * 100)}% do total). Cortar 30% libera ${formatBRL(cut)}/mês.`,
-          monthlySaving: cut,
-          severity: "warn",
-        });
-      }
-
-      if (topCategory && expense > 0 && topCategory.amount / expense > 0.25) {
-        const cut = topCategory.amount * 0.15;
-        tips.push({
-          id: `top-cat-${topCategory.name}`,
-          title: `Revise seus gastos em "${topCategory.name}"`,
-          description: `Essa categoria representa ${Math.round(
-            (topCategory.amount / expense) * 100
-          )}% dos seus gastos. Trocar por alternativas mais baratas pode economizar ${formatBRL(cut)}/mês.`,
-          monthlySaving: cut,
-          severity: "warn",
-        });
-      }
-
-      if (income > 0 && savingsRate < 0.2) {
-        const target = income * 0.2 - (income - expense);
-        if (target > 0) {
-          tips.push({
-            id: "save-20",
-            title: "Guarde ao menos 20% da sua renda",
-            description: `Hoje você está poupando ${Math.round(
-              Math.max(0, savingsRate) * 100
-            )}%. Ajustar rotina para chegar a 20% significa reservar mais ${formatBRL(target)}/mês.`,
-            monthlySaving: target,
-            severity: "info",
-          });
-        }
-      }
-
-      tips.push({
-        id: "emergency-fund",
-        title: "Monte uma reserva de emergência",
-        description:
-          "Separe automaticamente uma parcela fixa todo mês em uma conta rendendo ao menos 100% do CDI, até acumular 6x seus gastos essenciais.",
-        monthlySaving: Math.max(50, income * 0.05),
-        severity: "info",
-      });
-
-      tips.push({
-        id: "cancel-subs",
-        title: "Cancele assinaturas esquecidas",
-        description:
-          "Streaming, apps e mensalidades pouco usadas costumam somar bem mais do que aparentam. Revise o extrato do cartão dos últimos 3 meses.",
-        monthlySaving: Math.max(30, nonEssential * 0.1),
-        severity: "info",
-      });
-
-      if (income > 0 && savingsRate >= 0.2) {
-        tips.push({
-          id: "healthy",
-          title: "Você está no caminho certo",
-          description: `Sua taxa de poupança está em ${Math.round(
-            savingsRate * 100
-          )}%. Aproveite para começar a investir o que sobra.`,
-          monthlySaving: 0,
-          severity: "good",
-        });
-      }
-    }
-
-    // Score: base 50 + savings rate + non-essential penalty
-    let score = 50;
-    if (income > 0) score += Math.round(Math.min(40, savingsRate * 100));
-    if (expense > income && income > 0) score -= 30;
-    if (expense > 0 && nonEssential / expense > 0.3) score -= 10;
-    score = Math.max(0, Math.min(100, score));
-
-    return { income, expense, nonEssential, topCategory, tips, score, savingsRate };
-  }, [transactions, categories, cards]);
+  const analysis = useMemo(() => analyzeHealth(transactions, categories, cards), [transactions, categories, cards]);
+  const income = analysis.current.income;
+  const expense = analysis.current.expense;
+  const tips: Tip[] = analysis.insights;
+  const score = analysis.score;
 
   // Detalhamento do mês: categorias e lançamentos que mais impactaram
   const impact = useMemo(() => {
@@ -254,8 +125,7 @@ export function FinancialHealthBeta({
     ...projection.flatMap(p => [Math.abs(p.current), Math.abs(p.projected)])
   );
 
-  const scoreColor =
-    score >= 75 ? "#2BD9A1" : score >= 50 ? "#FFCC00" : score >= 30 ? "#FF8FA3" : "#FF4D6D";
+  const scoreColor = analysis.grade.color;
 
   return (
     <GlassCard>
@@ -333,6 +203,67 @@ export function FinancialHealthBeta({
               tone={baseNet >= 0 ? "income" : "expense"}
               icon={<Sparkles className="size-3" />}
             />
+          </div>
+
+          {/* Classificação + pilares */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-3 font-mono">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-[10px] uppercase text-muted-foreground">Classificação</span>
+              <span className="text-sm font-bold" style={{ color: analysis.grade.color }}>{analysis.grade.label}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">{analysis.grade.message}</p>
+            <ul className="space-y-2">
+              {analysis.pillars.map(p => (
+                <li key={p.id}>
+                  <div className="flex justify-between text-[11px]">
+                    <span>{p.label}</span>
+                    <span className="text-muted-foreground">{p.points}/{p.max}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mt-1">
+                    <div className="h-full bg-primary transition-all" style={{ width: `${(p.points / p.max) * 100}%` }} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{p.hint}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Comparação com meses passados */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 p-3 font-mono">
+            <div className="flex flex-wrap justify-between gap-2 mb-3 text-[11px]">
+              <span>Média de gastos (3 meses): <b>{formatBRL(analysis.avgExpense)}</b></span>
+              <span>Média de renda: <b>{formatBRL(analysis.avgIncome)}</b></span>
+              <span>Ritmo deste mês: <b>{formatBRL(analysis.paceExpense)}</b></span>
+            </div>
+            {(() => {
+              const ms = [...analysis.months].reverse();
+              const max = Math.max(1, ...ms.flatMap(m => [m.income, m.expense]));
+              return (
+                <div className="flex items-end justify-between gap-2 h-28">
+                  {ms.map((m, i) => (
+                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1 h-full">
+                      <div className="flex-1 flex items-end gap-0.5">
+                        <div className="w-2.5 rounded-t bg-[#2BD9A1]" style={{ height: `${(m.income / max) * 100}%` }} title={`Renda ${formatBRL(m.income)}`} />
+                        <div className="w-2.5 rounded-t bg-[#FF4D6D]" style={{ height: `${(m.expense / max) * 100}%` }} title={`Gastos ${formatBRL(m.expense)}`} />
+                      </div>
+                      <span className={`text-[9px] ${i === ms.length - 1 ? "text-primary" : "text-muted-foreground"}`}>{m.label}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            {analysis.catChanges.length > 0 && (
+              <ul className="mt-3 space-y-1 text-[11px]">
+                {analysis.catChanges.slice(0, 4).map(c => (
+                  <li key={c.id} className="flex justify-between gap-2">
+                    <span className="truncate">{c.name}</span>
+                    <span className={c.diff > 0 ? "text-[#FF8FA3]" : "text-[#2BD9A1]"}>
+                      {formatBRL(c.current)} ({c.diff >= 0 ? "+" : ""}{formatBRL(c.diff)} vs média)
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Tips */}
