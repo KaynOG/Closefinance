@@ -1095,6 +1095,16 @@ export function useStore() {
       return true;
     },
 
+    // Upgrade/downgrade: aplica o novo valor a partir do mês escolhido (inclusive meses passados).
+    changeSubscriptionPlan: async (subscriptionId: string, amount: number, fromMonth: string) => {
+      const from = `${fromMonth}-01`;
+      const today = new Date().toISOString().slice(0, 10);
+      const { error } = await supabase.from("transactions").update({ amount }).eq("subscription_id", subscriptionId).gte("date", from).lt("date", today);
+      if (error) { console.error(error); return false; }
+      set({ transactions: memory.transactions.map(t => t.subscriptionId === subscriptionId && t.date >= from && t.date < today ? { ...t, amount } : t) });
+      return api.updateSubscription(subscriptionId, { amount });
+    },
+
     // ---------- DÍVIDAS ----------
     // Cria a dívida, gera um gasto para cada parcela na data escolhida e vincula
     // os dois. Parcelas com data já vencida debitam o banco na hora; as futuras
