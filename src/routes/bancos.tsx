@@ -155,7 +155,7 @@ function BanksPage() {
           {banks.map(b => {
             const pct = goal > 0 ? Math.min(100, (b.savedAmount / goal) * 100) : 0;
             return (
-              <div key={b.id} className="relative rounded-3xl p-6 overflow-hidden glass-strong">
+              <div key={b.id} className="relative rounded-3xl p-6 overflow-hidden glass-strong panel-depth">
                 <div className="absolute inset-0 opacity-40" style={{ background: `linear-gradient(135deg, ${b.color}66, transparent 60%)` }} />
                 <div className="relative">
                   <div className="flex justify-between items-start">
