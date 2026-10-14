@@ -1,5 +1,11 @@
 # Ajustes solicitados
 
+- [ ] Adicionar logos C6 e BV ao catálogo de bancos.
+- [ ] Inclinar caixas ao passar o mouse e usar apenas sombra escura.
+- [ ] Padronizar listas de Dívidas e Devedores.
+- [ ] Substituir todos os seletores de datas por calendários internos temáticos.
+- [ ] Verificar calendários, logos, listas e movimento nas telas.
+
 - [x] Alinhar Novo projeto ao primeiro projeto da lista.
 - [x] Intensificar flutuação e inclinação 3D somente no dashboard.
 - [x] Personalizar listas de Categorias, Ganhos, Gastos, Calendário e Transações, incluindo filtros e extrato.
