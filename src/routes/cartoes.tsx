@@ -1,6 +1,7 @@
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, CARD_PURCHASE_TAG, CARD_PURCHASE_PAID_TAG, isCardPurchaseTx, type Transaction } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
@@ -171,7 +172,7 @@ function CardsPage() {
                         className={`size-8 rounded-full border-2 transition ${form.color === c ? "border-white scale-110" : "border-transparent"}`}
                         style={{ background: c }} aria-label={c} />
                     ))}
-                    <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
+                    <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
                   </div>
                 </Field>
                 <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">

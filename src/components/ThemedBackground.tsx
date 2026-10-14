@@ -27,8 +27,7 @@ export function ThemedBackground() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "linear-gradient(180deg, color-mix(in oklab, var(--background) 40%, transparent), color-mix(in oklab, var(--background) 55%, transparent))",
+            background: "var(--wallpaper-overlay)",
           }}
         />
       )}

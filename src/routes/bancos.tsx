@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Bank } from "@/lib/store";
 import { useMemo, useState, useEffect } from "react";
@@ -122,7 +123,7 @@ function BanksPage() {
                     className={`size-8 rounded-full border-2 transition ${form.color === c ? "border-white scale-110" : "border-transparent"}`}
                     style={{ background: c }} aria-label={c} />
                 ))}
-                <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
+                <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
               </div>
             </Field>
             <button type="submit" data-sound="success" className="w-full rounded-xl bg-secondary text-secondary-foreground font-semibold py-3 hover:opacity-90 glow-cyan active:scale-[0.98]">
@@ -254,7 +255,7 @@ function EditBankModal({ bank, onClose, onSave }: { bank: Bank; onClose: () => v
         <Field label="Cor">
           <div className="flex flex-wrap gap-2">
             {PALETTE.map(c => <button key={c} type="button" onClick={() => setForm({ ...form, color: c })} className={`size-8 rounded-full border-2 ${form.color === c ? "border-white scale-110" : "border-transparent"}`} style={{ background: c }} />)}
-            <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
+            <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
           </div>
         </Field>
         <button type="submit" data-sound="success" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 glow-violet flex items-center justify-center gap-2"><Save className="size-4" /> Salvar</button>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, LOCKED_CATEGORY_NAMES } from "@/lib/store";
 import { useState } from "react";
@@ -117,7 +118,7 @@ function CategoriesPage() {
                     className={`size-8 rounded-full border-2 transition ${form.color === c ? "border-white scale-110" : "border-transparent"}`}
                     style={{ background: c }} />
                 ))}
-                <input type="color" value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="size-8 rounded-full bg-transparent cursor-pointer" />
+                <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
               </div>
             </label>
             <div>
@@ -168,7 +169,7 @@ function CategoriesPage() {
                     {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
                   </div>
                 </div>
-                <input type="color" value={c.color} onChange={(e) => api.updateCategory(c.id, { color: e.target.value })} className="size-7 rounded-full bg-transparent cursor-pointer" />
+                <ColorPicker value={c.color} onChange={color => api.updateCategory(c.id, { color })} className="size-7" />
                 {isLocked ? (
                   <span title="Categoria padrão — não pode ser apagada" className="rounded-lg p-1.5 text-muted-foreground/40 cursor-not-allowed">
                     <Trash2 className="size-4" />

@@ -5,6 +5,10 @@ import bgOrange from "@/assets/bg-orange-glow.png.asset.json";
 import bgTealOrange from "@/assets/bg-teal-orange.png.asset.json";
 import bgTealWaves from "@/assets/bg-teal-waves.png.asset.json";
 import bgPurpleWaves from "@/assets/bg-purple-waves.jpg.asset.json";
+import bgLiquidBlack from "@/assets/bg-liquid-black.jpg";
+import bgLiquidSilver from "@/assets/bg-liquid-silver.jpg";
+import bgLiquidRed from "@/assets/bg-liquid-red.jpg";
+import bgLiquidBlue from "@/assets/bg-liquid-blue.jpg";
 
 export type BgOption = { id: string; name: string; url: string };
 
@@ -17,6 +21,10 @@ export const BACKGROUNDS: BgOption[] = [
   { id: "teal-orange", name: "Teal & laranja", url: bgTealOrange.url },
   { id: "teal-waves", name: "Ondas teal", url: bgTealWaves.url },
   { id: "purple-waves", name: "Ondas roxas", url: bgPurpleWaves.url },
+  { id: "liquid-black", name: "Vidro líquido · Preto", url: bgLiquidBlack },
+  { id: "liquid-silver", name: "Vidro líquido · Cinza claro", url: bgLiquidSilver },
+  { id: "liquid-red", name: "Vidro líquido · Vermelho", url: bgLiquidRed },
+  { id: "liquid-blue", name: "Vidro líquido · Azul", url: bgLiquidBlue },
 ];
 
 

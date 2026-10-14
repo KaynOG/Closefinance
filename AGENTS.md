@@ -16,3 +16,4 @@
 - Edit debt and receivable installment dates and amounts through the existing store update APIs, so linked transactions and bank balances stay synchronized.
 - Share audio preference changes through the sound module subscription API so floating and settings controls stay synchronized and muting stops active audio.
 - Keep glass treatments and chart glow in shared semantic CSS tokens so every accent and light/dark mode inherits the same visual treatment.
+- Use the shared ColorPicker for custom colors, because in-app accessible popovers must replace browser-native color dialogs.
