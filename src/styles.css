@@ -408,10 +408,10 @@
   border-radius: inherit;
   padding: 1px;
   background:
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner), transparent 72%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner), transparent 72%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner), transparent 72%),
-    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner), transparent 72%);
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 0, var(--glass-corner), transparent 82%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 0, var(--glass-corner), transparent 82%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 0 100%, var(--glass-corner), transparent 82%),
+    radial-gradient(var(--glass-corner-size) var(--glass-corner-size) at 100% 100%, var(--glass-corner), transparent 82%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
