@@ -7,7 +7,12 @@ import { Plus, Trash2, Pencil, Landmark, PiggyBank, Target, Wallet, X, Save, Plu
 import { TutorialBox } from "@/components/TutorialBox";
 
 export const Route = createFileRoute("/bancos")({
-  head: () => ({ meta: [{ title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Bancos — CloseFinance" },
+      { property: "og:description", content: "Gerencie seus bancos, contas e valores guardados." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Bancos — CloseFinance" }, { name: "description", content: "Gerencie seus bancos, contas e valores guardados." }] }),
   component: BanksPage,
 });
 

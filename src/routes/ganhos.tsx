@@ -12,7 +12,12 @@ import { playCashRegister } from "@/lib/sound";
 import { StatementExport } from "@/components/StatementExport";
 
 export const Route = createFileRoute("/ganhos")({
-  head: () => ({ meta: [{ title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Ganhos — CloseFinance" },
+      { property: "og:description", content: "Planilha moderna de ganhos com gráficos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Ganhos — CloseFinance" }, { name: "description", content: "Planilha moderna de ganhos com gráficos." }] }),
   component: GanhosPage,
 });
 

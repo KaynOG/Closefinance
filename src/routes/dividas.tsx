@@ -4,7 +4,7 @@ import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Debt, type DebtInstallment } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Plus, Trash2, Check, CalendarDays, Pencil, Wallet, Home, Car, GraduationCap, HeartPulse,
   Smartphone, Plane, ShoppingCart, Landmark, Dog, Zap, Receipt, ChevronDown, ChevronUp,
@@ -14,6 +14,8 @@ import {
   Laptop, Camera, PawPrint, Sparkles, Cigarette, Wine, Coffee, Church, Umbrella,
 } from "lucide-react";
 import { notify } from "@/lib/notify";
+import { RecordOrderControls, RecordMoveButtons, useRecordOrder } from "@/components/RecordOrderControls";
+import { orderRecords, moveRecord } from "@/lib/record-order";
 import { playExpense } from "@/lib/sound";
 
 export const Route = createFileRoute("/dividas")({
@@ -63,16 +65,26 @@ function DividasPage() {
   const [{ debts, banks, categories, currentUserId }, api] = useStore();
   const [showForm, setShowForm] = useState(false);
   const [paidOpen, setPaidOpen] = useState(false);
-  const archivedKey = `cf_paid_debts_${currentUserId ?? "anon"}`;
-  const [archived, setArchived] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem(archivedKey) || "[]"); } catch { return []; }
-  });
-  function persistArchived(next: string[]) {
-    setArchived(next);
-    try { localStorage.setItem(archivedKey, JSON.stringify(next)); } catch { /* ignore */ }
+  const [order, setOrder] = useRecordOrder(currentUserId, "debts");
+  const [moving, setMoving] = useState(false);
+  useEffect(() => {
+    if (!currentUserId || !debts.length) return;
+    const key = `cf_paid_debts_${currentUserId}`;
+    try {
+      const ids: unknown = JSON.parse(localStorage.getItem(key) || "[]");
+      if (Array.isArray(ids) && ids.length) {
+        Promise.all(debts.filter(d => ids.includes(d.id) && !d.archived).map(d => api.updateDebt(d.id, { archived: true })))
+          .then(results => { if (results.every(Boolean)) localStorage.removeItem(key); });
+      }
+    } catch { /* Ignore invalid legacy preferences. */ }
+  }, [currentUserId, debts, api]);
+  const activeDebts = orderRecords(debts.filter(d => !d.archived), order);
+  const paidDebts = debts.filter(d => d.archived);
+  async function moveDebt(id: string, direction: -1 | 1) {
+    setMoving(true);
+    try { await api.reorderDebts(moveRecord(activeDebts, id, direction)); }
+    finally { setMoving(false); }
   }
-  const activeDebts = debts.filter(d => !archived.includes(d.id));
-  const paidDebts = debts.filter(d => archived.includes(d.id));
 
   const totals = useMemo(() => {
     let total = 0, paid = 0, openAmount = 0, nextDate: string | null = null, nextAmount = 0;
@@ -133,6 +145,8 @@ function DividasPage() {
         />
       )}
 
+      {debts.length > 0 && <RecordOrderControls value={order} onChange={setOrder} />}
+
       {activeDebts.length === 0 && paidDebts.length === 0 && !showForm ? (
         <GlassCard>
           <p className="text-sm text-muted-foreground">
@@ -143,9 +157,10 @@ function DividasPage() {
         </GlassCard>
       ) : (
         <div className="space-y-4">
-          {activeDebts.map(d => (
+          {activeDebts.map((d, index) => (
+            <div key={d.id} data-record-id={d.id}>
+            {order === "custom" && <RecordMoveButtons name={d.name} first={index === 0} last={index === activeDebts.length - 1} busy={moving} onMove={direction => moveDebt(d.id, direction)} />}
             <DebtCard
-              key={d.id}
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
               onTogglePaid={async (inst) => {
@@ -153,7 +168,7 @@ function DividasPage() {
                 await api.setInstallmentPaid(d.id, inst.id, !inst.paid);
                 if (!inst.paid && d.installments.every(i => i.paid || i.id === inst.id)) {
                   if (confirm(`🎉 Parabéns! Você quitou todas as parcelas de "${d.name}"!\n\nDeseja mover essa dívida para o bloco "Dívidas pagas" no final da página?`)) {
-                    persistArchived([...archived, d.id]);
+                    if (!await api.updateDebt(d.id, { archived: true })) return;
                     notify(`"${d.name}" movida para Dívidas pagas.`);
                   }
                 }
@@ -167,6 +182,7 @@ function DividasPage() {
                 notify("Dívida removida.");
               }}
             />
+            </div>
           ))}
         </div>
       )}
@@ -204,7 +220,7 @@ function DividasPage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => { persistArchived(archived.filter(id => id !== d.id)); notify(`"${d.name}" voltou para a lista de dívidas.`); }}
+                      onClick={async () => { if (await api.updateDebt(d.id, { archived: false })) notify(`"${d.name}" voltou para a lista de dívidas.`); }}
                       className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-[11px] font-mono hover:bg-white/5">
                       Restaurar
                     </button>
@@ -212,7 +228,6 @@ function DividasPage() {
                       onClick={async () => {
                         if (!confirm(`Apagar a dívida quitada "${d.name}" e todos os gastos das parcelas?`)) return;
                         await api.removeDebt(d.id);
-                        persistArchived(archived.filter(id => id !== d.id));
                         notify("Dívida removida.");
                       }}
                       className="shrink-0 rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover dívida">

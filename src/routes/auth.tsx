@@ -10,7 +10,12 @@ import { ArrowRight, Mail, Lock, User as UserIcon, Calendar as CalIcon, Target, 
 import type { Gender } from "@/lib/store";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — CloseFinance" }, { name: "description", content: "Acesse sua conta CloseFinance e assuma o controle das suas finanças." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Entrar — CloseFinance" },
+      { property: "og:description", content: "Acesse sua conta CloseFinance e assuma o controle das suas finanças." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Entrar — CloseFinance" }, { name: "description", content: "Acesse sua conta CloseFinance e assuma o controle das suas finanças." }] }),
   component: AuthPage,
 });
 

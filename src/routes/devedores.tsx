@@ -14,6 +14,10 @@ import {
   Sofa, Stethoscope, Sparkles, Coffee, Wine, Umbrella, TrendingUp, Trophy, Key,
 } from "lucide-react";
 import { notify } from "@/lib/notify";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { RecordOrderControls, RecordMoveButtons, useRecordOrder } from "@/components/RecordOrderControls";
+import { orderRecords, moveRecord } from "@/lib/record-order";
 import { playCashRegister } from "@/lib/sound";
 
 export const Route = createFileRoute("/devedores")({
@@ -60,8 +64,20 @@ function addMonthsISO(iso: string, n: number) {
 function fmtDate(iso: string) { return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR"); }
 
 function DevedoresPage() {
-  const [{ receivables, banks, categories }, api] = useStore();
+  const [{ receivables, banks, categories, currentUserId }, api] = useStore();
   const [showForm, setShowForm] = useState(false);
+  const [order, setOrder] = useRecordOrder(currentUserId, "receivables");
+  const [moving, setMoving] = useState(false);
+  const [settledOpen, setSettledOpen] = useState(false);
+  const [completed, setCompleted] = useState<Receivable | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const activeReceivables = orderRecords(receivables.filter(r => !r.archived), order);
+  const settledReceivables = receivables.filter(r => r.archived);
+  async function moveReceivable(id: string, direction: -1 | 1) {
+    setMoving(true);
+    try { await api.reorderReceivables(moveRecord(activeReceivables, id, direction)); }
+    finally { setMoving(false); }
+  }
 
   const totals = useMemo(() => {
     let total = 0, received = 0, openAmount = 0, nextDate: string | null = null, nextAmount = 0;
@@ -122,6 +138,8 @@ function DevedoresPage() {
         />
       )}
 
+      {receivables.length > 0 && <RecordOrderControls value={order} onChange={setOrder} />}
+
       {receivables.length === 0 && !showForm ? (
         <GlassCard>
           <p className="text-sm text-muted-foreground">
@@ -132,14 +150,16 @@ function DevedoresPage() {
         </GlassCard>
       ) : (
         <div className="space-y-4">
-          {receivables.map(r => (
+          {activeReceivables.map((r, index) => (
+            <div key={r.id} data-record-id={r.id}>
+            {order === "custom" && <RecordMoveButtons name={r.name} first={index === 0} last={index === activeReceivables.length - 1} busy={moving} onMove={direction => moveReceivable(r.id, direction)} />}
             <ReceivableCard
-              key={r.id}
               receivable={r}
               bankName={banks.find(b => b.id === r.bankId)?.name}
-              onToggleReceived={(inst) => {
+              onToggleReceived={async (inst) => {
                 if (!inst.received && !confirm(`Tem certeza de que a parcela ${inst.number} de "${r.name}" foi recebida? A data dela será ajustada para hoje.`)) return;
-                api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received);
+                const saved = await api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received);
+                if (saved && !inst.received && r.installments.every(i => i.received || i.id === inst.id)) setCompleted(r);
               }}
               onRename={async (name) => { await api.updateReceivable(r.id, { name }); notify("Nome atualizado nos ganhos."); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
@@ -150,9 +170,60 @@ function DevedoresPage() {
                 notify("Valor a receber removido.");
               }}
             />
+            </div>
           ))}
         </div>
       )}
+      {settledReceivables.length > 0 && (
+        <GlassCard className="mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold"><Check className="size-5 text-success" /> Quitado</h2>
+              <p className="mt-1 text-xs text-muted-foreground">{settledReceivables.length} {settledReceivables.length === 1 ? "devedor quitado" : "devedores quitados"}</p>
+            </div>
+            <Button variant="outline" size="sm" aria-expanded={settledOpen} onClick={() => setSettledOpen(value => !value)}>
+              {settledOpen ? <ChevronUp /> : <ChevronDown />}{settledOpen ? "Ocultar" : "Mostrar"}
+            </Button>
+          </div>
+          {settledOpen && <ul className="mt-4 divide-y divide-border">
+            {settledReceivables.map(r => (
+              <li key={r.id} className="flex flex-wrap items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="break-words font-semibold">{r.name}</p>
+                  <p className="text-xs text-muted-foreground">{r.installments.length} parcelas · {formatBRL(r.installments.reduce((sum, inst) => sum + inst.amount, 0))} recebidos</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={async () => {
+                  if (await api.updateReceivable(r.id, { archived: false })) notify(`"${r.name}" voltou para a lista de devedores.`);
+                }}>Restaurar</Button>
+                <Button variant="ghost" size="icon" className="text-danger" aria-label={`Apagar ${r.name}`} title={`Apagar ${r.name}`} onClick={async () => {
+                  if (confirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) await api.removeReceivable(r.id);
+                }}><Trash2 /></Button>
+              </li>
+            ))}
+          </ul>}
+        </GlassCard>
+      )}
+      <AlertDialog open={Boolean(completed)} onOpenChange={open => { if (!open && !archiving) setCompleted(null); }}>
+        <AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Parabéns, todas as parcelas recebidas!</AlertDialogTitle>
+            <AlertDialogDescription>Você recebeu todas as parcelas de “{completed?.name}”. Deseja mover este devedor para o bloco “Quitado”?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Agora não</AlertDialogCancel>
+            <Button disabled={archiving} onClick={async () => {
+              if (!completed) return;
+              setArchiving(true);
+              try {
+                if (await api.updateReceivable(completed.id, { archived: true })) {
+                  notify(`"${completed.name}" movido para Quitado.`);
+                  setCompleted(null);
+                } else notify("Não foi possível mover o devedor. Tente novamente.");
+              } finally { setArchiving(false); }
+            }}>{archiving ? "Movendo…" : "Sim, mover para Quitado"}</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

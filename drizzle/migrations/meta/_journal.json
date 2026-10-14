@@ -64,6 +64,13 @@
       "when": 1791978616311,
       "tag": "0008_project_sort_order",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791980212283,
+      "tag": "0009_debt_receivable_order_archive",
+      "breakpoints": true
     }
   ]
 }

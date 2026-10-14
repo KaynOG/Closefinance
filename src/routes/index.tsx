@@ -39,6 +39,11 @@ import { Trophy } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Dashboard — CloseFinance" },
+      { property: "og:description", content: "Sua saúde financeira em tempo real: gastos, ganhos, cartões e missões diárias." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      
       { title: "Dashboard — CloseFinance" },
       {
         name: "description",

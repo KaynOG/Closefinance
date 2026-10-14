@@ -3,7 +3,12 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 
 export const Route = createFileRoute("/design-system")({
-  head: () => ({ meta: [{ title: "Design System — CloseFinance" }, { name: "description", content: "Tokens, tipografia, componentes e diretrizes para reproduzir no Figma." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Design System — CloseFinance" },
+      { property: "og:description", content: "Tokens, tipografia, componentes e diretrizes para reproduzir no Figma." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Design System — CloseFinance" }, { name: "description", content: "Tokens, tipografia, componentes e diretrizes para reproduzir no Figma." }] }),
   component: DSPage,
 });
 

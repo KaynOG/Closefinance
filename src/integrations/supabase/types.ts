@@ -282,6 +282,7 @@ export type Database = {
       }
       debts: {
         Row: {
+          archived: boolean
           bank_id: string | null
           category_id: string | null
           color: string
@@ -291,11 +292,13 @@ export type Database = {
           installments_total: number
           name: string
           note: string | null
+          sort_order: number
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          archived?: boolean
           bank_id?: string | null
           category_id?: string | null
           color?: string
@@ -305,11 +308,13 @@ export type Database = {
           installments_total?: number
           name: string
           note?: string | null
+          sort_order?: number
           total_amount?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          archived?: boolean
           bank_id?: string | null
           category_id?: string | null
           color?: string
@@ -319,6 +324,7 @@ export type Database = {
           installments_total?: number
           name?: string
           note?: string | null
+          sort_order?: number
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -631,6 +637,7 @@ export type Database = {
       }
       receivables: {
         Row: {
+          archived: boolean
           bank_id: string | null
           category_id: string | null
           color: string
@@ -640,11 +647,13 @@ export type Database = {
           installments_total: number
           name: string
           note: string | null
+          sort_order: number
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          archived?: boolean
           bank_id?: string | null
           category_id?: string | null
           color?: string
@@ -654,11 +663,13 @@ export type Database = {
           installments_total?: number
           name: string
           note?: string | null
+          sort_order?: number
           total_amount?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          archived?: boolean
           bank_id?: string | null
           category_id?: string | null
           color?: string
@@ -668,6 +679,7 @@ export type Database = {
           installments_total?: number
           name?: string
           note?: string | null
+          sort_order?: number
           total_amount?: number
           updated_at?: string
           user_id?: string

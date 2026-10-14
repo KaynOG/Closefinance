@@ -9,7 +9,12 @@ import { ChevronLeft, ChevronRight, Bell, AlertTriangle, ChevronDown, ChevronUp,
 import { notify } from "@/lib/notify";
 
 export const Route = createFileRoute("/calendario")({
-  head: () => ({ meta: [{ title: "Calendário — CloseFinance" }, { name: "description", content: "Calendário de entradas, vencimentos e gastos." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Calendário — CloseFinance" },
+      { property: "og:description", content: "Calendário de entradas, vencimentos e gastos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { title: "Calendário — CloseFinance" }, { name: "description", content: "Calendário de entradas, vencimentos e gastos." }] }),
   component: CalendarPage,
 });
 
