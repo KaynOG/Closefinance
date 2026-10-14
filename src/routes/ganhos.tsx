@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
@@ -134,18 +135,18 @@ function GanhosPage() {
             <Field label="Descrição"><input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Salário, freelance..." className={inputCls} /></Field>
             <Field label="Data"><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} /></Field>
             <Field label="Categoria">
-              <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+              <AppSelect value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
                 {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </AppSelect>
             </Field>
             <Field label="Recebido em">
-              <select value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className={inputCls}>
+              <AppSelect value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className={inputCls}>
                 <option value="none">Não informar</option>
                 <option value="cash">💵 Dinheiro físico (caixa)</option>
                 {banks.length > 0 && <option disabled>— Bancos —</option>}
                 {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
+              </AppSelect>
             </Field>
             <Field label="Etiqueta (parâmetro livre)">
               <input value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} placeholder="Ex: bônus-Q4, projeto-X" className={inputCls} />
@@ -176,19 +177,19 @@ function GanhosPage() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
                   <input value={fSearch} onChange={e => setFSearch(e.target.value)} placeholder="Buscar descrição..." className={inputCls + " md:col-span-2"} />
-                  <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
+                  <AppSelect aria-label="Filtrar mês" value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
                     <option value="all">Todos os meses</option>
                     {monthsSet.map(m => {
                       const [y, mm] = m.split("-");
                       const label = new Date(parseInt(y), parseInt(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
                       return <option key={m} value={m}>{label}</option>;
                     })}
-                  </select>
-                  <select value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
+                  </AppSelect>
+                  <AppSelect aria-label="Filtrar categoria" value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
                     <option value="all">Todas as categorias</option>
                     <option value="none">Sem categoria</option>
                     {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                  </AppSelect>
                   <input value={fMin} onChange={e => setFMin(e.target.value)} placeholder="Valor mín." inputMode="decimal" className={inputCls} />
                   <input value={fMax} onChange={e => setFMax(e.target.value)} placeholder="Valor máx." inputMode="decimal" className={inputCls} />
                   <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); setFSearch(""); }}

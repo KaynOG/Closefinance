@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -122,18 +123,18 @@ function CalendarPage() {
           <h1 className="text-3xl font-bold capitalize">{cursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={cursor.getMonth()}
+          <AppSelect
+            aria-label="Mês do calendário" value={cursor.getMonth()}
             onChange={(e) => setCursor(new Date(cursor.getFullYear(), parseInt(e.target.value), 1))}
-            className="glass rounded-xl px-3 py-2 text-sm font-mono bg-transparent outline-none hover:bg-white/10 cursor-pointer">
-            {MONTHS.map((m, i) => <option key={m} value={i} className="bg-[#14062E]">{m}</option>)}
-          </select>
-          <select
-            value={cursor.getFullYear()}
+            className="w-36 h-10 text-sm font-mono">
+            {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
+          </AppSelect>
+          <AppSelect
+            aria-label="Ano do calendário" value={cursor.getFullYear()}
             onChange={(e) => setCursor(new Date(parseInt(e.target.value), cursor.getMonth(), 1))}
-            className="glass rounded-xl px-3 py-2 text-sm font-mono bg-transparent outline-none hover:bg-white/10 cursor-pointer">
-            {years.map((y) => <option key={y} value={y} className="bg-[#14062E]">{y}</option>)}
-          </select>
+            className="w-36 h-10 text-sm font-mono">
+            {years.map((y) => <option key={y} value={y}>{y}</option>)}
+          </AppSelect>
           <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="glass rounded-xl p-2 hover:bg-white/10" aria-label="Mês anterior"><ChevronLeft className="size-5" /></button>
           <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="glass rounded-xl p-2 hover:bg-white/10" aria-label="Próximo mês"><ChevronRight className="size-5" /></button>
           <button onClick={() => { const d = new Date(); d.setDate(1); setCursor(d); }} className="glass rounded-xl px-3 py-2 text-xs font-mono hover:bg-white/10">Hoje</button>

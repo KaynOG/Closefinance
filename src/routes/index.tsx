@@ -355,6 +355,7 @@ function DashboardPage() {
 
   return (
     <AppShell>
+      <div className="dashboard-depth">
       <TutorialBox {...TUTORIALS.index} />
       <header className="mb-8">
         <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
@@ -864,6 +865,7 @@ function DashboardPage() {
           </GlassCard>
         </section>
       )}
+      </div>
     </AppShell>
   );
 }

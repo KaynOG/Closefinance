@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
@@ -237,18 +238,18 @@ function GastosPage() {
                 {cards.length === 0 ? (
                   <p className="text-xs font-mono text-muted-foreground">Cadastre um cartão na aba Cartões.</p>
                 ) : (
-                  <select value={form.invoiceCardId} onChange={e => setForm({ ...form, invoiceCardId: e.target.value })} className={inputCls}>
+                  <AppSelect value={form.invoiceCardId} onChange={e => setForm({ ...form, invoiceCardId: e.target.value })} className={inputCls}>
                     {cards.map(c => <option key={c.id} value={c.id}>{c.name} · usado {formatBRL((c.usedManual ?? 0))}</option>)}
-                  </select>
+                  </AppSelect>
                 )}
                 <p className="text-[10px] font-mono text-muted-foreground mt-1">O valor pago será liberado no limite usado do cartão.</p>
               </Field>
             )}
             <Field label="Categoria">
-              <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+              <AppSelect value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
                 {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </AppSelect>
             </Field>
             <Field label="Classificação">
               <div className="grid grid-cols-2 gap-2">
@@ -272,10 +273,10 @@ function GastosPage() {
               <>
                 {cards.length > 0 && (
                   <Field label="Cartão">
-                    <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                    <AppSelect value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
                       <option value="">—</option>
                       {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    </AppSelect>
                   </Field>
                 )}
                 <Field label={`Parcelas (até 36x)${parseInt(form.installments) > 1 ? ` · ${form.installments}x de ${formatBRL((parseBRL(form.amount) || 0) / (parseInt(form.installments) || 1))}` : ""}`}>
@@ -291,10 +292,10 @@ function GastosPage() {
             )}
             {(form.paymentMethod === "debit" || form.paymentMethod === "pix") && banks.length > 0 && (
               <Field label="Banco">
-                <select value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
+                <AppSelect value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
                   <option value="">—</option>
                   {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
+                </AppSelect>
               </Field>
             )}
             <Field label="Etiqueta (parâmetro livre)">
@@ -326,19 +327,19 @@ function GastosPage() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
                   <input value={fSearch} onChange={e => setFSearch(e.target.value)} placeholder="Buscar descrição..." className={inputCls + " md:col-span-2"} />
-                  <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
+                  <AppSelect aria-label="Filtrar mês" value={fMonth} onChange={e => setFMonth(e.target.value)} className={inputCls}>
                     <option value="all">Todos os meses</option>
                     {monthsSet.map(m => {
                       const [y, mm] = m.split("-");
                       const label = new Date(parseInt(y), parseInt(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
                       return <option key={m} value={m}>{label}</option>;
                     })}
-                  </select>
-                  <select value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
+                  </AppSelect>
+                  <AppSelect aria-label="Filtrar categoria" value={fCategory} onChange={e => setFCategory(e.target.value)} className={inputCls}>
                     <option value="all">Todas as categorias</option>
                     <option value="none">Sem categoria</option>
                     {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                  </AppSelect>
                   <input value={fMin} onChange={e => setFMin(e.target.value)} placeholder="Valor mín." inputMode="decimal" className={inputCls} />
                   <input value={fMax} onChange={e => setFMax(e.target.value)} placeholder="Valor máx." inputMode="decimal" className={inputCls} />
                   <button type="button" onClick={() => { setFMonth("all"); setFCategory("all"); setFMin(""); setFMax(""); setFSearch(""); }}
