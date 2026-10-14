@@ -1,5 +1,11 @@
 # Ajustes solicitados
 
+- [x] Recolher por padrão a criação de projetos.
+- [x] Adicionar 30 ícones em todos os seletores e preservar sua exibição.
+- [x] Separar histórico de entradas, gastos e faturas com filtros de período e detalhes.
+- [x] Adicionar elevação 3D sutil às caixas e opções da barra lateral, respeitando movimento reduzido.
+- [x] Verificar filtros, ícones, projetos e aparência nas telas.
+
 - [x] Editar cor e ícone em dívidas e devedores.
 - [x] Oferecer logos reais de assinaturas e bancos, inclusive na edição; preservar no backup.
 - [x] Verificar seleção, persistência e imagens nas telas.

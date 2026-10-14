@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { IconPicker } from "@/components/IconPicker";
 import { BANK_LOGOS, bankLogoId } from "@/lib/brand-logos";
+import { EXTRA_ICONS } from "@/lib/extra-icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ColorPicker } from "@/components/ColorPicker";
@@ -25,7 +26,8 @@ const bankOptions = [{ id: "auto", label: "Automático pelo nome", icon: Landmar
 function BankLogo({ bank }: { bank: Bank }) {
   const id = !bank.icon || bank.icon === "auto" ? bankLogoId(bank.name) : bank.icon;
   const logo = BANK_LOGOS.find(option => option.id === id);
-  return logo?.image ? <span className="brand-logo-surface size-12"><img src={logo.image} alt={`Logo ${logo.label}`} className="size-10 object-contain" loading="lazy" /></span> : <Landmark className="size-6 text-muted-foreground" />;
+  const CustomIcon = EXTRA_ICONS[bank.icon ?? ""] ?? Landmark;
+  return logo?.image ? <span className="brand-logo-surface size-12"><img src={logo.image} alt={`Logo ${logo.label}`} className="size-10 object-contain" loading="lazy" /></span> : <CustomIcon className="size-6 text-muted-foreground" />;
 }
 
 const PALETTE = ["#22C3CC", "#2BD9A1", "#540BD3", "#FFCC00", "#FF6B1A", "#820432", "#B388FF"];

@@ -117,7 +117,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                 to={n.to}
                 title={n.label}
                 data-sound="nav"
-                className={`group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
+                className={`nav-depth group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
                   active
                     ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-violet)]"
                     : "hover:bg-white/5 text-foreground/80 hover:text-foreground"
@@ -206,7 +206,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                     to={n.to}
                     data-sound="nav"
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-95 ${
+                    className={`nav-depth flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-95 ${
                       active ? "bg-primary text-primary-foreground" : "hover:bg-white/5 text-foreground/80"
                     }`}
                   >

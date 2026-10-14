@@ -21,6 +21,7 @@ import { notify } from "@/lib/notify";
 import { RecordOrderControls, RecordMoveButtons, useRecordOrder } from "@/components/RecordOrderControls";
 import { orderRecords, moveRecord } from "@/lib/record-order";
 import { playExpense } from "@/lib/sound";
+import { EXTRA_ICONS } from "@/lib/extra-icons";
 
 export const Route = createFileRoute("/dividas")({
   head: () => ({
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/dividas")({
 });
 
 export const DEBT_ICONS = {
+  ...EXTRA_ICONS,
   wallet: Wallet, home: Home, car: Car, study: GraduationCap, health: HeartPulse,
   phone: Smartphone, travel: Plane, shopping: ShoppingCart, bank: Landmark,
   pet: Dog, energy: Zap, bill: Receipt,

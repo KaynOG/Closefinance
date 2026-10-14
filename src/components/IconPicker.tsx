@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown, Search, Tag } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EXTRA_ICON_OPTIONS } from "@/lib/extra-icons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export type IconOption = { id: string; label: string; icon: LucideIcon; image?: string };
@@ -11,10 +12,11 @@ export function IconPicker({ options, value, onChange, compact = false, label = 
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const selected = options.find(option => option.id === value);
+  const allOptions: IconOption[] = [...options, ...EXTRA_ICON_OPTIONS.filter(extra => !options.some(option => option.id === extra.id))];
+  const selected = allOptions.find(option => option.id === value);
   const SelectedIcon = selected?.icon ?? Tag;
   const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const filtered = options.filter(option => normalize(option.label).includes(normalize(search)));
+  const filtered = allOptions.filter(option => normalize(option.label).includes(normalize(search)));
   const grid = <div className="icon-picker-grid" role="group" aria-label={label}>
     {filtered.map(({ id, label: name, icon: Icon, image }) => <Button key={id} type="button" variant="ghost" size="icon"
       title={name} aria-label={`Usar ícone ${name}`} aria-pressed={value === id}
