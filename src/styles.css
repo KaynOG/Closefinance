@@ -377,21 +377,66 @@
   }
 }
 
+:root {
+  --glass-tint: color-mix(in oklab, var(--background) 64%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 84%, oklch(0.08 0 0));
+  --glass-edge: color-mix(in oklab, var(--primary) 28%, var(--border));
+  --glass-highlight: color-mix(in oklab, var(--primary) 13%, transparent);
+  --glass-reflection: color-mix(in oklab, var(--foreground) 9%, transparent);
+  --glass-shadow: 0 10px 28px -24px color-mix(in oklab, var(--primary) 32%, transparent);
+  --chart-glow: color-mix(in oklab, var(--primary) 22%, transparent);
+  --control-shadow: 0 7px 16px -10px color-mix(in oklab, var(--primary) 48%, transparent);
+}
+:root.light {
+  --glass-tint: color-mix(in oklab, var(--background) 58%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 82%, transparent);
+  --glass-reflection: color-mix(in oklab, var(--popover) 60%, transparent);
+  --glass-highlight: color-mix(in oklab, var(--primary) 7%, transparent);
+}
+
 @utility glass {
-  background: color-mix(in oklab, var(--foreground) 2.5%, transparent);
-  backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid color-mix(in oklab, var(--foreground) 9%, transparent);
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent) inset;
-  transition: border-color 220ms ease, background-color 220ms ease, transform 220ms ease;
+  background:
+    linear-gradient(135deg, var(--glass-highlight), transparent 22%, transparent 80%, var(--glass-highlight)),
+    linear-gradient(165deg, var(--glass-tint), var(--glass-depth));
+  backdrop-filter: blur(16px) saturate(135%) contrast(103%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow), inset 1px 1px 0 var(--glass-reflection), inset -1px -1px 0 var(--glass-highlight);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
 @utility glass-strong {
-  background: color-mix(in oklab, var(--foreground) 4%, transparent);
-  backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid color-mix(in oklab, var(--foreground) 12%, transparent);
-  box-shadow:
-    0 12px 32px -24px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 color-mix(in oklab, var(--foreground) 7%, transparent);
+  background:
+    linear-gradient(135deg, var(--glass-highlight), transparent 25%, transparent 78%, var(--glass-highlight)),
+    linear-gradient(165deg, var(--glass-tint), var(--glass-depth));
+  backdrop-filter: blur(22px) saturate(145%) contrast(103%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow), inset 1px 1px 0 var(--glass-reflection), inset -1px -1px 0 var(--glass-highlight);
+}
+
+/* Brilho restrito aos dados; eixos, legendas e tooltips continuam nítidos. */
+.recharts-wrapper { border-radius: 8px; }
+.recharts-area-curve, .recharts-line-curve {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px var(--chart-glow));
+}
+.recharts-bar-rectangle, .recharts-pie-sector {
+  filter: drop-shadow(0 2px 3px var(--chart-glow));
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  main button:not(:disabled):not([role="switch"]):not([aria-expanded]):hover,
+  .floating-control:not(:disabled):hover {
+    transform: perspective(700px) translateY(-2px) rotateX(4deg);
+    box-shadow: var(--control-shadow);
+  }
+  main button > span {
+    transition: translate 200ms ease;
+  }
+  main button:not(:disabled):hover > span { translate: 0 -1px; }
+  main button:not(:disabled):active, .floating-control:not(:disabled):active {
+    transform: perspective(700px) translateY(0) scale(0.97);
+  }
 }
 
 /* Evita o "risco" (barra de rolagem horizontal) causado por animações */

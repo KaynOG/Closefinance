@@ -595,9 +595,9 @@ function DashboardPage() {
                   icon={<TrendingUp className="size-4" />}
                 />
               </div>
-              <div className="rounded-2xl bg-white/5 p-4 border border-border">
+              <div className="min-w-0 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
                 <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
-                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="h-40"><CatPieChart data={[
+                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-56 w-full max-w-sm"><CatPieChart data={[
                   { name: "Essenciais", value: subscriptionSplit.essential, color: "var(--chart-1)" },
                   { name: "Não essenciais", value: subscriptionSplit.nonEssential, color: "var(--chart-4)" },
                 ]} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
