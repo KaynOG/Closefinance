@@ -223,6 +223,7 @@ function DevedoresPage() {
             }}>{archiving ? "Movendo…" : "Sim, mover para Quitado"}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

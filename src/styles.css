@@ -395,6 +395,24 @@
 /* Evita o "risco" (barra de rolagem horizontal) causado por animações */
 html, body { overflow-x: clip; max-width: 100%; }
 
+/* Barras acompanham o tema, inclusive nos roadmaps horizontais. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 65%, var(--muted-foreground)) var(--muted);
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--muted); border-radius: 8px; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--primary) 65%, var(--muted-foreground));
+  border: 2px solid var(--background);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+input[type="range"] { accent-color: var(--primary); }
+@media (prefers-reduced-motion: no-preference) {
+  ::-webkit-scrollbar-thumb { transition: background-color 200ms ease; }
+}
+
 /* Transição inteligente ao trocar de aba */
 .page-enter {
   animation: page-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;

@@ -10,3 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Keep project target dates on `public.projects` and edit them from the project view, because deadlines belong to each project rather than its individual goals.
+- Persist debt/receivable custom positions and archive status on their own rows and include them in backup restoration, so organization follows the account and survives remapped IDs.
+- Share chronological/custom record ordering through `record-order` and `RecordOrderControls`, so debts and receivables keep identical sorting behavior.
