@@ -74,7 +74,7 @@ export function SubscriptionInsights() {
       <SectionTitle title="Comparativo mensal" subtitle="gasto com assinaturas nos últimos 6 meses" />
       <div className="flex items-end gap-3 h-44">
         {monthly.map((m, i) => <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-          <span className="text-[10px] font-mono text-muted-foreground">{m.total ? formatBRL(m.total) : "—"}</span>
+          <span className="text-[9px] sm:text-[10px] font-mono text-muted-foreground whitespace-nowrap">{m.total ? `R$ ${Math.round(m.total).toLocaleString("pt-BR")}` : "—"}</span>
           <div className="w-full rounded-t-md bg-primary transition-all duration-700" style={{ height: `${(m.total / max) * 100}%`, minHeight: 2 }} />
           <span className="text-xs font-mono">{m.label}</span>
         </div>)}
@@ -89,7 +89,7 @@ export function SubscriptionInsights() {
             const lvl = r.avg === null ? "Sem respostas" : r.avg >= 2.5 ? "Uso ativo" : r.avg >= 1.75 ? "Uso médio" : r.avg >= 1.25 ? "Uso baixo" : "Quase não usa";
             return <li key={r.s.id} className="flex items-center justify-between gap-3 border border-border rounded-xl px-4 py-2 text-sm">
               <span className="font-medium truncate">{r.s.name}</span>
-              <span className="font-mono text-xs text-muted-foreground">{lvl}{r.weeks ? ` · ${r.weeks} sem.` : ""} · {formatBRL(r.monthly)}/mês</span>
+              <span className="font-mono text-[10px] sm:text-xs text-muted-foreground text-right">{lvl}{r.weeks ? ` · ${r.weeks} sem.` : ""} · {formatBRL(r.monthly)}/mês</span>
             </li>;
           })}
         </ul>
