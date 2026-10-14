@@ -91,6 +91,8 @@ export interface Debt {
   categoryId?: string;
   note?: string;
   createdAt: string;
+  sortOrder: number;
+  archived: boolean;
   installments: DebtInstallment[];
 }
 
@@ -115,6 +117,8 @@ export interface Receivable {
   categoryId?: string;
   note?: string;
   createdAt: string;
+  sortOrder: number;
+  archived: boolean;
   installments: ReceivableInstallment[];
 }
 
@@ -295,6 +299,8 @@ function mapDebt(row: Record<string, unknown>, installments: DebtInstallment[]):
     categoryId: (row.category_id as string) ?? undefined,
     note: (row.note as string) ?? undefined,
     createdAt: String(row.created_at),
+    sortOrder: Number(row.sort_order ?? 0),
+    archived: Boolean(row.archived),
     installments: installments.sort((a, b) => a.number - b.number),
   };
 }
@@ -321,6 +327,8 @@ function mapReceivable(row: Record<string, unknown>, installments: ReceivableIns
     categoryId: (row.category_id as string) ?? undefined,
     note: (row.note as string) ?? undefined,
     createdAt: String(row.created_at),
+    sortOrder: Number(row.sort_order ?? 0),
+    archived: Boolean(row.archived),
     installments: installments.sort((a, b) => a.number - b.number),
   };
 }
@@ -352,13 +360,26 @@ function mapProfile(p: Record<string, unknown>, supa: SupaUser): User {
 }
 
 // ============= CATEGORIAS PADRÃO (fixas) =============
-export const DEFAULT_CATEGORIES = [
+const FIXED_CATEGORIES = [
   { name: "Salário", color: "#2BD9A1", kind: "income", icon: "money" },
   { name: "Renda extra", color: "#22C3CC", kind: "income", icon: "coins" },
   { name: "Adiantamento/Pagamento de fatura", color: "#2BD9A1", kind: "expense", icon: null },
   { name: "Assinaturas", color: "#E50914", kind: "expense", icon: "tv" },
 ] as const;
-export const LOCKED_CATEGORY_NAMES: string[] = DEFAULT_CATEGORIES.map(c => c.name.toLowerCase());
+export const LOCKED_CATEGORY_NAMES: string[] = FIXED_CATEGORIES.map(c => c.name.toLowerCase());
+export const DEFAULT_CATEGORIES = [
+  ...FIXED_CATEGORIES,
+  { name: "Aluguel", color: "#007078", kind: "expense", icon: "home" },
+  { name: "Conta de agua", color: "#22C3CC", kind: "expense", icon: "water" },
+  { name: "Conta de Luz", color: "#FFCC00", kind: "expense", icon: "power" },
+  { name: "Conta de internet", color: "#540BD3", kind: "expense", icon: "internet" },
+  { name: "Alimentação", color: "#2BD9A1", kind: "expense", icon: "food" },
+  { name: "Transporte", color: "#FF6B1A", kind: "expense", icon: "bus" },
+  { name: "Lazer", color: "#B388FF", kind: "expense", icon: "leisure" },
+  { name: "Saúde", color: "#FF4D6D", kind: "expense", icon: "doctor" },
+  { name: "Animal", color: "#006F77", kind: "expense", icon: "vet" },
+  { name: "Financiamento", color: "#820432", kind: "expense", icon: "money" },
+] as const;
 
 // ============= LOAD =============
 let loadingUid: string | null = null;
@@ -397,13 +418,13 @@ async function loadAllInner(supaUser: SupaUser) {
 
   let cats = (catsR.data ?? []).map(r => mapCat(r as Record<string, unknown>));
   // Garante as categorias padrão (fixas) de cada usuário
-  const normName = (s: string) => s.trim().toLowerCase();
-  for (const def of DEFAULT_CATEGORIES) {
-    if (cats.some(c => normName(c.name) === normName(def.name))) continue;
-    const { data: newCat } = await supabase.from("categories")
-      .insert({ user_id: uid, name: def.name, color: def.color, kind: def.kind, icon: def.icon ?? null })
-      .select("*").single();
-    if (newCat) cats = [...cats, mapCat(newCat as Record<string, unknown>)];
+  const normName = (s: string) => s.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const missingCategories = DEFAULT_CATEGORIES.filter(def => !cats.some(c => normName(c.name) === normName(def.name)));
+  if (missingCategories.length) {
+    const { data: added } = await supabase.from("categories").insert(missingCategories.map(def => ({
+      user_id: uid, name: def.name, color: def.color, kind: def.kind, icon: def.icon ?? null,
+    }))).select("*");
+    cats = [...cats, ...(added ?? []).map(row => mapCat(row as Record<string, unknown>))];
   }
 
   const loadedTx = (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>));
@@ -1170,8 +1191,17 @@ export function useStore() {
       try { await api.awardMission("add_expense"); } catch {}
       return debt;
     },
-    updateDebt: async (debtId: string, p: Partial<Pick<Debt, "name" | "icon" | "color" | "note" | "bankId" | "categoryId">>) => {
+    reorderDebts: async (ids: string[]) => {
+      const uid = memory.currentUserId; if (!uid) return false;
+      const results = await Promise.all(ids.map((id, index) => supabase.from("debts").update({ sort_order: index }).eq("id", id).eq("user_id", uid)));
+      if (results.some(result => result.error)) { notifyToast("Não foi possível salvar a ordem. Tente novamente."); return false; }
+      const positions = new Map(ids.map((id, index) => [id, index]));
+      set({ debts: memory.debts.map(item => ({ ...item, sortOrder: positions.get(item.id) ?? item.sortOrder })) });
+      return true;
+    },
+    updateDebt: async (debtId: string, p: Partial<Pick<Debt, "name" | "icon" | "color" | "note" | "bankId" | "categoryId" | "archived">>) => {
       const patch: Record<string, unknown> = {};
+      if (p.archived !== undefined) patch.archived = p.archived;
       if (p.name !== undefined) patch.name = p.name;
       if (p.icon !== undefined) patch.icon = p.icon;
       if (p.color !== undefined) patch.color = p.color;
@@ -1179,7 +1209,7 @@ export function useStore() {
       if (p.bankId !== undefined) patch.bank_id = p.bankId || null;
       if (p.categoryId !== undefined) patch.category_id = p.categoryId || null;
       const { error } = await supabase.from("debts").update(patch as never).eq("id", debtId);
-      if (error) return console.error(error);
+      if (error) { console.error(error); return false; }
       set({ debts: memory.debts.map(d => d.id === debtId ? { ...d, ...p } : d) });
       // Renomeia os gastos vinculados às parcelas
       if (p.name !== undefined) {
@@ -1194,6 +1224,7 @@ export function useStore() {
           }
         }
       }
+      return true;
     },
 
     removeDebt: async (debtId: string) => {
@@ -1365,8 +1396,17 @@ export function useStore() {
       });
       return receivable;
     },
-    updateReceivable: async (recvId: string, p: Partial<Pick<Receivable, "name" | "icon" | "color" | "note" | "bankId" | "categoryId">>) => {
+    reorderReceivables: async (ids: string[]) => {
+      const uid = memory.currentUserId; if (!uid) return false;
+      const results = await Promise.all(ids.map((id, index) => supabase.from("receivables").update({ sort_order: index }).eq("id", id).eq("user_id", uid)));
+      if (results.some(result => result.error)) { notifyToast("Não foi possível salvar a ordem. Tente novamente."); return false; }
+      const positions = new Map(ids.map((id, index) => [id, index]));
+      set({ receivables: memory.receivables.map(item => ({ ...item, sortOrder: positions.get(item.id) ?? item.sortOrder })) });
+      return true;
+    },
+    updateReceivable: async (recvId: string, p: Partial<Pick<Receivable, "name" | "icon" | "color" | "note" | "bankId" | "categoryId" | "archived">>) => {
       const patch: Record<string, unknown> = {};
+      if (p.archived !== undefined) patch.archived = p.archived;
       if (p.name !== undefined) patch.name = p.name;
       if (p.icon !== undefined) patch.icon = p.icon;
       if (p.color !== undefined) patch.color = p.color;
@@ -1374,7 +1414,7 @@ export function useStore() {
       if (p.bankId !== undefined) patch.bank_id = p.bankId || null;
       if (p.categoryId !== undefined) patch.category_id = p.categoryId || null;
       const { error } = await supabase.from("receivables").update(patch as never).eq("id", recvId);
-      if (error) return console.error(error);
+      if (error) { console.error(error); return false; }
       set({ receivables: memory.receivables.map(d => d.id === recvId ? { ...d, ...p } : d) });
       // Renomeia os ganhos vinculados às parcelas
       if (p.name !== undefined) {
@@ -1389,6 +1429,7 @@ export function useStore() {
           }
         }
       }
+      return true;
     },
 
     removeReceivable: async (recvId: string) => {
@@ -1421,14 +1462,15 @@ export function useStore() {
       // Ao marcar como recebida, a data da parcela passa a ser o dia da marcação
       const today = new Date().toISOString().slice(0, 10);
       const newDue = received ? today : inst.dueDate;
-      await supabase.from("receivable_installments").update({ received, due_date: newDue }).eq("id", instId);
+      const { error: receiveError } = await supabase.from("receivable_installments").update({ received, due_date: newDue }).eq("id", instId);
+      if (receiveError) { notifyToast("Não foi possível confirmar o recebimento."); return false; }
       set({
         receivables: memory.receivables.map(d => d.id !== recvId ? d : {
           ...d, installments: d.installments.map(i => i.id === instId ? { ...i, received, dueDate: newDue } : i),
         }),
       });
       const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
-      if (!tx) return;
+      if (!tx) return true;
       if (received && tx.date !== today) {
         await supabase.from("transactions").update({ date: today }).eq("id", tx.id);
         set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, date: today } : t) });
@@ -1456,6 +1498,7 @@ export function useStore() {
         await supabase.from("transactions").update({ applied_to_balance: false }).eq("id", tx.id);
         set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: false } : t) });
       }
+      return true;
     },
     updateReceivableInstallment: async (recvId: string, instId: string, p: { amount?: number; dueDate?: string }) => {
       const recv = memory.receivables.find(d => d.id === recvId);
@@ -1784,7 +1827,7 @@ export function useStore() {
             total_amount: dv.totalAmount, installments_total: dv.installmentsTotal ?? (dv.installments?.length ?? 0),
             bank_id: dv.bankId ? bankIdMap.get(dv.bankId) ?? null : null,
             category_id: dv.categoryId ? catIdMap.get(dv.categoryId) ?? null : null,
-            note: dv.note ?? null,
+            note: dv.note ?? null, sort_order: dv.sortOrder ?? 0, archived: dv.archived ?? false, created_at: dv.createdAt || new Date().toISOString(),
           }).select("id").single();
           if (data) debtIdMap.set(dv.id, String((data as Record<string, unknown>).id));
         }
@@ -1797,7 +1840,7 @@ export function useStore() {
             total_amount: rv.totalAmount, installments_total: rv.installmentsTotal ?? (rv.installments?.length ?? 0),
             bank_id: rv.bankId ? bankIdMap.get(rv.bankId) ?? null : null,
             category_id: rv.categoryId ? catIdMap.get(rv.categoryId) ?? null : null,
-            note: rv.note ?? null,
+            note: rv.note ?? null, sort_order: rv.sortOrder ?? 0, archived: rv.archived ?? false, created_at: rv.createdAt || new Date().toISOString(),
           }).select("id").single();
           if (data) recvIdMap.set(rv.id, String((data as Record<string, unknown>).id));
         }
