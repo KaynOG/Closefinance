@@ -481,6 +481,13 @@
 .light .text-muted-foreground\/40 { color: var(--muted-foreground); }
 .light .text-\[\#7DF2C5\] { color: var(--success); }
 .light .text-\[\#FF8FA3\] { color: var(--danger); }
+.recharts-cartesian-axis-tick text { fill: var(--muted-foreground); }
+.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line, .recharts-cartesian-grid line { stroke: var(--border); }
+.recharts-tooltip-cursor { stroke: var(--border); }
+:root.dark:is([data-accent="red"], [data-accent="blue"], [data-accent="green"]) {
+  --primary: var(--theme-light);
+  --primary-foreground: oklch(0.16 0.015 240);
+}
 
 /* Brilho das quinas: 4 halos nos cantos, sem contornar a caixa inteira. */
 /* position:relative só quando o elemento não tem posição própria (absolute/fixed/sticky vencem). */
