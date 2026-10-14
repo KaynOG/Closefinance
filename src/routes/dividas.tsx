@@ -178,6 +178,7 @@ function DividasPage() {
                 }
               }}
               onRename={async (name) => { if (!await api.updateDebt(d.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome da dívida atualizado nos gastos."); }}
+              onAppearance={async (patch) => { if (!await api.updateDebt(d.id, patch)) throw new Error("Não foi possível salvar a aparência"); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
 
               onRemove={async () => {
@@ -468,11 +469,12 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment, onRemove }: {
+function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpdateInstallment, onRemove }: {
   debt: Debt;
   bankName?: string;
   onTogglePaid: (i: DebtInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
+  onAppearance: (patch: { color: string; icon: string }) => void | Promise<void>;
   onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
   onRemove: () => void;
 }) {
@@ -527,7 +529,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment,
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <InstallmentRecordEditor kind="debt" name={debt.name} installments={debt.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = debt.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
+          <InstallmentRecordEditor color={debt.color} icon={debt.icon} iconOptions={Object.entries(DEBT_ICONS).map(([id, icon]) => ({ id, icon, label: icon.displayName ?? id }))} onAppearance={onAppearance} kind="debt" name={debt.name} installments={debt.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = debt.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
           <button onClick={() => setOpen(v => !v)} data-no-sound
 
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>

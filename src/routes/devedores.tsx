@@ -165,6 +165,7 @@ function DevedoresPage() {
                 if (saved && !inst.received && r.installments.every(i => i.received || i.id === inst.id)) setCompleted(r);
               }}
               onRename={async (name) => { if (!await api.updateReceivable(r.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome atualizado nos ganhos."); }}
+              onAppearance={async (patch) => { if (!await api.updateReceivable(r.id, patch)) throw new Error("Não foi possível salvar a aparência"); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
 
               onRemove={async () => {
@@ -450,11 +451,12 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUpdateInstallment, onRemove }: {
+function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAppearance, onUpdateInstallment, onRemove }: {
   receivable: Receivable;
   bankName?: string;
   onToggleReceived: (i: ReceivableInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
+  onAppearance: (patch: { color: string; icon: string }) => void | Promise<void>;
   onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
   onRemove: () => void;
 }) {
@@ -509,7 +511,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUp
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <InstallmentRecordEditor kind="receivable" name={receivable.name} installments={receivable.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = receivable.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
+          <InstallmentRecordEditor color={receivable.color} icon={receivable.icon} iconOptions={Object.entries(RECEIVABLE_ICONS).map(([id, icon]) => ({ id, icon, label: icon.displayName ?? id }))} onAppearance={onAppearance} kind="receivable" name={receivable.name} installments={receivable.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = receivable.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
           <button onClick={() => setOpen(v => !v)} data-no-sound
 
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
