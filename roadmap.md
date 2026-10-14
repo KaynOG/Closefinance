@@ -3,7 +3,7 @@
 - [x] Adicionar controle flutuante de som ao lado do tema.
 - [x] Centralizar gráfico de assinaturas do mês sem cortes.
 - [x] Refinar vidro, contraste, brilho temático e movimento nos botões e gráficos.
-- [ ] Verificar controles, gráficos e temas em computador e celular.
+- [x] Verificar controles, gráficos e temas em computador e celular.
 
 - [x] Substituir todos os avisos, confirmações e perguntas do navegador por janelas temáticas do app.
 - [x] Disponibilizar edição explícita de nome, datas e valores em dívidas e devedores, mantendo lançamentos vinculados.
