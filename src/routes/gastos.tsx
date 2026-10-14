@@ -238,7 +238,7 @@ function GastosPage() {
                 {cards.length === 0 ? (
                   <p className="text-xs font-mono text-muted-foreground">Cadastre um cartão na aba Cartões.</p>
                 ) : (
-                  <AppSelect value={form.invoiceCardId} onChange={e => setForm({ ...form, invoiceCardId: e.target.value })} className={inputCls}>
+                  <AppSelect aria-label="Cartão da fatura" value={form.invoiceCardId} onChange={e => setForm({ ...form, invoiceCardId: e.target.value })} className={inputCls}>
                     {cards.map(c => <option key={c.id} value={c.id}>{c.name} · usado {formatBRL((c.usedManual ?? 0))}</option>)}
                   </AppSelect>
                 )}
@@ -246,7 +246,7 @@ function GastosPage() {
               </Field>
             )}
             <Field label="Categoria">
-              <AppSelect value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+              <AppSelect aria-label="Categoria" value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
                 {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </AppSelect>
@@ -273,7 +273,7 @@ function GastosPage() {
               <>
                 {cards.length > 0 && (
                   <Field label="Cartão">
-                    <AppSelect value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                    <AppSelect aria-label="Cartão" value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
                       <option value="">—</option>
                       {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </AppSelect>
@@ -292,7 +292,7 @@ function GastosPage() {
             )}
             {(form.paymentMethod === "debit" || form.paymentMethod === "pix") && banks.length > 0 && (
               <Field label="Banco">
-                <AppSelect value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
+                <AppSelect aria-label="Banco" value={form.bankId} onChange={e => setForm({ ...form, bankId: e.target.value })} className={inputCls}>
                   <option value="">—</option>
                   {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </AppSelect>
