@@ -1,8 +1,8 @@
 # Ajustes solicitados
 
-- [ ] Criar quadro mensal de metas em Educação com seis grupos e percentuais editáveis.
-- [ ] Vincular categorias aos grupos, persistir escolhas e preservar no backup.
-- [ ] Comparar metas e valores reais com gráficos temáticos e verificar o fluxo.
+- [x] Criar quadro mensal de metas em Educação com seis grupos e percentuais editáveis.
+- [x] Vincular categorias aos grupos, persistir escolhas e preservar no backup.
+- [x] Comparar metas e valores reais com gráficos temáticos e verificar o fluxo.
 
 - [x] Melhorar contraste de textos e superfícies no modo claro.
 - [x] Adicionar quatro wallpapers líquidos de vidro e temas Vermelho, Azul e Verde.
