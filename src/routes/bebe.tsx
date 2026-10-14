@@ -8,7 +8,8 @@ import { usePrefs } from "@/lib/prefs";
 import { Baby, Heart, Star, Moon, Cloud, Trash2, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { BabyMonthlyBar, BabyEssentialPie } from "@/components/charts/lazy";
-import { MONTHS_SHORT } from "@/lib/theme-colors";
+
+const MONTHS_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 export const Route = createFileRoute("/bebe")({
   head: () => ({
