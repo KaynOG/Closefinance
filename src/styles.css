@@ -393,8 +393,8 @@
   --control-shadow: 0 7px 16px -10px color-mix(in oklab, var(--primary) 48%, transparent);
 }
 :root.light {
-  --glass-tint: color-mix(in oklab, var(--background) 46%, transparent);
-  --glass-depth: color-mix(in oklab, var(--background) 66%, transparent);
+  --glass-tint: color-mix(in oklab, var(--background) 52%, transparent);
+  --glass-depth: color-mix(in oklab, var(--background) 74%, transparent);
   --glass-corner: color-mix(in oklab, var(--primary) 55%, transparent);
   --glass-corner-bloom: color-mix(in oklab, var(--primary) 14%, transparent);
   --glass-reflection: color-mix(in oklab, var(--popover) 60%, transparent);
