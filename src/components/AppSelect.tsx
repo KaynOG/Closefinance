@@ -22,7 +22,7 @@ function items(children: ReactNode): ReactNode {
     if (child.type === Fragment) return <Fragment key={index}>{items(child.props.children)}</Fragment>;
     if (child.type === "optgroup") return <SelectGroup key={index}><SelectLabel>{child.props.label}</SelectLabel>{items(child.props.children)}</SelectGroup>;
     if (child.type !== "option") return null;
-    if (child.props.disabled && child.props.value === undefined) return <SelectLabel key={index}>{child.props.children}</SelectLabel>;
+    if (child.props.disabled && child.props.value === undefined) return <SelectGroup key={index}><SelectLabel>{child.props.children}</SelectLabel></SelectGroup>;
     return <SelectItem key={index} value={`option:${child.props.value ?? ""}`} disabled={child.props.disabled}
       className="cursor-pointer rounded-md py-2.5 font-mono text-xs focus:bg-primary/15 focus:text-foreground data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary">{child.props.children}</SelectItem>;
   });
