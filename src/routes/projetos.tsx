@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
@@ -133,6 +135,7 @@ function ProjectsPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.projetos} />
       <header className="mb-6">
         <h1 className="text-3xl font-bold">Projetos</h1>
         <p className="text-sm text-muted-foreground mt-2 max-w-2xl">

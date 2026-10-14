@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL, isCashFlowExpense, computeInvoicesForMonth, parseDebtTag, parseReceivableTag, type VirtualInvoiceRow } from "@/lib/store";
@@ -108,6 +110,7 @@ function CalendarPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.calendario} />
       <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Planejamento</p>

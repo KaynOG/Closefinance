@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { useChartColors } from "@/lib/theme-colors";
 import { ChartTooltip } from "@/components/ChartTooltip";
 import { AppShell } from "@/components/AppShell";
@@ -348,6 +350,7 @@ function DashboardPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.index} />
       <header className="mb-8">
         <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
           {today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}

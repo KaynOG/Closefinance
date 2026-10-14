@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard } from "@/components/ui-kit";
@@ -120,6 +122,7 @@ function BebePage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.bebe} />
       <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none" style={{
         backgroundImage: `radial-gradient(40% 35% at 10% 10%, ${soft("var(--baby-peach)", 22)}, transparent 70%), radial-gradient(40% 35% at 90% 20%, ${soft("var(--baby-sky)", 22)}, transparent 70%), radial-gradient(45% 40% at 50% 95%, ${soft("var(--baby-mint)", 20)}, transparent 70%)`,
       }} />

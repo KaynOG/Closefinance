@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
@@ -90,6 +92,7 @@ function SubscriptionsPage() {
   }
 
   return <AppShell>
+      <TutorialBox {...TUTORIALS.assinaturas} />
     <header className="mb-6 flex items-end justify-between gap-4">
       <div><p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Recorrências</p><h1 className="text-3xl font-bold">Assinaturas <span className="text-sm text-secondary">(BETA)</span></h1></div>
       <Button onClick={() => { setEditingId(null); setForm(emptyForm); setOpen(v => !v); }}><Plus /> Nova</Button>
