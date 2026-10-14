@@ -1,3 +1,4 @@
+import { appPrompt } from "@/lib/app-dialog";
 import { useEffect, useState } from "react";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { ChevronDown, ChevronUp, Users, Search, Check } from "lucide-react";
@@ -93,8 +94,8 @@ export function AdminUsersCard() {
                   <button onClick={() => setLicense(r, "monthly", 30)} className="rounded-md border border-border px-2 py-1 text-[11px] hover:bg-white/5">Mensal</button>
                   <button onClick={() => setLicense(r, "lifetime")} className="rounded-md border border-border px-2 py-1 text-[11px] hover:bg-white/5">Vitalícia</button>
                   <button
-                    onClick={() => {
-                      const v = prompt("Quantos dias de acesso?", "90");
+                    onClick={async () => {
+                      const v = await appPrompt("Quantos dias de acesso?", "90");
                       if (v && /^\d+$/.test(v)) setLicense(r, "custom", parseInt(v, 10));
                     }}
                     className="rounded-md border border-border px-2 py-1 text-[11px] hover:bg-white/5"

@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, parseBRL } from "@/lib/store";
@@ -34,7 +35,7 @@ export function BabyFund({ userId }: { userId: string }) {
     toast.success("Fundo do bebê atualizado 🐷");
   }
   async function remove(id: string) {
-    if (!confirm("Apagar este registro do fundo?")) return;
+    if (!await appConfirm("Apagar este registro do fundo?")) return;
     const { error } = await supabase.from("baby_savings").delete().eq("id", id);
     if (!error) setRows(p => p.filter(r => r.id !== id));
   }

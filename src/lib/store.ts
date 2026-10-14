@@ -1259,7 +1259,8 @@ export function useStore() {
       // Ao marcar como paga, a data da parcela passa a ser o dia da marcação
       const today = new Date().toISOString().slice(0, 10);
       const newDue = paid ? today : inst.dueDate;
-      await supabase.from("debt_installments").update({ paid, due_date: newDue }).eq("id", instId);
+      const { error: paidError } = await supabase.from("debt_installments").update({ paid, due_date: newDue }).eq("id", instId);
+      if (paidError) { notifyToast("Não foi possível confirmar o pagamento."); throw paidError; }
       set({
         debts: memory.debts.map(d => d.id !== debtId ? d : {
           ...d, installments: d.installments.map(i => i.id === instId ? { ...i, paid, dueDate: newDue } : i),
@@ -1304,7 +1305,8 @@ export function useStore() {
       const patch: Record<string, unknown> = {};
       if (p.amount !== undefined) patch.amount = p.amount;
       if (p.dueDate !== undefined) patch.due_date = p.dueDate;
-      await supabase.from("debt_installments").update(patch as never).eq("id", instId);
+      const { error: installmentError } = await supabase.from("debt_installments").update(patch as never).eq("id", instId);
+      if (installmentError) throw installmentError;
       set({
         debts: memory.debts.map(d => d.id !== debtId ? d : {
           ...d,
@@ -1317,7 +1319,8 @@ export function useStore() {
         const txPatch: Record<string, unknown> = {};
         if (p.amount !== undefined) txPatch.amount = p.amount;
         if (p.dueDate !== undefined) txPatch.date = p.dueDate;
-        await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        const { error: transactionError } = await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        if (transactionError) throw transactionError;
         set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
         // Ajusta o saldo do banco quando o valor muda e o gasto já foi debitado
         if (p.amount !== undefined && tx?.appliedToBalance && debt.bankId) {
@@ -1507,7 +1510,8 @@ export function useStore() {
       const patch: Record<string, unknown> = {};
       if (p.amount !== undefined) patch.amount = p.amount;
       if (p.dueDate !== undefined) patch.due_date = p.dueDate;
-      await supabase.from("receivable_installments").update(patch as never).eq("id", instId);
+      const { error: installmentError } = await supabase.from("receivable_installments").update(patch as never).eq("id", instId);
+      if (installmentError) throw installmentError;
       set({
         receivables: memory.receivables.map(d => d.id !== recvId ? d : {
           ...d,
@@ -1520,7 +1524,8 @@ export function useStore() {
         const txPatch: Record<string, unknown> = {};
         if (p.amount !== undefined) txPatch.amount = p.amount;
         if (p.dueDate !== undefined) txPatch.date = p.dueDate;
-        await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        const { error: transactionError } = await supabase.from("transactions").update(txPatch as never).eq("id", inst.transactionId);
+        if (transactionError) throw transactionError;
         set({ transactions: memory.transactions.map(t => t.id === inst.transactionId ? { ...t, ...(p.amount !== undefined ? { amount: p.amount } : {}), ...(p.dueDate !== undefined ? { date: p.dueDate } : {}) } : t) });
         // Ajusta o saldo do banco quando o valor muda e o ganho já foi creditado
         if (p.amount !== undefined && tx?.appliedToBalance && recv.bankId) {

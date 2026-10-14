@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -195,7 +196,7 @@ function SubscriptionsPage() {
         <div className="mt-4 flex justify-end gap-1">
           <Button size="icon" variant="ghost" title="Editar" onClick={() => edit(sub)}><Pencil /></Button>
           <Button size="icon" variant="ghost" title={sub.active ? "Pausar" : "Ativar"} onClick={() => api.updateSubscription(sub.id, { active: !sub.active })}>{sub.active ? <Pause /> : <Play />}</Button>
-          <Button size="icon" variant="ghost" title="Excluir" onClick={() => { if (confirm("Excluir esta assinatura? O histórico de gastos será mantido.")) api.removeSubscription(sub.id); }}><Trash2 /></Button>
+          <Button size="icon" variant="ghost" title="Excluir" onClick={async () => { if (await appConfirm("Excluir esta assinatura? O histórico de gastos será mantido.")) api.removeSubscription(sub.id); }}><Trash2 /></Button>
         </div>
       </GlassCard>)}
     </section>}

@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ConsentModal } from "@/components/ConsentModal";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemedBackground } from "@/components/ThemedBackground";
+import { AppDialogHost } from "@/components/AppDialogHost";
 
 function NotFoundComponent() {
   return (
@@ -85,8 +86,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "CloseFinance — Feche o mês no azul" },
       { name: "twitter:description", content: "Controle financeiro e educação financeira com calendário, status de saúde, cartões, missões diárias e categorias personalizáveis." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5a37e2c-4f52-4461-807d-0e0763cb8f05/id-preview-abe3fec6--5551f3cc-9014-41db-9d89-40546dd3385e.lovable.app-1781876963580.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5a37e2c-4f52-4461-807d-0e0763cb8f05/id-preview-abe3fec6--5551f3cc-9014-41db-9d89-40546dd3385e.lovable.app-1781876963580.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -123,6 +122,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemedBackground />
       <Outlet />
+      <AppDialogHost />
       <ConsentModal />
       <Toaster position="top-right" closeButton />
     </QueryClientProvider>

@@ -18,6 +18,7 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-background: var(--background);
+  --color-dialog-scrim: var(--dialog-scrim);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -79,6 +80,7 @@
   --brand-crimson-foreground: #ffffff;
 
   --background: #0a1518;
+  --dialog-scrim: rgba(0, 0, 0, 0.72);
   --foreground: #f4fafe;
   --card: rgba(244, 250, 254, 0.04);
   --card-foreground: #f4fafe;

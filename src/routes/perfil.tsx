@@ -1,3 +1,4 @@
+import { appAlert } from "@/lib/app-dialog";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
@@ -63,7 +64,7 @@ function PerfilPage() {
   function pickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 2 * 1024 * 1024) { alert("Imagem muito grande (máx 2MB)"); return; }
+    if (f.size > 2 * 1024 * 1024) { void appAlert("Imagem muito grande (máx 2MB)"); return; }
     const r = new FileReader();
     r.onload = () => setForm(prev => ({ ...prev, avatar: String(r.result) }));
     r.readAsDataURL(f);
