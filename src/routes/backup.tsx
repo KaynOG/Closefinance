@@ -69,8 +69,8 @@ function BackupBody() {
     return m;
   }, [cards, preview]);
 
-  function downloadBackup(prefix = "closefinance-backup") {
-    const json = api.exportData("user");
+  async function downloadBackup(prefix = "closefinance-backup") {
+    const json = await api.exportData("user");
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -80,8 +80,8 @@ function BackupBody() {
     URL.revokeObjectURL(url);
   }
 
-  function handleExport() {
-    downloadBackup();
+  async function handleExport() {
+    await downloadBackup();
     setToast({ kind: "ok", msg: "Backup exportado com sucesso." });
   }
 
@@ -90,7 +90,7 @@ function BackupBody() {
     if (!confirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
     setWiping(true);
     try {
-      downloadBackup("closefinance-antes-de-apagar");
+      await downloadBackup("closefinance-antes-de-apagar");
       const r = await api.wipeData();
       if (r?.ok) setToast({ kind: "ok", msg: "Todos os dados foram apagados. O backup foi baixado no seu dispositivo." });
       else setToast({ kind: "err", msg: r?.error ?? "Não foi possível apagar os dados." });

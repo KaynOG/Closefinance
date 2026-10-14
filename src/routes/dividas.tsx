@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Debt, type DebtInstallment } from "@/lib/store";
@@ -89,6 +91,7 @@ function DividasPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.dividas} />
       <SectionTitle
         title="Dívidas"
         subtitle="Roadmap de parcelas, débito automático e integração com gastos e calendário"

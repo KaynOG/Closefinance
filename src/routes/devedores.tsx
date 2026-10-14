@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Receivable, type ReceivableInstallment } from "@/lib/store";
@@ -78,6 +80,7 @@ function DevedoresPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.devedores} />
       <SectionTitle
         title="Devedores"
         subtitle="Valores a receber, crédito automático e integração com ganhos e calendário"

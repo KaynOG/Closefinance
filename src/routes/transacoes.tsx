@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, computeInvoicesForMonth, type TxType, type Essential, type VirtualInvoiceRow } from "@/lib/store";
@@ -92,6 +94,7 @@ function TxPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.transacoes} />
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Lançamentos</p>

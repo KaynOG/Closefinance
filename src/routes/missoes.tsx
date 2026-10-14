@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, MISSIONS_CATALOG, getDailyMissions, formatBRL, type MissionState } from "@/lib/store";
@@ -37,6 +39,7 @@ function MissoesPage() {
 
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.missoes} />
       {/* Wallpaper esmaecido baseado no tema */}
       <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none opacity-70" style={{
         backgroundImage:

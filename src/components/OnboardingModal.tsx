@@ -1,34 +1,35 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Tags, Landmark, CreditCard, X, Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Tags, Landmark, CreditCard, X, Sparkles, ArrowRight, ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 const STORAGE_PREFIX = "cf_onboarding_seen_";
 
 const STEPS = [
   {
-    icon: Tags,
-    color: "#FFCC00",
-    title: "1. Crie suas categorias",
-    desc: "Antes de tudo, cadastre as categorias que você mais usa: Aluguel/Moradia, Comida, Contas básicas, Transporte, Lazer... Elas serão a base para classificar cada ganho e gasto.",
-    to: "/categorias" as const,
-    cta: "Ir para Categorias",
+    icon: Tags, color: "#FFCC00", title: "1. Crie suas categorias de gastos",
+    desc: "Comece pelas categorias: são as 'gavetas' onde cada gasto será guardado. Cadastre as contas da casa, como Aluguel, Conta de luz, Água, Internet, Mercado, Transporte e Lazer. Sem elas, os gráficos e relatórios ficam vazios.",
+    to: "/categorias" as const, cta: "Ir para Categorias",
   },
   {
-    icon: Landmark,
-    color: "#22C3CC",
-    title: "2. Cadastre seus bancos",
-    desc: "Adicione as contas onde você guarda dinheiro. Isso vai alimentar sua meta anual e ajudar a acompanhar sua reserva.",
-    to: "/bancos" as const,
-    cta: "Ir para Bancos",
+    icon: Landmark, color: "#22C3CC", title: "2. Cadastre seus bancos",
+    desc: "Adicione só os bancos que você usa de verdade, com o saldo atual de cada um. Os ganhos entram no banco escolhido e o app mostra seu saldo total, incluindo o dinheiro físico.",
+    to: "/bancos" as const, cta: "Ir para Bancos",
   },
   {
-    icon: CreditCard,
-    color: "#540BD3",
-    title: "3. Adicione seus cartões",
-    desc: "Cadastre os cartões de crédito com limite, fechamento e vencimento. Suas compras parceladas vão para a fatura automaticamente.",
-    to: "/cartoes" as const,
-    cta: "Ir para Cartões",
+    icon: CreditCard, color: "#540BD3", title: "3. Adicione seus cartões",
+    desc: "Cadastre cada cartão de crédito com limite, dia de fechamento e dia de vencimento. Assim, as compras no crédito caem na fatura certa e as parcelas aparecem mês a mês.",
+    to: "/cartoes" as const, cta: "Ir para Cartões",
+  },
+  {
+    icon: TrendingUp, color: "#2BD9A1", title: "4. Registre seus ganhos",
+    desc: "Lance seu salário e suas rendas extras, escolhendo o banco onde o dinheiro entrou. É com base na sua renda que o app calcula quanto sobra e a sua saúde financeira.",
+    to: "/ganhos" as const, cta: "Ir para Ganhos",
+  },
+  {
+    icon: TrendingDown, color: "#FF6B1A", title: "5. Registre seus gastos",
+    desc: "Agora é só lançar cada gasto: valor, descrição, categoria, se é essencial e a forma de pagamento. Faça isso no dia a dia — leva segundos e mantém tudo atualizado.",
+    to: "/gastos" as const, cta: "Ir para Gastos",
   },
 ];
 

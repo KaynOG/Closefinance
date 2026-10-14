@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { TutorialBox } from "@/components/TutorialBox";
+import { TUTORIALS } from "@/lib/tutorial-content";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard } from "@/components/ui-kit";
@@ -94,6 +96,7 @@ function EduPage() {
   useEffect(() => { api.awardMission("visit_educacao"); }, []);
   return (
     <AppShell>
+      <TutorialBox {...TUTORIALS.educacao} />
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Aprenda enquanto controla</p>
         <h1 className="text-3xl lg:text-4xl font-bold">Educação <span className="text-gradient">financeira</span></h1>
