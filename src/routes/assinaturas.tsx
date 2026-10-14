@@ -188,6 +188,7 @@ function SubscriptionsPage() {
             </select>
           </label>
         </div>
+        <PlanChange sub={sub} onApply={(amount, month) => api.changeSubscriptionPlan(sub.id, amount, month)} />
         <div className="mt-4 flex justify-end gap-1">
           <Button size="icon" variant="ghost" title="Editar" onClick={() => edit(sub)}><Pencil /></Button>
           <Button size="icon" variant="ghost" title={sub.active ? "Pausar" : "Ativar"} onClick={() => api.updateSubscription(sub.id, { active: !sub.active })}>{sub.active ? <Pause /> : <Play />}</Button>
@@ -200,3 +201,28 @@ function SubscriptionsPage() {
 
 const inputCls = "w-full border border-border bg-background px-3 py-2.5 text-sm font-mono outline-none focus:border-primary";
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label><span className="text-xs font-mono uppercase text-muted-foreground">{label}</span><div className="mt-1.5">{children}</div></label>; }
+function PlanChange({ sub, onApply }: { sub: Subscription; onApply: (amount: number, month: string) => Promise<boolean> }) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [busy, setBusy] = useState(false);
+  async function apply() {
+    const v = parseBRL(amount);
+    if (v <= 0 || !month) return;
+    setBusy(true);
+    const ok = await onApply(v, month);
+    setBusy(false);
+    if (ok) { setOpen(false); setAmount(""); }
+  }
+  return <div className="mt-3">
+    <Button size="sm" variant="outline" className="w-full" onClick={() => setOpen(v => !v)}>Fez upgrade ou downgrade</Button>
+    {open && <div className="mt-2 grid grid-cols-2 gap-2 border border-border p-3">
+      <label className="col-span-2 sm:col-span-1"><span className="text-[10px] font-mono uppercase text-muted-foreground">Valor do novo plano</span>
+        <input value={amount} onChange={e => setAmount(e.target.value)} placeholder={formatBRL(sub.amount)} inputMode="decimal" className={inputCls} /></label>
+      <label className="col-span-2 sm:col-span-1"><span className="text-[10px] font-mono uppercase text-muted-foreground">A partir do mês</span>
+        <input type="month" value={month} onChange={e => setMonth(e.target.value)} className={inputCls} /></label>
+      <p className="col-span-2 text-[10px] font-mono text-muted-foreground">O novo valor vale desse mês em diante, inclusive meses passados, e atualiza o gráfico.</p>
+      <Button size="sm" className="col-span-2" disabled={busy} onClick={apply}>{busy ? "Salvando…" : "Aplicar novo valor"}</Button>
+    </div>}
+  </div>;
+}
