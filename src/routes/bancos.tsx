@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { IconPicker } from "@/components/IconPicker";
+import { BANK_LOGOS, bankLogoId } from "@/lib/brand-logos";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, parseBRL, type Bank } from "@/lib/store";
@@ -17,6 +21,13 @@ export const Route = createFileRoute("/bancos")({
   component: BanksPage,
 });
 
+const bankOptions = [{ id: "auto", label: "Automático pelo nome", icon: Landmark }, { id: "none", label: "Ícone genérico", icon: Landmark }, ...BANK_LOGOS];
+function BankLogo({ bank }: { bank: Bank }) {
+  const id = !bank.icon || bank.icon === "auto" ? bankLogoId(bank.name) : bank.icon;
+  const logo = BANK_LOGOS.find(option => option.id === id);
+  return logo?.image ? <span className="brand-logo-surface size-12"><img src={logo.image} alt={`Logo ${logo.label}`} className="size-10 object-contain" loading="lazy" /></span> : <Landmark className="size-6 text-muted-foreground" />;
+}
+
 const PALETTE = ["#22C3CC", "#2BD9A1", "#540BD3", "#FFCC00", "#FF6B1A", "#820432", "#B388FF"];
 
 function BanksPage() {
@@ -26,19 +37,19 @@ function BanksPage() {
   const goal = user?.yearlyGoal ?? 0;
   const cash = user?.cashAmount ?? 0;
 
-  const [form, setForm] = useState({ name: "", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
+  const [form, setForm] = useState({ name: "", icon: "auto", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
   const [editing, setEditing] = useState<Bank | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
     await api.addBank({
-      name: form.name.trim(), color: form.color,
+      name: form.name.trim(), color: form.color, icon: form.icon,
       accountBalance: parseBRL(form.accountBalance) || 0,
       savedAmount: parseBRL(form.savedAmount) || 0,
       note: form.note.trim() || undefined,
     });
-    setForm({ name: "", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
+    setForm({ name: "", icon: "auto", color: PALETTE[0], accountBalance: "", savedAmount: "", note: "" });
   }
 
   const totals = useMemo(() => {
@@ -116,6 +127,7 @@ function BanksPage() {
             <Field label="Observação">
               <input className={inp} value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Ex: reserva de emergência" />
             </Field>
+            <div><span className="text-xs text-muted-foreground">Logo do banco</span><IconPicker options={bankOptions} value={form.icon} onChange={icon => setForm({ ...form, icon })} /></div>
             <Field label="Cor de identificação">
               <div className="flex flex-wrap gap-2">
                 {PALETTE.map(c => (
@@ -149,7 +161,7 @@ function BanksPage() {
                       <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Banco</p>
                       <h3 className="text-xl font-bold mt-1">{b.name}</h3>
                     </div>
-                    <Landmark className="size-6 opacity-70" />
+                    <BankLogo bank={b} />
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-5">
                     <div>
@@ -179,7 +191,7 @@ function BanksPage() {
                   }} />
 
                   <div className="flex items-center justify-end gap-1 mt-3">
-                    <button onClick={() => setEditing(b)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-foreground"><Pencil className="size-4" /></button>
+                    <Button variant="ghost" size="icon" aria-label={`Editar banco ${b.name}`} onClick={() => setEditing(b)}><Pencil className="size-4" /></Button>
                     <button onClick={() => api.removeBank(b.id)} className="rounded-lg p-1.5 hover:bg-white/10 text-muted-foreground hover:text-[#FF4D6D]"><Trash2 className="size-4" /></button>
                   </div>
                 </div>
@@ -227,40 +239,37 @@ function YearlyGoalCollapsible({ saved, goal, pct }: { saved: number; goal: numb
 
 function EditBankModal({ bank, onClose, onSave }: { bank: Bank; onClose: () => void; onSave: (p: Partial<Bank>) => void | Promise<void> }) {
   const [form, setForm] = useState({
-    name: bank.name, color: bank.color,
+    name: bank.name, color: bank.color, icon: bank.icon ?? "auto",
     accountBalance: String(bank.accountBalance), savedAmount: String(bank.savedAmount), note: bank.note ?? "",
   });
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     await onSave({
-      name: form.name.trim(), color: form.color,
+      name: form.name.trim(), color: form.color, icon: form.icon,
       accountBalance: parseBRL(form.accountBalance) || 0,
       savedAmount: parseBRL(form.savedAmount) || 0,
       note: form.note.trim() || undefined,
     });
   }
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in" onClick={onClose}>
-      <form onSubmit={submit} onClick={e => e.stopPropagation()} className="w-full max-w-md glass-strong rounded-3xl p-6 space-y-3 animate-in zoom-in-95">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold text-lg">Editar banco</h3>
-          <button type="button" data-no-sound onClick={onClose} className="rounded-lg p-1.5 hover:bg-white/10"><X className="size-4" /></button>
-        </div>
+    <Dialog open onOpenChange={open => { if (!open) onClose(); }}><DialogContent aria-describedby={undefined} className="max-w-md max-h-[85dvh] overflow-y-auto bg-popover text-popover-foreground"><DialogHeader><DialogTitle>Editar banco</DialogTitle></DialogHeader>
+      <form onSubmit={submit} className="space-y-3">
         <Field label="Nome"><input className={inp} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></Field>
         <div className="grid grid-cols-2 gap-2">
           <Field label="Saldo em conta"><input className={inp} value={form.accountBalance} onChange={e => setForm({ ...form, accountBalance: e.target.value })} inputMode="decimal" /></Field>
           <Field label="Guardado"><input className={inp} value={form.savedAmount} onChange={e => setForm({ ...form, savedAmount: e.target.value })} inputMode="decimal" /></Field>
         </div>
         <Field label="Observação"><input className={inp} value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} /></Field>
+        <div><span className="text-xs text-muted-foreground">Logo do banco</span><IconPicker options={bankOptions} value={form.icon} onChange={icon => setForm({ ...form, icon })} /></div>
         <Field label="Cor">
           <div className="flex flex-wrap gap-2">
             {PALETTE.map(c => <button key={c} type="button" onClick={() => setForm({ ...form, color: c })} className={`size-8 rounded-full border-2 ${form.color === c ? "border-white scale-110" : "border-transparent"}`} style={{ background: c }} />)}
             <ColorPicker value={form.color} onChange={color => setForm({ ...form, color })} className="size-8" />
           </div>
         </Field>
-        <button type="submit" data-sound="success" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 glow-violet flex items-center justify-center gap-2"><Save className="size-4" /> Salvar</button>
+        <Button type="submit" className="w-full"><Save className="size-4" /> Salvar</Button>
       </form>
-    </div>
+    </DialogContent></Dialog>
   );
 }
 

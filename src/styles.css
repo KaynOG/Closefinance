@@ -73,6 +73,7 @@
 }
 
 :root {
+  --logo-surface: oklch(0.98 0 0);
   --budget-freedom: var(--chart-1);
   --budget-comfort: var(--chart-2);
   --budget-pleasures: var(--chart-3);
@@ -93,6 +94,14 @@
   border-radius: 6px;
   background: color-mix(in oklab, var(--muted) 45%, transparent);
   scrollbar-color: var(--primary) transparent;
+}
+.brand-logo-surface {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--logo-surface);
+  border-radius: 6px;
+  padding: 4px;
 }
 .icon-picker-option {
   width: 100%;

@@ -67,6 +67,7 @@ export interface Bank {
   id: string;
   name: string;
   color: string;
+  icon?: string;
   accountBalance: number;
   savedAmount: number;
   note?: string;
@@ -277,7 +278,7 @@ function mapCard(row: Record<string, unknown>): Card {
   return { id: String(row.id), name: String(row.name), limit: Number(row.limit_amount), closingDay: Number(row.closing_day), dueDay: Number(row.due_day), color: String(row.color), usedManual: row.used_manual != null ? Number(row.used_manual) : 0 };
 }
 function mapBank(row: Record<string, unknown>): Bank {
-  return { id: String(row.id), name: String(row.name), color: String(row.color), accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
+  return { id: String(row.id), name: String(row.name), color: String(row.color), icon: (row.icon as string) ?? undefined, accountBalance: Number(row.account_balance), savedAmount: Number(row.saved_amount), note: (row.note as string) ?? undefined };
 }
 function mapSubscription(row: Record<string, unknown>): Subscription {
   return {
@@ -1015,13 +1016,14 @@ export function useStore() {
     // ---------- BANKS ----------
     addBank: async (b: Omit<Bank, "id">) => {
       const uid = memory.currentUserId; if (!uid) return;
-      const { data, error } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, account_balance: b.accountBalance, saved_amount: b.savedAmount, note: b.note ?? null }).select("*").single();
+      const { data, error } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, icon: b.icon ?? null, account_balance: b.accountBalance, saved_amount: b.savedAmount, note: b.note ?? null }).select("*").single();
       if (error || !data) return console.error(error);
       set({ banks: [...memory.banks, mapBank(data as Record<string, unknown>)] });
     },
     updateBank: async (i: string, p: Partial<Bank>) => {
       const prev = memory.banks.find(b => b.id === i);
       const patch: Record<string, unknown> = {};
+      if (p.icon !== undefined) patch.icon = p.icon;
       if (p.name !== undefined) patch.name = p.name;
       if (p.color !== undefined) patch.color = p.color;
       if (p.accountBalance !== undefined) patch.account_balance = p.accountBalance;
@@ -1826,11 +1828,11 @@ export function useStore() {
         for (const b of incomingBanks) {
           const dup = existingBanks.find(x => norm(x.name) === norm(b.name));
           if (dup) {
-            await supabase.from("banks").update({ color: b.color, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null } as never).eq("id", dup.id);
+            await supabase.from("banks").update({ color: b.color, icon: b.icon ?? null, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null } as never).eq("id", dup.id);
             bankIdMap.set(b.id, dup.id);
             continue;
           }
-          const { data } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null }).select("id").single();
+          const { data } = await supabase.from("banks").insert({ user_id: uid, name: b.name, color: b.color, icon: b.icon ?? null, account_balance: b.accountBalance ?? 0, saved_amount: b.savedAmount ?? 0, note: b.note ?? null }).select("id").single();
           if (data) bankIdMap.set(b.id, String((data as Record<string, unknown>).id));
         }
 

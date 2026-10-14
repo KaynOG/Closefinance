@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { formatBRL, parseBRL } from "@/lib/store";
 import { notify } from "@/lib/notify";
+import { ColorPicker } from "@/components/ColorPicker";
+import { IconPicker, type IconOption } from "@/components/IconPicker";
 
 type Installment = { id: string; number: number; amount: number; dueDate: string };
 type Props = {
@@ -11,16 +13,23 @@ type Props = {
   kind: "debt" | "receivable";
   installments: Installment[];
   onRename: (name: string) => void | Promise<void>;
+  color: string;
+  icon: string;
+  iconOptions: IconOption[];
+  onAppearance: (patch: { color: string; icon: string }) => void | Promise<void>;
   onUpdate: (installment: Installment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
 };
-export function InstallmentRecordEditor({ name, kind, installments, onRename, onUpdate }: Props) {
+export function InstallmentRecordEditor({ name, kind, installments, onRename, onUpdate, color, icon, iconOptions, onAppearance }: Props) {
   const [open, setOpen] = useState(false);
   const [draftName, setDraftName] = useState(name);
+  const [draftColor, setDraftColor] = useState(color);
+  const [draftIcon, setDraftIcon] = useState(icon);
   const [rows, setRows] = useState<Array<{ id: string; amount: string; dueDate: string }>>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   function start() {
     setDraftName(name);
+    setDraftColor(color); setDraftIcon(icon);
     setRows(installments.map(i => ({ id: i.id, amount: i.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, useGrouping: false }), dueDate: i.dueDate })));
     setError(""); setOpen(true);
   }
@@ -32,6 +41,7 @@ export function InstallmentRecordEditor({ name, kind, installments, onRename, on
     setBusy(true); setError("");
     try {
       if (draftName.trim() !== name) await onRename(draftName.trim());
+      if (draftColor !== color || draftIcon !== icon) await onAppearance({ color: draftColor, icon: draftIcon });
       for (const row of rows) {
         const original = installments.find(i => i.id === row.id);
         if (!original) continue;
@@ -51,6 +61,8 @@ export function InstallmentRecordEditor({ name, kind, installments, onRename, on
         <DialogHeader><DialogTitle>Editar {label}</DialogTitle><DialogDescription>{name}</DialogDescription></DialogHeader>
         <form onSubmit={save} className="space-y-4">
           <label className="block text-sm">Nome<input required value={draftName} onChange={e => setDraftName(e.target.value)} className={field} /></label>
+          <div className="flex items-center gap-3"><span className="text-sm">Cor</span><ColorPicker value={draftColor} onChange={setDraftColor} /></div>
+          <IconPicker compact label="Ícone do registro" options={iconOptions} value={draftIcon} onChange={setDraftIcon} />
           <div className="space-y-4">
             {rows.map((row, index) => <fieldset key={row.id} className="border-t border-border pt-3">
               <legend className="text-xs font-mono text-muted-foreground">Parcela {installments[index]?.number ?? index + 1}</legend>
