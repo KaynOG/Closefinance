@@ -1,6 +1,6 @@
 import {
   AirVent, AlarmClock, Ambulance, Anchor, Atom, AudioLines, Backpack, Bath,
-  BatteryCharging, Binoculars, Blender, Cake, Clapperboard, Compass, Container,
+  BatteryCharging, Binoculars, CookingPot, Cake, Clapperboard, Compass, Container,
   Cpu, Croissant, Database, Drill, FerrisWheel, Fish, FlaskConical, Headphones,
   Hospital, LampDesk, Microscope, Package, Printer, Refrigerator, WashingMachine,
 } from "lucide-react";
@@ -17,7 +17,7 @@ export const EXTRA_ICON_OPTIONS = [
   { id: "bath", label: "Banheira", icon: Bath },
   { id: "battery-charging", label: "Bateria", icon: BatteryCharging },
   { id: "binoculars", label: "Binóculos", icon: Binoculars },
-  { id: "blender", label: "Liquidificador", icon: Blender },
+  { id: "cooking-pot", label: "Panela", icon: CookingPot },
   { id: "cake", label: "Bolo", icon: Cake },
   { id: "clapperboard", label: "Cinema", icon: Clapperboard },
   { id: "compass", label: "Bússola", icon: Compass },

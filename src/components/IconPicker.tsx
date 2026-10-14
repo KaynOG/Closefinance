@@ -12,7 +12,7 @@ export function IconPicker({ options, value, onChange, compact = false, label = 
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const allOptions = [...options, ...EXTRA_ICON_OPTIONS.filter(extra => !options.some(option => option.id === extra.id))];
+  const allOptions: IconOption[] = [...options, ...EXTRA_ICON_OPTIONS.filter(extra => !options.some(option => option.id === extra.id))];
   const selected = allOptions.find(option => option.id === value);
   const SelectedIcon = selected?.icon ?? Tag;
   const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
