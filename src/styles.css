@@ -420,7 +420,7 @@
   stroke-linejoin: round;
   filter: drop-shadow(0 2px 4px var(--chart-glow));
 }
-.recharts-bar-rectangle, .recharts-pie-sector {
+.recharts-bar-rectangle, .recharts-pie-sector, .subscription-chart-bar {
   filter: drop-shadow(0 2px 3px var(--chart-glow));
 }
 
