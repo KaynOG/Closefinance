@@ -12,14 +12,14 @@ type GlassCardProps = HTMLAttributes<HTMLDivElement> & {
 export function GlassCard({ className, hideKey: _hk, hideLabel: _hl, children, ...props }: GlassCardProps) {
   void _hk; void _hl;
   return (
-    <div className={cn("glass rounded-3xl p-3.5 sm:p-5 relative animate-in fade-in zoom-in-95 duration-300", className)} {...props}>
+    <div className={cn("glass panel-depth rounded-3xl p-3.5 sm:p-5 relative animate-in fade-in zoom-in-95 duration-300", className)} {...props}>
       {children}
     </div>
   );
 }
 
 export function GlassPanel({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("glass-strong rounded-3xl p-4 sm:p-6", className)} {...props} />;
+  return <div className={cn("glass-strong panel-depth rounded-3xl p-4 sm:p-6", className)} {...props} />;
 }
 
 export function SectionTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
@@ -51,7 +51,7 @@ export function Stat({ label, value, sub, accent = "violet", hideKey: _hk }: {
   };
   const color = accentVar[accent];
   return (
-    <div className="glass rounded-2xl p-3.5 sm:p-5 relative overflow-hidden isolate animate-in fade-in zoom-in-95 duration-300">
+    <div className="glass panel-depth rounded-2xl p-3.5 sm:p-5 relative overflow-hidden isolate animate-in fade-in zoom-in-95 duration-300">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"

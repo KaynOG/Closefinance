@@ -96,6 +96,7 @@ function ProjectsPage() {
   const [expenses, setExpenses] = useState<PExpense[]>([]);
   const [goals, setGoals] = useState<PGoal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", cover: null as string | null, target_date: "" });
 
   useEffect(() => {
@@ -132,6 +133,7 @@ function ProjectsPage() {
     if (error) return toast.error("Não foi possível criar o projeto");
     setProjects(ps => [data as Project, ...ps]);
     setForm({ name: "", description: "", cover: null, target_date: "" });
+    setCreateOpen(false);
     toast.success("Projeto criado!");
   }
 
@@ -147,8 +149,13 @@ function ProjectsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-4 items-start">
         <GlassCard>
-          <SectionTitle title="Novo projeto" />
-          <form onSubmit={createProject} className="space-y-3">
+          <Button type="button" variant="ghost" className="w-full justify-between px-0" aria-expanded={createOpen} aria-controls="new-project-form" onClick={() => setCreateOpen(open => !open)}>
+            <span className="flex items-center gap-2 font-semibold"><Plus />Novo projeto</span>
+            <ChevronDown className={`transition-transform duration-300 ${createOpen ? "rotate-180" : ""}`} />
+          </Button>
+          <div className={`collapse-reveal ${createOpen ? "is-open" : ""}`} inert={!createOpen}>
+          <div className="overflow-hidden" id="new-project-form">
+          <form onSubmit={createProject} className="space-y-3 pt-3">
             <CoverPicker value={form.cover} onChange={(cover) => setForm({ ...form, cover })} />
             <label className="block">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Nome do projeto</span>
@@ -162,10 +169,11 @@ function ProjectsPage() {
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Data final para concluir</span>
               <input type="date" className={`mt-1.5 ${inputCls}`} value={form.target_date} onChange={e => setForm({ ...form, target_date: e.target.value })} />
             </label>
-            <button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 glow-violet">
+            <Button type="submit" className="w-full glow-violet">
               <Plus className="size-4 inline mr-1.5" /> Criar projeto
-            </button>
+            </Button>
           </form>
+          </div></div>
         </GlassCard>
 
         <div className="space-y-4 min-w-0">
