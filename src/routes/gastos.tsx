@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
@@ -380,9 +381,9 @@ function GastosPage() {
                               <td className="py-2.5 px-3 font-mono text-right" style={{ color: ORANGE }}>-{formatBRL(t.amount)}</td>
                               <td className="py-2.5 px-3 whitespace-nowrap">
                                 <button onClick={() => setEditing(t)} className="text-muted-foreground hover:text-secondary p-1"><Pencil className="size-4" /></button>
-                                <button onClick={() => {
+                                <button onClick={async () => {
                                   if (t.installmentGroupId && t.installmentTotal && t.installmentTotal > 1) {
-                                    const all = confirm(`Apagar todas as ${t.installmentTotal} parcelas desta compra? OK = todas · Cancelar = só esta`);
+                                    const all = await appConfirm(`Deseja apagar todas as ${t.installmentTotal} parcelas desta compra ou somente esta parcela?`, { title: "Apagar parcelas", confirmLabel: "Todas as parcelas", cancelLabel: "Só esta parcela", destructive: true });
                                     api.removeTransaction(t.id, all ? { wholeGroup: true } : undefined);
                                   } else { api.removeTransaction(t.id); }
                                 }} className="text-muted-foreground hover:text-[#FF4D6D] p-1"><Trash2 className="size-4" /></button>

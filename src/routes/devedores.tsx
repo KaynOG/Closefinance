@@ -1,3 +1,5 @@
+import { InstallmentRecordEditor } from "@/components/InstallmentRecordEditor";
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -157,15 +159,15 @@ function DevedoresPage() {
               receivable={r}
               bankName={banks.find(b => b.id === r.bankId)?.name}
               onToggleReceived={async (inst) => {
-                if (!inst.received && !confirm(`Tem certeza de que a parcela ${inst.number} de "${r.name}" foi recebida? A data dela será ajustada para hoje.`)) return;
+                if (!inst.received && !await appConfirm(`Tem certeza de que a parcela ${inst.number} de "${r.name}" foi recebida? A data dela será ajustada para hoje.`)) return;
                 const saved = await api.setReceivableInstallmentReceived(r.id, inst.id, !inst.received);
                 if (saved && !inst.received && r.installments.every(i => i.received || i.id === inst.id)) setCompleted(r);
               }}
-              onRename={async (name) => { await api.updateReceivable(r.id, { name }); notify("Nome atualizado nos ganhos."); }}
+              onRename={async (name) => { if (!await api.updateReceivable(r.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome atualizado nos ganhos."); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
 
               onRemove={async () => {
-                if (!confirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) return;
+                if (!await appConfirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) return;
                 await api.removeReceivable(r.id);
                 notify("Valor a receber removido.");
               }}
@@ -196,7 +198,7 @@ function DevedoresPage() {
                   if (await api.updateReceivable(r.id, { archived: false })) notify(`"${r.name}" voltou para a lista de devedores.`);
                 }}>Restaurar</Button>
                 <Button variant="ghost" size="icon" className="text-danger" aria-label={`Apagar ${r.name}`} title={`Apagar ${r.name}`} onClick={async () => {
-                  if (confirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) await api.removeReceivable(r.id);
+                  if (await appConfirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) await api.removeReceivable(r.id);
                 }}><Trash2 /></Button>
               </li>
             ))}
@@ -463,7 +465,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUp
   bankName?: string;
   onToggleReceived: (i: ReceivableInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
-  onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void;
+  onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -517,6 +519,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onUp
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <InstallmentRecordEditor kind="receivable" name={receivable.name} installments={receivable.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = receivable.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
           <button onClick={() => setOpen(v => !v)} data-no-sound
 
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>

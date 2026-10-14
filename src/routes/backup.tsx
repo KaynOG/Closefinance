@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
@@ -91,8 +92,8 @@ function BackupBody() {
   }
 
   async function handleWipe() {
-    if (!confirm("Tem certeza que deseja apagar TODOS os seus dados? Um backup será baixado antes da exclusão.")) return;
-    if (!confirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
+    if (!await appConfirm("Tem certeza que deseja apagar TODOS os seus dados? Um backup será baixado antes da exclusão.")) return;
+    if (!await appConfirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
     setWiping(true);
     try {
       await downloadBackup("closefinance-antes-de-apagar");
@@ -141,7 +142,7 @@ function BackupBody() {
 
   async function confirmImport() {
     if (!preview) return;
-    if (mode === "replace" && !confirm("Substituir TODOS os seus dados pelos do arquivo? Isso não pode ser desfeito.")) return;
+    if (mode === "replace" && !await appConfirm("Substituir TODOS os seus dados pelos do arquivo? Isso não pode ser desfeito.")) return;
     const r = await api.importData(preview.raw, mode);
     if (r.ok) {
       setToast({ kind: "ok", msg: `Importação concluída: ${r.counts.transactions} transações, ${r.counts.categories} categorias, ${r.counts.cards} cartões.` });

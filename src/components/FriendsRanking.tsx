@@ -33,6 +33,7 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
 
   async function addFriend(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
     setMsg(null);
     const c = code.trim().toUpperCase();
     if (!c) return;
@@ -49,7 +50,7 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
     }
     const profile = Array.isArray(data) ? data[0] : data;
     const { error: insErr } = await supabase.from("friendships").insert({
-      user_id: user!.id,
+      user_id: user.id,
       friend_id: profile.id,
     });
     if (insErr) {
@@ -63,7 +64,8 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
   }
 
   async function removeFriend(friendId: string) {
-    await supabase.from("friendships").delete().eq("user_id", user!.id).eq("friend_id", friendId);
+    if (!user) return;
+    await supabase.from("friendships").delete().eq("user_id", user.id).eq("friend_id", friendId);
     load();
   }
 
@@ -74,7 +76,10 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
-  const myEntry = user ? { id: user.id, name: user.name + " (você)", avatar: user.avatar ?? null, total_points: 0, friend_code: user.friendCode ?? "", isMe: true } : null;
+  const myEntry = user ? { id: user.id, name: user.name + " (você)", avatar: user.avatar ?? null, total_points: myPoints, friend_code: user.friendCode ?? "", isMe: true } : null;
+
+  const ranking = [...friends.filter(f => f.id !== user?.id).map(f => ({ ...f, isMe: false })), ...(myEntry ? [myEntry] : [])]
+    .sort((a, b) => b.total_points - a.total_points || a.name.localeCompare(b.name, "pt-BR") || a.id.localeCompare(b.id));
 
   return (
     <GlassCard hideKey="missoes-friends" hideLabel="Ranking de amigos">
@@ -130,12 +135,12 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
       {/* Lista de amigos */}
       <SectionTitle title="Ranking" subtitle={loading ? "carregando…" : friends.length === 0 ? "adicione amigos para começar" : `${friends.length} amigo(s)`} />
       <ul className="space-y-2">
-        {friends.map((f, idx) => {
-          const rank = getRank(f.total_points);
+        {ranking.map((f, idx) => {
+          const rank = getRank(f.total_points, f.isMe ? user?.gender : undefined);
           const RankIcon = rank.current.Icon;
           const position = idx + 1;
           return (
-            <li key={f.id} className="flex items-center gap-3 rounded-2xl border border-border p-3 hover:bg-white/[0.02]">
+            <li key={f.id} data-ranking-points={f.total_points} aria-current={f.isMe ? "true" : undefined} className={`flex items-center gap-3 rounded-lg border p-3 ${f.isMe ? "border-primary/40 bg-primary/5" : "border-border hover:bg-muted/30"}`}>
               <div className="w-6 text-center font-mono text-xs text-muted-foreground shrink-0">
                 {position === 1 ? "🥇" : position === 2 ? "🥈" : position === 3 ? "🥉" : `#${position}`}
               </div>
@@ -158,41 +163,16 @@ export function FriendsRanking({ myPoints }: { myPoints: number }) {
                 </p>
                 <p className="text-[10px] font-mono text-muted-foreground">pontos</p>
               </div>
-              <button
+              {!f.isMe && <button
                 onClick={() => removeFriend(f.id)}
                 title="Remover"
                 className="rounded-lg p-1.5 text-muted-foreground hover:text-[#FF4D6D] hover:bg-white/5 shrink-0"
               >
                 <Trash2 className="size-4" />
-              </button>
+              </button>}
             </li>
           );
         })}
-        {/* Sempre mostra o próprio usuário para referência */}
-        {myEntry && (() => {
-          const myRank = getRank(myPoints, user!.gender);
-          return (
-            <li className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 p-3">
-              <div className="w-6 text-center font-mono text-xs text-primary shrink-0">•</div>
-              <div
-                className="size-10 rounded-full overflow-hidden border-2 bg-[image:var(--gradient-primary)] grid place-items-center text-sm font-bold shrink-0"
-                style={{ borderColor: myRank.current.color }}
-              >
-                {user!.avatar ? <img src={user!.avatar} alt={user!.name} className="size-full object-cover" /> : user!.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate">{myEntry.name}</p>
-                <p className="text-[11px] font-mono text-muted-foreground">{myRank.displayName}</p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="font-mono font-bold text-sm flex items-center gap-1 justify-end">
-                  <Trophy className="size-3.5 text-secondary" /> {myPoints}
-                </p>
-                <p className="text-[10px] font-mono text-muted-foreground">pontos</p>
-              </div>
-            </li>
-          );
-        })()}
       </ul>
     </GlassCard>
   );

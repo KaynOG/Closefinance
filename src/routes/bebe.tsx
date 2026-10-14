@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -99,7 +100,7 @@ function BebePage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Apagar este registro?")) return;
+    if (!await appConfirm("Apagar este registro?")) return;
     const { error } = await supabase.from("baby_expenses").delete().eq("id", id);
     if (!error) setItems(prev => prev.filter(i => i.id !== id));
   }

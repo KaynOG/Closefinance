@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
@@ -543,7 +544,7 @@ function CardPurchases() {
                       </div>
                       <button
                         onClick={async () => {
-                          if (!confirm(`Apagar a compra "${g.description}" e todas as parcelas?`)) return;
+                          if (!await appConfirm(`Apagar a compra "${g.description}" e todas as parcelas?`)) return;
                           await api.removeTransaction(g.items[0].id, { wholeGroup: true });
                           notify("Compra removida.");
                         }}
@@ -760,7 +761,7 @@ function ExternalPurchases() {
                           </p>
                         </div>
                         <button
-                          onClick={() => { if (confirm(`Remover o registro de "${p.description}"?`)) { persist(items.filter(i => i.id !== p.id)); notify("Registro removido."); } }}
+                          onClick={async () => { if (await appConfirm(`Remover o registro de "${p.description}"?`)) { persist(items.filter(i => i.id !== p.id)); notify("Registro removido."); } }}
                           className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover registro">
                           <Trash2 className="size-4" />
                         </button>

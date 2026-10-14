@@ -1,3 +1,4 @@
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -318,7 +319,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   }
 
   async function removeProject() {
-    if (!confirm(`Apagar o projeto "${project.name}"? Os gastos incluídos na aba de gastos também serão removidos.`)) return;
+    if (!await appConfirm(`Apagar o projeto "${project.name}"? Os gastos incluídos na aba de gastos também serão removidos.`)) return;
     for (const e of expenses) if (e.include_in_expenses) await unlinkTx(e.id);
     await supabase.from("projects").delete().eq("id", project.id);
     setProjects(ps => ps.filter(p => p.id !== project.id));

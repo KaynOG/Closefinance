@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { InstallmentRecordEditor } from "@/components/InstallmentRecordEditor";
+import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -164,20 +167,20 @@ function DividasPage() {
               debt={d}
               bankName={banks.find(b => b.id === d.bankId)?.name}
               onTogglePaid={async (inst) => {
-                if (!inst.paid && !confirm(`Tem certeza de que a parcela ${inst.number} de "${d.name}" foi paga? A data dela será ajustada para hoje.`)) return;
+                if (!inst.paid && !await appConfirm(`Tem certeza de que a parcela ${inst.number} de "${d.name}" foi paga? A data dela será ajustada para hoje.`)) return;
                 await api.setInstallmentPaid(d.id, inst.id, !inst.paid);
                 if (!inst.paid && d.installments.every(i => i.paid || i.id === inst.id)) {
-                  if (confirm(`🎉 Parabéns! Você quitou todas as parcelas de "${d.name}"!\n\nDeseja mover essa dívida para o bloco "Dívidas pagas" no final da página?`)) {
+                  if (await appConfirm(`Parabéns! Você quitou todas as parcelas de "${d.name}"!\n\nDeseja mover essa dívida para o bloco "Dívidas pagas" no final da página?`)) {
                     if (!await api.updateDebt(d.id, { archived: true })) return;
                     notify(`"${d.name}" movida para Dívidas pagas.`);
                   }
                 }
               }}
-              onRename={async (name) => { await api.updateDebt(d.id, { name }); notify("Nome da dívida atualizado nos gastos."); }}
+              onRename={async (name) => { if (!await api.updateDebt(d.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome da dívida atualizado nos gastos."); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
 
               onRemove={async () => {
-                if (!confirm(`Apagar a dívida "${d.name}" e todos os gastos das parcelas?`)) return;
+                if (!await appConfirm(`Apagar a dívida "${d.name}" e todos os gastos das parcelas?`)) return;
                 await api.removeDebt(d.id);
                 notify("Dívida removida.");
               }}
@@ -226,7 +229,7 @@ function DividasPage() {
                     </button>
                     <button
                       onClick={async () => {
-                        if (!confirm(`Apagar a dívida quitada "${d.name}" e todos os gastos das parcelas?`)) return;
+                        if (!await appConfirm(`Apagar a dívida quitada "${d.name}" e todos os gastos das parcelas?`)) return;
                         await api.removeDebt(d.id);
                         notify("Dívida removida.");
                       }}
@@ -480,7 +483,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment,
   bankName?: string;
   onTogglePaid: (i: DebtInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
-  onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void;
+  onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -534,6 +537,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onUpdateInstallment,
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <InstallmentRecordEditor kind="debt" name={debt.name} installments={debt.installments} onRename={onRename} onUpdate={(inst, patch) => { const original = debt.installments.find(i => i.id === inst.id); if (original) return onUpdateInstallment(original, patch); }} />
           <button onClick={() => setOpen(v => !v)} data-no-sound
 
             className="rounded-lg border border-border p-2 hover:bg-white/5" aria-label={open ? "Retrair" : "Expandir"}>
