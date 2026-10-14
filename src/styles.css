@@ -402,7 +402,10 @@
 }
 
 /* Brilho das quinas: 4 halos nos cantos, sem contornar a caixa inteira. */
-.glass, .glass-strong { position: relative; isolation: isolate; }
+/* position:relative só quando o elemento não tem posição própria (absolute/fixed/sticky vencem). */
+@layer base {
+  .glass, .glass-strong { position: relative; isolation: isolate; }
+}
 /* Halo suave irradiando de cada quina (atrás do conteúdo). */
 .glass::before, .glass-strong::before {
   content: "";
