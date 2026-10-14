@@ -17,3 +17,5 @@
 - Share audio preference changes through the sound module subscription API so floating and settings controls stay synchronized and muting stops active audio.
 - Keep glass treatments and chart glow in shared semantic CSS tokens so every accent and light/dark mode inherits the same visual treatment.
 - Use the shared ColorPicker for custom colors, because in-app accessible dialogs must replace browser-native color dialogs.
+- Share six-group monthly budget calculations through `budget-goals`; persist category group links and month-specific plans on existing owner-scoped rows and include them in backup, because comparisons must remain consistent across devices and restoration.
+- Keep saved/invested balances separate from monthly contributions in budget comparisons, because cumulative assets are not a month's income allocation; exclude invoice settlements and future transactions to prevent double counting and forecasts.

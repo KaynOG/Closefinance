@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard } from "@/components/ui-kit";
 import { useStore } from "@/lib/store";
+import { BudgetGoals } from "@/components/BudgetGoals";
 import { BookOpen, Lightbulb, Target, PiggyBank, ShieldCheck, TrendingDown, Wallet, HeartPulse, Receipt, Calendar, Sparkles, BadgePercent, Rocket, Briefcase, GraduationCap, LineChart, Coins, ChevronDown, ChevronUp } from "lucide-react";
 
 export const Route = createFileRoute("/educacao")({
@@ -108,6 +109,7 @@ function EduPage() {
         
       </header>
 
+      <BudgetGoals />
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
         {LESSONS.map((l) => <LessonCard key={l.title} l={l} />)}
       </div>

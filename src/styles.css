@@ -64,6 +64,26 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-budget-freedom: var(--budget-freedom);
+  --color-budget-comfort: var(--budget-comfort);
+  --color-budget-pleasures: var(--budget-pleasures);
+  --color-budget-knowledge: var(--budget-knowledge);
+  --color-budget-fixed: var(--budget-fixed);
+  --color-budget-goals: var(--budget-goals);
+}
+
+:root {
+  --budget-freedom: var(--primary);
+  --budget-comfort: color-mix(in oklab, var(--primary) 65%, var(--foreground));
+  --budget-pleasures: color-mix(in oklab, var(--primary) 55%, var(--secondary));
+  --budget-knowledge: color-mix(in oklab, var(--primary) 60%, var(--success));
+  --budget-fixed: var(--secondary);
+  --budget-goals: color-mix(in oklab, var(--primary) 55%, var(--muted-foreground));
+}
+
+.budget-slider [data-orientation="horizontal"] > span { transition: width 100ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .budget-slider * { transition: none !important; }
 }
 
 :root,

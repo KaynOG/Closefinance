@@ -71,6 +71,13 @@
       "when": 1791980212283,
       "tag": "0009_debt_receivable_order_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791987346377,
+      "tag": "0010_financial_budget_groups",
+      "breakpoints": true
     }
   ]
 }
