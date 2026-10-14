@@ -1,5 +1,10 @@
 # Ajustes solicitados
 
+- [x] Alinhar Novo projeto ao primeiro projeto da lista.
+- [x] Intensificar flutuação e inclinação 3D somente no dashboard.
+- [x] Personalizar listas de Categorias, Ganhos, Gastos, Calendário e Transações, incluindo filtros e extrato.
+- [x] Verificar listas, alinhamento e movimento nos temas e telas.
+
 - [x] Recolher por padrão a criação de projetos.
 - [x] Adicionar 30 ícones em todos os seletores e preservar sua exibição.
 - [x] Separar histórico de entradas, gastos e faturas com filtros de período e detalhes.

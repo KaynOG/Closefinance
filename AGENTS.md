@@ -17,6 +17,7 @@
 - Share audio preference changes through the sound module subscription API so floating and settings controls stay synchronized and muting stops active audio.
 - Keep glass treatments and chart glow in shared semantic CSS tokens so every accent and light/dark mode inherits the same visual treatment.
 - Use the shared ColorPicker for custom colors, because in-app accessible dialogs must replace browser-native color dialogs.
+- Use AppSelect for themed option lists on financial entry and filter screens; it preserves option values and callbacks while replacing browser-native menus with accessible in-app menus.
 - Use the shared IconPicker for all icon-selection grids and compact menus, so selection stays accessible and inherits the active theme without browser-native lists.
 - Keep additional icon IDs and renderers in `extra-icons` and append them through IconPicker, so every picker offers the same additions and saved choices render consistently.
 - Keep transaction history grouped by actual entries, actual expenses and derived invoice summaries; never add invoice summaries or invoice settlements to purchase totals, to avoid double counting.

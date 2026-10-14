@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { useState } from "react";
 import { FileDown } from "lucide-react";
 import { useStore, formatBRL } from "@/lib/store";
@@ -140,10 +141,10 @@ export function StatementExport({ mode }: { mode: Mode }) {
   const dateCls = "rounded-xl bg-white/5 border border-border px-2.5 py-1.5 text-xs font-mono outline-none focus:border-primary";
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select value={period} onChange={e => setPeriod(e.target.value as Period)}
-        className="rounded-xl bg-white/5 border border-border px-3 py-2 text-xs font-mono outline-none focus:border-primary">
+      <AppSelect aria-label="Período do extrato" value={period} onChange={e => setPeriod(e.target.value as Period)}
+        className="w-36 h-9 text-xs font-mono">
         {PERIODS.map(p => <option key={p.v} value={p.v}>{p.label}</option>)}
-      </select>
+      </AppSelect>
       {period === "custom" && (
         <div className="flex items-center gap-1.5 text-xs font-mono">
           <input type="date" aria-label="Data inicial" value={from} max={to} onChange={e => setFrom(e.target.value)} className={dateCls} />

@@ -150,7 +150,7 @@ function ProjectsPage() {
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-4 items-start">
-        <GlassCard>
+        <GlassCard className={!loading && projects.length > 0 ? "xl:mt-7" : undefined}>
           <Button type="button" variant="ghost" className="w-full justify-between px-0" aria-expanded={createOpen} aria-controls="new-project-form" onClick={() => setCreateOpen(open => !open)}>
             <span className="flex items-center gap-2 font-semibold"><Plus />Novo projeto</span>
             <ChevronDown className={`transition-transform duration-300 ${createOpen ? "rotate-180" : ""}`} />

@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { IconPicker } from "@/components/IconPicker";
@@ -135,11 +136,11 @@ function CategoriesPage() {
             </label>
             {showGroups && <label className="block">
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Grupo de meta</span>
-              <select aria-label="Grupo de meta da nova categoria" value={form.budgetGroup} onChange={e => setForm({ ...form, budgetGroup: e.target.value })}
+              <AppSelect aria-label="Grupo de meta da nova categoria" value={form.budgetGroup} onChange={e => setForm({ ...form, budgetGroup: e.target.value })}
                 className="mt-1.5 w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm text-foreground">
                 <option value="">Sem vínculo</option>
                 {BUDGET_GROUPS.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
+              </AppSelect>
             </label>}
             <div>
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Ícone</span>
@@ -173,12 +174,12 @@ function CategoriesPage() {
                     <span className="text-[11px] font-mono text-muted-foreground">· {count} transações</span>
                     {isLocked && <span className="text-[10px] font-mono text-secondary">· padrão</span>}
                   </div>
-                  {showGroups && <select aria-label={`Grupo de meta de ${c.name}`} value={c.budgetGroup ?? ""}
+                  {showGroups && <AppSelect aria-label={`Grupo de meta de ${c.name}`} value={c.budgetGroup ?? ""}
                     onChange={e => api.updateCategory(c.id, { budgetGroup: isBudgetGroup(e.target.value) ? e.target.value : null })}
                     className="mt-2 w-full min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground">
                     <option value="">Grupo de meta: sem vínculo</option>
                     {BUDGET_GROUPS.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>}
+                  </AppSelect>}
                 </div>
                 <ColorPicker value={c.color} onChange={color => api.updateCategory(c.id, { color })} className="size-7" />
                 {isLocked ? (

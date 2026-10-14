@@ -1,3 +1,4 @@
+import { AppSelect } from "@/components/AppSelect";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
 import { TUTORIALS } from "@/lib/tutorial-content";
@@ -160,10 +161,10 @@ function TxPage() {
             <Field label="Descrição"><input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex: Salário, Supermercado..." className={inputCls} /></Field>
             <Field label="Data"><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inputCls} /></Field>
             <Field label="Categoria">
-              <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
+              <AppSelect aria-label="Categoria" value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className={inputCls}>
                 <option value="">Sem categoria</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              </AppSelect>
             </Field>
 
             {form.type === "expense" && (
@@ -178,10 +179,10 @@ function TxPage() {
                 </Field>
                 {cards.length > 0 && (
                   <Field label="Cartão (opcional)">
-                    <select value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                    <AppSelect aria-label="Cartão" value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
                       <option value="">À vista / outro</option>
                       {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    </AppSelect>
                   </Field>
                 )}
               </>
