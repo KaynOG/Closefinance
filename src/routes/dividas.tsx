@@ -1,3 +1,4 @@
+import { IconPicker } from "@/components/IconPicker";
 import { Button } from "@/components/ui/button";
 import { InstallmentRecordEditor } from "@/components/InstallmentRecordEditor";
 import { appConfirm } from "@/lib/app-dialog";
@@ -389,18 +390,7 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
         </div>
 
         <Field label="Ícone">
-          <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto pr-1">
-            {(Object.keys(DEBT_ICONS) as DebtIconKey[]).map(k => {
-              const Icon = DEBT_ICONS[k];
-              const active = form.icon === k;
-              return (
-                <button key={k} type="button" onClick={() => setForm({ ...form, icon: k })}
-                  className={`size-10 rounded-xl grid place-items-center border transition active:scale-95 ${active ? "border-primary bg-primary/20" : "border-border hover:bg-white/5"}`}>
-                  <Icon className="size-4" />
-                </button>
-              );
-            })}
-          </div>
+          <IconPicker options={Object.entries(DEBT_ICONS).map(([id, icon]) => ({ id, icon, label: icon.displayName ?? id }))} value={form.icon} onChange={icon => setForm({ ...form, icon: icon as DebtIconKey })} />
         </Field>
 
         <Field label="Cor">

@@ -1,3 +1,4 @@
+import { IconPicker } from "@/components/IconPicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -436,14 +437,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                 <button type="submit" className="rounded-xl bg-primary text-primary-foreground font-semibold px-4 py-2.5 hover:opacity-90"><Plus className="size-4 inline" /> Objetivo</button>
               </form>
               {showIcons && (
-                <div className="mt-2 grid grid-cols-8 sm:grid-cols-12 lg:grid-cols-16 gap-1.5 max-h-48 overflow-y-auto p-2 rounded-2xl border border-border">
-                  {Object.entries(GOAL_ICONS).map(([id, { icon: Icon, label }]) => (
-                    <button key={id} type="button" title={label} onClick={() => { setGoal({ ...goal, icon: id }); setShowIcons(false); }}
-                      className={`aspect-square rounded-xl grid place-items-center border transition ${goal.icon === id ? "border-primary bg-primary/15 text-primary" : "border-border hover:bg-white/5"}`}>
-                      <Icon className="size-4" />
-                    </button>
-                  ))}
-                </div>
+                <IconPicker options={Object.entries(GOAL_ICONS).map(([id, option]) => ({ id, ...option }))} value={goal.icon} onChange={icon => { setGoal({ ...goal, icon }); setShowIcons(false); }} />
               )}
             </section>
 
@@ -504,14 +498,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
                             <input type="date" className={inputCls} value={goalDraft.date} onChange={e => setGoalDraft({ ...goalDraft, date: e.target.value })} />
                           </div>
                           {showEditIcons && (
-                            <div className="grid grid-cols-8 sm:grid-cols-12 lg:grid-cols-16 gap-1.5 max-h-48 overflow-y-auto p-2 rounded-2xl border border-border">
-                              {Object.entries(GOAL_ICONS).map(([id, { icon: Ic, label }]) => (
-                                <button key={id} type="button" title={label} onClick={() => { setGoalDraft({ ...goalDraft, icon: id }); setShowEditIcons(false); }}
-                                  className={`aspect-square rounded-xl grid place-items-center border transition ${goalDraft.icon === id ? "border-primary bg-primary/15 text-primary" : "border-border hover:bg-white/5"}`}>
-                                  <Ic className="size-4" />
-                                </button>
-                              ))}
-                            </div>
+                            <IconPicker options={Object.entries(GOAL_ICONS).map(([id, option]) => ({ id, ...option }))} value={goalDraft.icon} onChange={icon => { setGoalDraft({ ...goalDraft, icon }); setShowEditIcons(false); }} />
                           )}
                           <div className="flex justify-end gap-2">
                             <button onClick={() => setEditingGoal(null)} className="rounded-xl border border-border px-3 py-2 text-xs font-mono hover:bg-white/5">Cancelar</button>
