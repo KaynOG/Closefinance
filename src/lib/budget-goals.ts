@@ -56,3 +56,26 @@ export function monthBudget(transactions: Transaction[], categories: Category[],
   const allocated = expenses + savedAmount;
   return { income, expenses, groups, unassigned, allocated, remaining: income - allocated };
 }
+/** Groups lose percentage in this order when another slider needs room (lowest priority first). */
+export const REDUCE_ORDER: BudgetGroup[] = ["pleasures", "comfort", "goals", "knowledge", "freedom", "fixed"];
+/** Adjusts one group keeping the total at most 100%; freed percentage goes to financial freedom. */
+export function rebalance(p: BudgetPercentages, group: BudgetGroup, value: number): BudgetPercentages {
+  const next = { ...p };
+  const v = Math.max(0, Math.min(100, Math.round(value)));
+  const delta = v - p[group];
+  next[group] = v;
+  if (delta > 0) {
+    let excess = BUDGET_GROUPS.reduce((s, g) => s + next[g.id], 0) - 100;
+    for (const g of REDUCE_ORDER) {
+      if (excess <= 0) break;
+      if (g === group) continue;
+      const take = Math.min(next[g], excess);
+      next[g] -= take; excess -= take;
+    }
+    if (excess > 0) next[group] -= excess;
+  } else if (delta < 0 && group !== "freedom") {
+    const total = BUDGET_GROUPS.reduce((s, g) => s + next[g.id], 0);
+    next.freedom += Math.max(0, 100 - total);
+  }
+  return next;
+}
