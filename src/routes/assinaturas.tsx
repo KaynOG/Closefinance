@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
 import { Bot, Gamepad2, Heart, Music2, Pause, Pencil, Play, Plus, ShoppingBag, Sparkles, Trash2, Tv, Video } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_ICON_LIST } from "@/routes/categorias";
+import { SubscriptionInsights } from "@/components/SubscriptionInsights";
 
 const USAGE_OPTIONS = [
   { value: "daily", label: "Diário" },
@@ -110,6 +111,7 @@ function SubscriptionsPage() {
       );
     })()}
 
+    <SubscriptionInsights />
     <GlassCard className="mb-6">
       <SectionTitle title="Serviços populares" subtitle="toque para preencher rapidamente" />
       <div className="grid grid-cols-4 md:grid-cols-8 gap-2">

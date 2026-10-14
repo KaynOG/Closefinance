@@ -575,10 +575,16 @@ function BabyToggle() {
 
 function HiddenTabsCard() {
   const { hiddenTabs } = usePrefs();
+  const [open, setOpen] = useState(false);
   return (
     <GlassCard hideKey="perfil-tabs" hideLabel="Abas visíveis">
-      <SectionTitle title="Abas visíveis" subtitle="desligue para ocultar a aba do menu" />
-      <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <SectionTitle title="Abas visíveis" subtitle="desligue para ocultar a aba do menu" />
+        <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-mono shrink-0">
+          {open ? <>Ocultar <ChevronUp className="size-4" /></> : <>Mostrar <ChevronDown className="size-4" /></>}
+        </button>
+      </div>
+      {open && <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {HIDEABLE_TABS.map(t => {
           const visible = !hiddenTabs.includes(t.to);
           return (
@@ -591,7 +597,7 @@ function HiddenTabsCard() {
             </li>
           );
         })}
-      </ul>
+      </ul>}
     </GlassCard>
   );
 }
