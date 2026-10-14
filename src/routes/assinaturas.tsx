@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL, parseBRL, useStore, type Subscription } from "@/lib/store";
 import { Bot, Gamepad2, Heart, Music2, Pause, Pencil, Play, Plus, ShoppingBag, Sparkles, Trash2, Tv, Video } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_ICON_LIST } from "@/routes/categorias";
+import { SERVICE_LOGOS } from "@/lib/brand-logos";
 import { SubscriptionInsights } from "@/components/SubscriptionInsights";
 
 const USAGE_OPTIONS = [
@@ -40,13 +41,16 @@ export const Route = createFileRoute("/assinaturas")({
 
 const services = [
   { name: "Netflix", icon: "netflix", color: "#E50914" },
-  { name: "YouTube", icon: "youtube", color: "#FF0033" },
+  { name: "YouTube Premium", icon: "youtube", color: "#FF0033" },
   { name: "Spotify", icon: "spotify", color: "#1DB954" },
-  { name: "Amazon", icon: "amazon", color: "#00A8E1" },
-  { name: "Xbox", icon: "xbox", color: "#107C10" },
+  { name: "Amazon Prime", icon: "amazon", color: "#00A8E1" },
+  { name: "Xbox Game Pass", icon: "xbox", color: "#107C10" },
   { name: "Lovable", icon: "lovable", color: "#F43F5E" },
   { name: "Claude", icon: "claude", color: "#D97757" },
   { name: "ChatGPT", icon: "chatgpt", color: "#10A37F" },
+  { name: "HBO Max", icon: "hbo", color: "#5822B4" },
+  { name: "Disney+", icon: "disney", color: "#0072D2" },
+  { name: "iFood", icon: "ifood", color: "#EA1D2C" },
 ] as const;
 
 type SubscriptionForm = { name: string; amount: string; firstChargeDate: string; recurrenceMonths: string; color: string; icon: string; essential: "essential" | "non_essential" };
@@ -54,6 +58,8 @@ const emptyForm: SubscriptionForm = { name: "", amount: "", firstChargeDate: new
 
 function ServiceIcon({ icon, className = "size-5" }: { icon: string; className?: string }) {
   const props = { className };
+  const logo = SERVICE_LOGOS.find(option => option.id === icon);
+  if (logo?.image) return <span className="brand-logo-surface size-10"><img src={logo.image} alt={logo.label} className="size-8 object-contain" loading="lazy" /></span>;
   if (icon === "spotify") return <Music2 {...props} />;
   if (icon === "xbox") return <Gamepad2 {...props} />;
   if (icon === "amazon") return <ShoppingBag {...props} />;
@@ -120,10 +126,10 @@ function SubscriptionsPage() {
     <SubscriptionInsights />
     <GlassCard className="mb-6">
       <SectionTitle title="Serviços populares" subtitle="toque para preencher rapidamente" />
-      <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-        {services.map(service => <button key={service.name} onClick={() => selectService(service)} className="min-h-20 border border-border bg-background/40 p-2 flex flex-col items-center justify-center gap-2 transition hover:border-primary" aria-label={`Adicionar ${service.name}`}>
+      <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-2">
+        {services.map(service => <Button type="button" variant="outline" key={service.name} onClick={() => selectService(service)} className="h-auto min-h-24 min-w-0 flex-col gap-2 bg-background/40 px-1 py-3" aria-label={`Adicionar ${service.name}`}>
           <span style={{ color: service.color }}><ServiceIcon icon={service.icon} /></span><span className="text-[10px] font-mono truncate w-full">{service.name}</span>
-        </button>)}
+        </Button>)}
       </div>
     </GlassCard>
 
@@ -138,7 +144,7 @@ function SubscriptionsPage() {
         <Field label="Tipo"><select value={form.essential} onChange={e => setForm({ ...form, essential: e.target.value as "essential" | "non_essential" })} className={inputCls}><option value="essential">Essencial</option><option value="non_essential">Não essencial</option></select></Field>
         <div className="md:col-span-2">
           <span className="text-xs font-mono uppercase text-muted-foreground">Ícone</span>
-          <IconPicker options={CATEGORY_ICON_LIST.map(option => ({ ...option, icon: CATEGORY_ICONS[option.id] ?? Sparkles }))} value={form.icon} onChange={icon => setForm({ ...form, icon })} />
+          <IconPicker options={[...SERVICE_LOGOS, ...CATEGORY_ICON_LIST.filter(option => !SERVICE_LOGOS.some(logo => logo.id === option.id)).map(option => ({ ...option, icon: CATEGORY_ICONS[option.id] ?? Sparkles }))]} value={form.icon} onChange={icon => setForm({ ...form, icon })} />
         </div>
         <div className="md:col-span-2 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button type="submit">Salvar assinatura</Button></div>
       </form>
