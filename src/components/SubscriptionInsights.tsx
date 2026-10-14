@@ -72,11 +72,13 @@ export function SubscriptionInsights() {
   return <>
     <GlassCard className="mb-6">
       <SectionTitle title="Comparativo mensal" subtitle="gasto com assinaturas nos últimos 6 meses" />
-      <div className="flex items-end gap-3 h-44">
-        {monthly.map((m, i) => <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-          <span className="text-[9px] sm:text-[10px] font-mono text-muted-foreground whitespace-nowrap">{m.total ? `R$ ${Math.round(m.total).toLocaleString("pt-BR")}` : "—"}</span>
-          <div className="w-full rounded-t-md bg-primary transition-all duration-700" style={{ height: `${(m.total / max) * 100}%`, minHeight: 2 }} />
-          <span className="text-xs font-mono">{m.label}</span>
+      <div className="grid h-48 grid-cols-6 items-end gap-2 pt-2 sm:gap-3" role="img" aria-label={monthly.map(m => `${m.label}: ${formatBRL(m.total)}`).join("; ")}>
+        {monthly.map((m, i) => <div key={i} className="grid h-full min-w-0 grid-rows-[1.25rem_minmax(0,1fr)_1.25rem] justify-items-center gap-1">
+          <span title={formatBRL(m.total)} className="w-full truncate text-center text-[9px] sm:text-[10px] font-mono text-muted-foreground whitespace-nowrap">{m.total ? `R$ ${Math.round(m.total).toLocaleString("pt-BR")}` : "—"}</span>
+          <div className="flex size-full items-end justify-center">
+            <div className="subscription-chart-bar w-full max-w-20 rounded-md bg-primary motion-safe:transition-[height] motion-safe:duration-700" style={{ height: `${(m.total / max) * 100}%`, minHeight: 2 }} />
+          </div>
+          <span className="text-xs font-mono text-muted-foreground">{m.label}</span>
         </div>)}
       </div>
     </GlassCard>

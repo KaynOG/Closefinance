@@ -31,6 +31,7 @@ const ConsentModal = lazy(() => import("./ConsentModal").then((m) => ({ default:
 const SavingsMonitor = lazy(() => import("./SavingsMonitor").then((m) => ({ default: m.SavingsMonitor })));
 const OnboardingModal = lazy(() => import("./OnboardingModal").then((m) => ({ default: m.OnboardingModal })));
 import { ThemeToggle } from "./ThemeToggle";
+import { SoundToggle } from "./SoundToggle";
 import { RouteLoader } from "./RouteLoader";
 const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
 
@@ -243,7 +244,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         className="fixed z-40 right-4 lg:right-6"
         style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
       >
-        <div className="glass-strong rounded-2xl p-1 shadow-lg">
+        <div className="glass-strong flex items-center gap-1.5 rounded-2xl p-1 shadow-lg">
+          <SoundToggle />
           <ThemeToggle />
         </div>
       </div>

@@ -7,7 +7,7 @@ import { getRank } from "@/lib/ranks";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Save, LogOut, User as UserIcon, Briefcase, Calendar as CalIcon, Target, CheckCircle2, DatabaseBackup, Venus, Mars, CircleDot, Lock, KeyRound, Volume2, VolumeX, Palette, LifeBuoy, MessageCircle, Mail, Bell, BellOff, ChevronDown, ChevronUp, GraduationCap } from "lucide-react";
 import { BackupContent } from "./backup";
-import { isSoundEnabled, setSoundEnabled, playTone } from "@/lib/sound";
+import { isSoundEnabled, onSoundChange, setSoundEnabled, playTone } from "@/lib/sound";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ACCENTS, getAccent, setAccent, onAccentChange, type Accent } from "@/lib/theme";
 import { arePopupsEnabled, setPopupsEnabled, notify } from "@/lib/notify";
@@ -322,7 +322,10 @@ function SecurityPanel() {
   const [tutorials, setTutorials] = useState(false);
   const [openPw, setOpenPw] = useState(false);
   const [openEmail, setOpenEmail] = useState(false);
-  useEffect(() => { setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); setTutorials(areTutorialsEnabled()); }, []);
+  useEffect(() => {
+    setSound(isSoundEnabled()); setPopups(arePopupsEnabled()); setTutorials(areTutorialsEnabled());
+    return onSoundChange(setSound);
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

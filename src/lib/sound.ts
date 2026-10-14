@@ -8,6 +8,7 @@ import navAsset from "@/assets/nav-click.mp3.asset.json";
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let enabled = true;
+const soundListeners = new Set<(value: boolean) => void>();
 
 function ensureCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -16,7 +17,7 @@ function ensureCtx(): AudioContext | null {
       const AC: typeof AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.9;
+      master.gain.value = enabled ? 0.9 : 0;
       master.connect(ctx.destination);
     } catch { return null; }
   }
@@ -27,6 +28,24 @@ function ensureCtx(): AudioContext | null {
 export function setSoundEnabled(v: boolean) {
   enabled = v;
   if (typeof window !== "undefined") localStorage.setItem("closefinance:sound", v ? "1" : "0");
+  if (master && ctx) master.gain.setValueAtTime(v ? 0.9 : 0, ctx.currentTime);
+  if (!v) {
+    [checkAudio, ...clickPool, ...navPool].forEach(audio => {
+      if (audio) { audio.pause(); audio.currentTime = 0; }
+    });
+  }
+  soundListeners.forEach(listener => listener(v));
+}
+export function onSoundChange(listener: (value: boolean) => void): () => void {
+  soundListeners.add(listener);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === "closefinance:sound") setSoundEnabled(event.newValue !== "0");
+  };
+  if (typeof window !== "undefined") window.addEventListener("storage", onStorage);
+  return () => {
+    soundListeners.delete(listener);
+    if (typeof window !== "undefined") window.removeEventListener("storage", onStorage);
+  };
 }
 export function isSoundEnabled(): boolean {
   if (typeof window === "undefined") return true;
