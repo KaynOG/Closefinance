@@ -1,0 +1,2 @@
+ALTER TABLE public.debts ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS archived boolean NOT NULL DEFAULT false;
+ALTER TABLE public.receivables ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS archived boolean NOT NULL DEFAULT false;
