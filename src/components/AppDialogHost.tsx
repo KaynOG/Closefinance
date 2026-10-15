@@ -19,7 +19,7 @@ export function AppDialogHost() {
         <AlertDialogDescription className="whitespace-pre-line break-words leading-relaxed">{request?.message}</AlertDialogDescription>
       </AlertDialogHeader>
       <form onSubmit={event => { event.preventDefault(); finishDialog(request?.kind === "prompt" ? value : true); }} className="space-y-4">
-        {request?.kind === "prompt" && <input autoFocus aria-label={request.message} value={value} onChange={event => setValue(event.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground outline-none focus:border-primary" />}
+        {request?.kind === "prompt" && <input autoFocus type={request.secret ? "password" : "text"} aria-label={request.message} value={value} onChange={event => setValue(event.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground outline-none focus:border-primary" />}
         <AlertDialogFooter className="gap-2">
           {request?.kind !== "alert" && <Button type="button" variant="outline" onClick={() => finishDialog(request?.kind === "prompt" ? null : false)}>{request?.cancelLabel ?? (celebration ? "Agora não" : "Cancelar")}</Button>}
           <Button type="submit" variant={destructive ? "destructive" : "default"}>{request?.confirmLabel ?? (request?.kind === "alert" ? "Entendi" : celebration ? "Sim, mover" : destructive ? "Confirmar exclusão" : "Confirmar")}</Button>
