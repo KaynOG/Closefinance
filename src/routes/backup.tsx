@@ -1,4 +1,5 @@
-import { appConfirm } from "@/lib/app-dialog";
+import { appConfirm, appPrompt } from "@/lib/app-dialog";
+import { encryptBackup, decryptBackup, isEncryptedBackup } from "@/lib/backup-crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
@@ -76,7 +77,16 @@ function BackupBody() {
   }, [cards, preview]);
 
   async function downloadBackup(prefix = "closefinance-backup") {
-    const json = await api.exportData("user");
+    const plain = await api.exportData("user");
+    let pass: string | null = null;
+    while (true) {
+      pass = await appPrompt("Crie uma senha para proteger o backup (mínimo 6 caracteres). Guarde-a: sem ela o arquivo não pode ser aberto.", "", { title: "Backup criptografado", confirmLabel: "Criptografar e baixar", secret: true });
+      if (pass === null) throw new Error("cancelado");
+      if (pass.length >= 6) break;
+    }
+    const confirmPass = await appPrompt("Digite a senha novamente para confirmar.", "", { title: "Confirmar senha", secret: true });
+    if (confirmPass !== pass) { setToast({ kind: "err", msg: "As senhas não coincidem." }); throw new Error("cancelado"); }
+    const json = await encryptBackup(plain, pass);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -87,7 +97,7 @@ function BackupBody() {
   }
 
   async function handleExport() {
-    await downloadBackup();
+    try { await downloadBackup(); } catch { return; }
     setToast({ kind: "ok", msg: "Backup exportado com sucesso." });
   }
 
@@ -96,7 +106,7 @@ function BackupBody() {
     if (!await appConfirm("Esta ação não pode ser desfeita. Confirmar exclusão definitiva?")) return;
     setWiping(true);
     try {
-      await downloadBackup("closefinance-antes-de-apagar");
+      try { await downloadBackup("closefinance-antes-de-apagar"); } catch { return; }
       const r = await api.wipeData();
       if (r?.ok) setToast({ kind: "ok", msg: "Todos os dados foram apagados. O backup foi baixado no seu dispositivo." });
       else setToast({ kind: "err", msg: r?.error ?? "Não foi possível apagar os dados." });
@@ -109,8 +119,14 @@ function BackupBody() {
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    const raw = await f.text();
+    let raw = await f.text();
     try {
+      if (isEncryptedBackup(raw)) {
+        const pass = await appPrompt("Este backup está criptografado. Digite a senha usada ao criá-lo.", "", { title: "Abrir backup protegido", confirmLabel: "Desbloquear", secret: true });
+        if (pass === null) { e.target.value = ""; return; }
+        try { raw = await decryptBackup(raw, pass); }
+        catch { setToast({ kind: "err", msg: "Senha incorreta ou arquivo corrompido." }); setPreview(null); e.target.value = ""; return; }
+      }
       const parsed = JSON.parse(raw);
       if (parsed?.app !== "CloseFinance") {
         setToast({ kind: "err", msg: "Arquivo não reconhecido. Use um backup .json gerado pelo CloseFinance." });

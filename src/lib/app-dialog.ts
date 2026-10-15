@@ -3,6 +3,7 @@ type DialogOptions = {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
+  secret?: boolean;
 };
 export type AppDialogRequest = DialogOptions & {
   kind: "confirm" | "alert" | "prompt";
