@@ -1,9 +1,9 @@
 // AES-256-GCM com chave derivada por PBKDF2-SHA256 (Web Crypto, roda só no navegador).
 const ITER = 310_000;
 const b64 = (u: Uint8Array) => btoa(String.fromCharCode(...u));
-const unb64 = (s: string) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const unb64 = (s: string) => Uint8Array.from(atob(s), c => c.charCodeAt(0)) as Uint8Array<ArrayBuffer>;
 
-async function deriveKey(pass: string, salt: Uint8Array, iter: number) {
+async function deriveKey(pass: string, salt: Uint8Array<ArrayBuffer>, iter: number) {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
 }
