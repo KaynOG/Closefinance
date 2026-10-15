@@ -29,6 +29,17 @@ import claude from "@/assets/brands/claude.svg.asset.json";
 import disney from "@/assets/brands/disney.svg.asset.json";
 import c6 from "@/assets/brands/c6.svg.asset.json";
 import bv from "@/assets/brands/bv.svg.asset.json";
+import adobe from "@/assets/brands/adobe.svg.asset.json";
+import meliplus from "@/assets/brands/meliplus.svg.asset.json";
+import appletv from "@/assets/brands/appletv.svg.asset.json";
+import paramountplus from "@/assets/brands/paramountplus.svg.asset.json";
+import globoplay from "@/assets/brands/globoplay.svg.asset.json";
+import crunchyroll from "@/assets/brands/crunchyroll.svg.asset.json";
+import discordnitro from "@/assets/brands/discordnitro.svg.asset.json";
+import wellhub from "@/assets/brands/wellhub.svg.asset.json";
+import gympass from "@/assets/brands/gympass.svg.asset.json";
+import totalpass from "@/assets/brands/totalpass.svg.asset.json";
+import classpass from "@/assets/brands/classpass.svg.asset.json";
 export const BANK_LOGOS: IconOption[] = [
   { id: "nubank", label: "Nubank", icon: Landmark, image: nubank.url },
   { id: "itau", label: "Itaú", icon: Landmark, image: itau.url },
@@ -61,6 +72,17 @@ export const SERVICE_LOGOS: IconOption[] = [
   { id: "chatgpt", label: "ChatGPT / GPT", icon: Sparkles, image: chatgpt.url },
   { id: "claude", label: "Claude", icon: Sparkles, image: claude.url },
   { id: "disney", label: "Disney+", icon: Sparkles, image: disney.url },
+  { id: "adobe", label: "Adobe", icon: Sparkles, image: adobe.url },
+  { id: "meliplus", label: "Meli+", icon: Sparkles, image: meliplus.url },
+  { id: "appletv", label: "Apple TV+", icon: Sparkles, image: appletv.url },
+  { id: "paramountplus", label: "Paramount+", icon: Sparkles, image: paramountplus.url },
+  { id: "globoplay", label: "Globoplay", icon: Sparkles, image: globoplay.url },
+  { id: "crunchyroll", label: "Crunchyroll", icon: Sparkles, image: crunchyroll.url },
+  { id: "discordnitro", label: "Discord Nitro", icon: Sparkles, image: discordnitro.url },
+  { id: "wellhub", label: "Wellhub", icon: Sparkles, image: wellhub.url },
+  { id: "gympass", label: "Gympass", icon: Sparkles, image: gympass.url },
+  { id: "totalpass", label: "TotalPass", icon: Sparkles, image: totalpass.url },
+  { id: "classpass", label: "ClassPass", icon: Sparkles, image: classpass.url },
 ];
 const normalize = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 export function bankLogoId(name: string) {

@@ -52,6 +52,17 @@ const services = [
   { name: "HBO Max", icon: "hbo", color: "#5822B4" },
   { name: "Disney+", icon: "disney", color: "#0072D2" },
   { name: "iFood", icon: "ifood", color: "#EA1D2C" },
+  { name: "Adobe", icon: "adobe", color: "#EB1000" },
+  { name: "Meli+", icon: "meliplus", color: "#FFE600" },
+  { name: "Apple TV+", icon: "appletv", color: "#111111" },
+  { name: "Paramount+", icon: "paramountplus", color: "#0064FF" },
+  { name: "Globoplay", icon: "globoplay", color: "#0E0E0E" },
+  { name: "Crunchyroll", icon: "crunchyroll", color: "#F47521" },
+  { name: "Discord Nitro", icon: "discordnitro", color: "#5865F2" },
+  { name: "Wellhub", icon: "wellhub", color: "#00B074" },
+  { name: "Gympass", icon: "gympass", color: "#2B3A67" },
+  { name: "TotalPass", icon: "totalpass", color: "#FF5C00" },
+  { name: "ClassPass", icon: "classpass", color: "#7AB800" },
 ] as const;
 
 type SubscriptionForm = { name: string; amount: string; firstChargeDate: string; recurrenceMonths: string; color: string; icon: string; essential: "essential" | "non_essential" };
