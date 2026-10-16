@@ -510,6 +510,38 @@ async function loadAllInner(supaUser: SupaUser) {
     return mapReceivable(row, recvInstRows.filter(i => i.receivableId === String(row.id)));
   });
 
+  // Assinaturas: mantém somente cobranças do mês atual e do próximo. Remove
+  // excesso herdado (geração antiga de 24 meses) e cria o próximo mês quando a
+  // virada ocorre, sem tocar lançamentos passados ou já aplicados ao saldo.
+  const subscriptions = (subsR.data ?? []).map(r => mapSubscription(r as Record<string, unknown>));
+  const horizon = subscriptionHorizonDate();
+  const horizonIso = horizon.toISOString().slice(0, 10);
+  let subTx = loadedTx;
+  const excessIds = subTx.filter(t => t.subscriptionId && t.date > horizonIso && t.appliedToBalance === false).map(t => t.id);
+  if (excessIds.length) {
+    await supabase.from("transactions").delete().in("id", excessIds);
+    subTx = subTx.filter(t => !excessIds.includes(t.id));
+  }
+  const assinCat = cats.find(c => c.name.trim().toLowerCase() === "assinaturas");
+  const toInsert: Record<string, unknown>[] = [];
+  for (const sub of subscriptions) {
+    if (!sub.active) continue;
+    const expected = recurringDates(sub.firstChargeDate, sub.recurrenceMonths, horizon);
+    const existing = new Set(subTx.filter(t => t.subscriptionId === sub.id).map(t => t.date));
+    for (const date of expected) {
+      if (date < today || existing.has(date)) continue;
+      toInsert.push({
+        user_id: uid, type: "expense", amount: sub.amount, description: sub.name, date,
+        category_id: assinCat?.id ?? null, essential: sub.essential, payment_method: null,
+        subscription_id: sub.id, tag: `${SUBSCRIPTION_TAG_PREFIX}${sub.id}`, applied_to_balance: false,
+      });
+    }
+  }
+  if (toInsert.length) {
+    const { data: added } = await supabase.from("transactions").insert(toInsert as never).select("*");
+    subTx = [...(added ?? []).map(r => mapTx(r as Record<string, unknown>)), ...subTx];
+  }
+
   set({
     loading: false,
     currentUserId: uid,
@@ -519,8 +551,8 @@ async function loadAllInner(supaUser: SupaUser) {
     banks: loadedBanks,
     debts,
     receivables,
-    subscriptions: (subsR.data ?? []).map(r => mapSubscription(r as Record<string, unknown>)),
-    transactions: loadedTx,
+    subscriptions,
+    transactions: subTx,
     missions: { date: today, completed, totalPoints, history },
   });
 }
@@ -672,10 +704,14 @@ function addMonths(date: Date, n: number) {
   const d = new Date(date.getFullYear(), date.getMonth() + n, date.getDate());
   return d;
 }
-function recurringDates(firstChargeDate: string, recurrenceMonths: number, monthsAhead = 24) {
+// Horizonte de geração de cobranças de assinatura: só o mês atual e o próximo.
+// Quando o mês vira, a cobrança do novo "próximo mês" é inserida em loadAll.
+export function subscriptionHorizonDate(reference = new Date()) {
+  // Último dia do mês seguinte ao de referência.
+  return new Date(reference.getFullYear(), reference.getMonth() + 2, 0);
+}
+function recurringDates(firstChargeDate: string, recurrenceMonths: number, horizon: Date = subscriptionHorizonDate()) {
   const first = new Date(`${firstChargeDate}T00:00:00`);
-  const horizon = new Date();
-  horizon.setMonth(horizon.getMonth() + monthsAhead);
   const dates: string[] = [];
   for (let i = 0; i < 120; i += 1) {
     const target = new Date(first.getFullYear(), first.getMonth() + i * recurrenceMonths, 1);
