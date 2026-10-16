@@ -6,6 +6,7 @@ import { ChartTooltip } from "@/components/ChartTooltip";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
+import { analyzeHealth } from "@/lib/financial-health";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
