@@ -866,6 +866,7 @@ function DashboardPage() {
           </GlassCard>
         </section>
       )}
+      <ForecastBlock transactions={transactions} categories={categories} cards={cards} />
       </div>
     </AppShell>
   );
