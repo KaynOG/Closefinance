@@ -672,10 +672,14 @@ function addMonths(date: Date, n: number) {
   const d = new Date(date.getFullYear(), date.getMonth() + n, date.getDate());
   return d;
 }
-function recurringDates(firstChargeDate: string, recurrenceMonths: number, monthsAhead = 24) {
+// Horizonte de geração de cobranças de assinatura: só o mês atual e o próximo.
+// Quando o mês vira, a cobrança do novo "próximo mês" é inserida em loadAll.
+export function subscriptionHorizonDate(reference = new Date()) {
+  // Último dia do mês seguinte ao de referência.
+  return new Date(reference.getFullYear(), reference.getMonth() + 2, 0);
+}
+function recurringDates(firstChargeDate: string, recurrenceMonths: number, horizon: Date = subscriptionHorizonDate()) {
   const first = new Date(`${firstChargeDate}T00:00:00`);
-  const horizon = new Date();
-  horizon.setMonth(horizon.getMonth() + monthsAhead);
   const dates: string[] = [];
   for (let i = 0; i < 120; i += 1) {
     const target = new Date(first.getFullYear(), first.getMonth() + i * recurrenceMonths, 1);
