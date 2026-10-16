@@ -551,8 +551,8 @@ async function loadAllInner(supaUser: SupaUser) {
     banks: loadedBanks,
     debts,
     receivables,
-    subscriptions: (subsR.data ?? []).map(r => mapSubscription(r as Record<string, unknown>)),
-    transactions: loadedTx,
+    subscriptions,
+    transactions: subTx,
     missions: { date: today, completed, totalPoints, history },
   });
 }
