@@ -991,3 +991,137 @@ function HealthRing({
     </div>
   );
 }
+
+function ForecastBlock({ transactions, categories, cards }: { transactions: any[]; categories: any[]; cards: any[] }) {
+  const cc = useChartColors();
+  const analysis = useMemo(() => analyzeHealth(transactions, categories, cards), [transactions, categories, cards]);
+  const forecast = useMemo(() => {
+    const { avgIncome, avgExpense, paceExpense, current, expenseVsAvg } = analysis;
+    const baseIncome = current.income || avgIncome;
+    const baseExpense = Math.max(paceExpense, avgExpense);
+    // trend damped: if above average, assume partial regression; if below, hold
+    const trend = expenseVsAvg === null ? 0 : Math.max(-0.1, Math.min(0.08, expenseVsAvg * 0.4));
+    const now = new Date();
+    return Array.from({ length: 3 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+      const income = baseIncome;
+      const expense = baseExpense * (1 + trend * (i + 1) * 0.5);
+      const net = income - expense;
+      const rate = income > 0 ? net / income : 0;
+      // extrapolate score roughly from savings rate and expense trend
+      const scoreShift = Math.round((rate - analysis.savingsRate) * 60 - trend * 40);
+      const score = Math.max(0, Math.min(100, analysis.score + scoreShift * (i + 1) * 0.5));
+      return {
+        key: `${d.getFullYear()}-${d.getMonth()}`,
+        label: d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+        income, expense, net, score,
+      };
+    });
+  }, [analysis]);
+
+  const tips = useMemo(() => {
+    const t: { title: string; body: string; tone: "critical" | "warn" | "good" | "info" }[] = [];
+    const { current, avgExpense, avgIncome, paceExpense, savingsRate, catChanges, expenseVsAvg } = analysis;
+    const income = current.income || avgIncome;
+    if (income > 0 && paceExpense > income) {
+      const gap = paceExpense - income;
+      t.push({ tone: "critical", title: "Freie o ritmo este mês", body: `No ritmo atual você gasta ${formatBRL(gap)} a mais do que ganha. Suspenda compras não essenciais pelas próximas duas semanas até fechar essa diferença.` });
+    }
+    const top = catChanges.find(c => c.diff > 100);
+    if (top) t.push({ tone: "warn", title: `Reveja "${top.name}"`, body: `Subiu ${formatBRL(top.diff)} vs. a sua média. Defina um teto para a categoria neste mês — voltar ao padrão já libera essa sobra.` });
+    if (current.nonEssential > 0 && current.expense > 0 && current.nonEssential / current.expense > 0.3) {
+      t.push({ tone: "warn", title: "Corte 30% dos não essenciais", body: `Hoje são ${formatBRL(current.nonEssential)} em supérfluos. Antes de comprar, espere 48h: boa parte da vontade some.` });
+    }
+    if (income > 0 && savingsRate < 0.1) {
+      t.push({ tone: "info", title: "Pague-se primeiro", body: `Assim que a renda cair, mande no mínimo 10% (${formatBRL(income * 0.1)}) direto para Poupar/Investimento. O que fica na conta tende a virar gasto.` });
+    }
+    if (expenseVsAvg !== null && expenseVsAvg > 0.15) {
+      t.push({ tone: "warn", title: "Mude um hábito recorrente", body: "Delivery, assinaturas repetidas e transporte por aplicativo somam rápido. Troque 2 pedidos por semana por refeição em casa e cancele a assinatura menos usada." });
+    }
+    if (expenseVsAvg !== null && expenseVsAvg < -0.08 && savingsRate > 0.15) {
+      t.push({ tone: "good", title: "Transforme a sobra em patrimônio", body: `Você está gastando menos que a média. Agende o investimento automático da diferença para não deixar o dinheiro parado.` });
+    }
+    if (t.length === 0) {
+      t.push({ tone: "info", title: "Mantenha o controle semanal", body: "Reserve 10 min por semana para conferir lançamentos e categorizar o que ficou solto — isso sustenta sua projeção." });
+    }
+    return t.slice(0, 4);
+  }, [analysis]);
+
+  const toneClasses: Record<string, string> = {
+    critical: "border-destructive/40 bg-destructive/10 text-destructive",
+    warn: "border-secondary/40 bg-secondary/10 text-secondary",
+    good: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
+    info: "border-primary/40 bg-primary/10 text-primary",
+  };
+
+  const projectedScore = Math.round(forecast[2]?.score ?? analysis.score);
+  const scoreDelta = projectedScore - analysis.score;
+
+  return (
+    <section className="mb-8">
+      <GlassCard hideKey="index-forecast" hideLabel="Projeção 3 meses">
+        <SectionTitle title="Projeção para os próximos 3 meses" subtitle="estimativa de ganhos, gastos e saúde financeira com base no seu histórico" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          {forecast.map((m, i) => (
+            <div key={m.key} className="glass panel-depth rounded-2xl p-4 relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Daqui a {i + 1} {i === 0 ? "mês" : "meses"}</span>
+                <span className="font-mono text-xs text-muted-foreground capitalize">{m.label}</span>
+              </div>
+              <div className="mt-3 space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="size-3.5" style={{ color: cc.c1 }} /> Ganhos</span>
+                  <span className="font-mono" style={{ color: cc.c1 }}>{formatBRL(m.income)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingDown className="size-3.5" style={{ color: cc.c2 }} /> Gastos</span>
+                  <span className="font-mono" style={{ color: cc.c2 }}>{formatBRL(m.expense)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                  <span className="font-semibold">Sobra prevista</span>
+                  <span className={`font-mono font-semibold ${m.net >= 0 ? "text-emerald-300" : "text-destructive"}`}>{formatBRL(m.net)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <span className="flex items-center gap-1.5 text-muted-foreground"><HeartPulse className="size-3.5" /> Saúde projetada</span>
+                  <span className="font-mono font-semibold">{Math.round(m.score)}/100</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-border bg-white/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Saúde financeira em 3 meses</p>
+              <p className="text-lg font-bold mt-0.5">
+                {analysis.score} <span className="text-muted-foreground">→</span> {projectedScore}
+                <span className={`ml-2 text-sm font-mono ${scoreDelta >= 0 ? "text-emerald-300" : "text-destructive"}`}>
+                  {scoreDelta >= 0 ? "+" : ""}{scoreDelta}
+                </span>
+              </p>
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Projeção calculada a partir dos últimos meses, aplicando uma tendência suavizada. Siga as dicas abaixo para melhorar o resultado.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb className="size-4 text-secondary" />
+            <h3 className="font-semibold">Dicas personalizadas</h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {tips.map((t, i) => (
+              <div key={i} className={`rounded-2xl border p-3 ${toneClasses[t.tone]}`}>
+                <p className="font-semibold text-sm">{t.title}</p>
+                <p className="text-xs mt-1 text-foreground/80 leading-relaxed">{t.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </GlassCard>
+    </section>
+  );
+}
