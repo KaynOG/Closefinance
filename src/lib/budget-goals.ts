@@ -38,6 +38,22 @@ export function localMonth(date = new Date()) {
 export function localDay(date = new Date()) {
   return `${localMonth(date)}-${String(date.getDate()).padStart(2, "0")}`;
 }
+/** Monthly income allocation, rounded to cents without losing the distributed total. */
+export function projectBudget(income: number, percentages: BudgetPercentages): Record<BudgetGroup, number> {
+  const cents = Number.isFinite(income) ? Math.max(0, Math.round(income * 100)) : 0;
+  const allocations = BUDGET_GROUPS.map(g => {
+    const exact = cents * percentages[g.id] / 100;
+    return { id: g.id, exact, cents: Math.floor(exact) };
+  });
+  const total = Math.round(allocations.reduce((sum, g) => sum + g.exact, 0));
+  let remainder = total - allocations.reduce((sum, g) => sum + g.cents, 0);
+  for (const g of [...allocations].sort((a, b) => (b.exact - b.cents) - (a.exact - a.cents))) {
+    if (remainder <= 0) break;
+    g.cents += 1;
+    remainder -= 1;
+  }
+  return Object.fromEntries(allocations.map(g => [g.id, g.cents / 100])) as Record<BudgetGroup, number>;
+}
 export function monthBudget(transactions: Transaction[], categories: Category[], month: string, savedAmount: number, today = localDay()) {
   const groups = Object.fromEntries(BUDGET_GROUPS.map(g => [g.id, 0])) as Record<BudgetGroup, number>;
   let income = 0, unassigned = 0, expenses = 0;

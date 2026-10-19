@@ -23,6 +23,7 @@
 - Keep transaction history grouped by actual entries, actual expenses and derived invoice summaries; never add invoice summaries or invoice settlements to purchase totals, to avoid double counting.
 - Keep static service and bank logos in the shared brand catalog as CDN asset pointers, with persisted catalog IDs on records and in backups, so logo choices survive reloads and restoration without runtime lookup services.
 - Share six-group monthly budget calculations through `budget-goals`; persist category group links and month-specific plans on existing owner-scoped rows and include them in backup, because comparisons must remain consistent across devices and restoration.
+- Use the shared income-allocation calculation for both budget target charts and tables, because percentages are weights, not monetary amounts, and cent rounding must preserve the distributed total.
 - Keep saved/invested balances separate from monthly contributions in budget comparisons, because cumulative assets are not a month's income allocation; exclude invoice settlements and future transactions to prevent double counting and forecasts.
 
 - Use AppDatePicker for all day and month fields, preserving local ISO values and callbacks, because date selection must stay themed and accessible inside app dialogs.

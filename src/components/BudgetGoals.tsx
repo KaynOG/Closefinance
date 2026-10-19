@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { CatPieChart } from "@/components/charts/lazy";
 import { useStore } from "@/lib/store";
 import { notify } from "@/lib/notify";
-import { BUDGET_GROUPS, DEFAULT_PERCENTAGES, localMonth, monthBudget, rebalance, type BudgetMonth } from "@/lib/budget-goals";
+import { BUDGET_GROUPS, DEFAULT_PERCENTAGES, localMonth, monthBudget, projectBudget, rebalance, type BudgetMonth } from "@/lib/budget-goals";
 
 const dotClasses = { freedom: "bg-budget-freedom", comfort: "bg-budget-comfort", pleasures: "bg-budget-pleasures", knowledge: "bg-budget-knowledge", fixed: "bg-budget-fixed", goals: "bg-budget-goals" };
 const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -27,7 +27,8 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
   const total = BUDGET_GROUPS.reduce((sum, g) => sum + values.percentages[g.id], 0);
   const currentSavings = state.banks.reduce((sum, b) => sum + b.savedAmount, 0);
   const label = new Date(`${month}-01T12:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  const targetData = BUDGET_GROUPS.map(g => ({ name: g.name, value: values.percentages[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
+  const projected = projectBudget(actual.income, values.percentages);
+  const targetData = BUDGET_GROUPS.map(g => ({ name: g.name, value: projected[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
   const actualData: Array<{ name: string; value: number; color: string }> = BUDGET_GROUPS.map(g => ({ name: g.name, value: actual.groups[g.id], color: `var(--budget-${g.id})` })).filter(g => g.value > 0);
   if (actual.unassigned > 0) actualData.push({ name: "Sem vínculo", value: actual.unassigned, color: "var(--muted-foreground)" });
   if (actual.remaining > 0) actualData.push({ name: "Não destinado", value: actual.remaining, color: "var(--border)" });
@@ -61,7 +62,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
       <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_1.2fr]">
         <div className="min-w-0">
           <h3 className="mb-3 font-semibold">Sua meta</h3>
-          <div className="h-80 min-w-0">{targetData.length > 0 ? <CatPieChart data={targetData} /> : <EmptyChart text="Nenhum percentual definido" />}</div>
+          <div className="h-80 min-w-0">{targetData.length > 0 ? <CatPieChart data={targetData} /> : <EmptyChart text={actual.income <= 0 ? "Sem receita registrada neste mês" : "Nenhum percentual definido"} />}</div>
           <p className={`mt-3 text-center font-mono text-sm ${total === 100 ? "text-success" : "text-warning"}`}>{total}% da renda destinada</p>
         </div>
         <div className="min-w-0">
@@ -78,6 +79,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
                 <span className="shrink-0 font-mono text-primary">{values.percentages[g.id]}%</span>
               </div>
               <Slider className="budget-slider" aria-labelledby={`budget-label-${g.id}`} min={0} max={100} step={1} value={[values.percentages[g.id]]} onValueChange={([value]) => { if (value !== undefined) setDraft({ ...values, percentages: rebalance(values.percentages, g.id, value) }); }} />
+              <p className="mt-1 text-right font-mono text-xs text-muted-foreground">{money(projected[g.id])} {g.id === "freedom" ? "para guardar / investir" : "disponíveis no mês"}</p>
             </div>)}
           </div>
           <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
@@ -105,7 +107,7 @@ function MonthlyBudget({ month, onMonthChange }: { month: string; onMonthChange:
         <table className="w-full min-w-[530px] text-sm">
           <thead className="text-xs text-muted-foreground"><tr className="border-b border-border"><th className="py-3 text-left font-medium">Grupo</th><th className="text-right font-medium">Meta / renda</th><th className="text-right font-medium">Realizado / renda</th><th className="text-right font-medium">Diferença</th></tr></thead>
           <tbody>{BUDGET_GROUPS.map(g => {
-            const target = actual.income * values.percentages[g.id] / 100;
+            const target = projected[g.id];
             const real = actual.groups[g.id];
             const delta = real - target;
             return <tr key={g.id} className="border-b border-border"><th scope="row" className="py-3 text-left font-medium"><span className="flex items-center gap-2"><span className={`size-2 shrink-0 rounded-full ${dotClasses[g.id]}`} />{g.name}</span></th><td className="text-right font-mono text-xs">{money(target)}<span className="block text-muted-foreground">{values.percentages[g.id]}%</span></td><td className="text-right font-mono text-xs">{money(real)}<span className="block text-muted-foreground">{actual.income > 0 ? `${(real / actual.income * 100).toFixed(1)}%` : "—"}</span></td><td className="text-right font-mono text-xs">{delta > 0 ? "+" : ""}{money(delta)}</td></tr>;
