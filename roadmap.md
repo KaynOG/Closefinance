@@ -1,5 +1,7 @@
 # Ajustes solicitados
 
+- [ ] Corrigir a projeção de Sua meta para distribuir a receita mensal entre os seis pilares e verificar os cálculos e o gráfico.
+
 - [x] Adicionar logos C6 e BV ao catálogo de bancos.
 - [x] Inclinar caixas ao passar o mouse e usar apenas sombra escura.
 - [x] Padronizar listas de Dívidas e Devedores.
