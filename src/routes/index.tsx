@@ -7,6 +7,8 @@ import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, INVOICE_PAYMENT_TAG_PREFIX, isCashFlowExpense, computeInvoicesForMonth } from "@/lib/store";
 import { analyzeHealth } from "@/lib/financial-health";
+import { isCreditPurchase, type Debt, type Receivable } from "@/lib/store";
+import { useManualInvoices, monthKey, manualInvoiceTotal, type ManualInvoice } from "@/lib/manual-invoices";
 import { pickGreeting } from "@/lib/greetings";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -79,7 +81,8 @@ function DashboardPage() {
   const cc = useChartColors();
   const CYAN = cc.c1;
   const ORANGE = cc.c2;
-  const [{ transactions, categories, cards, banks, missions, subscriptions }, api, user] = useStore();
+  const [{ transactions, categories, cards, banks, missions, subscriptions, debts, receivables, currentUserId }, api, user] = useStore();
+  const [manualInvoices] = useManualInvoices(currentUserId);
   useEffect(() => { if (user) api.awardMission("view_dashboard"); }, [user?.id]);
   const today = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
@@ -234,12 +237,30 @@ function DashboardPage() {
       breakdown.push({ label: "Sem reserva guardada", delta: -15 });
     }
 
+    // 4) Dívidas em aberto (até -15) e devedores a receber (até +5)
+    const refIncome = month.income;
+    const debtOpen = debts.filter(d => !d.archived).reduce((s, d) => s + d.installments.filter(i => !i.paid).reduce((a, i) => a + i.amount, 0), 0);
+    if (debtOpen > 0 && refIncome > 0) {
+      const months = debtOpen / refIncome;
+      const pen = Math.round(Math.min(15, months * 3));
+      if (pen > 0) { score -= pen; breakdown.push({ label: `Dívidas em aberto (${months.toFixed(1)}× a renda)`, delta: -pen }); }
+    } else if (debtOpen > 0) { score -= 10; breakdown.push({ label: "Dívidas em aberto sem renda", delta: -10 }); }
+    const recvOpen = receivables.filter(r => !r.archived).reduce((s, r) => s + r.installments.filter(i => !i.received).reduce((a, i) => a + i.amount, 0), 0);
+    if (recvOpen > 0) { const b = Math.min(5, Math.round(refIncome > 0 ? (recvOpen / refIncome) * 5 : 2)); if (b > 0) { score += b; breakdown.push({ label: "Valores a receber de devedores", delta: b }); } }
+
+    // 5) Fatura definida em Cartões (até -20) quando passa de 50% da renda
+    const invMonth = manualInvoiceTotal(manualInvoices, monthKey(new Date()));
+    if (invMonth > 0 && refIncome > 0 && invMonth / refIncome > 0.5) {
+      const pen = Math.round(Math.min(20, (invMonth / refIncome - 0.5) * 50));
+      if (pen > 0) { score -= pen; breakdown.push({ label: `Fatura ${Math.round((invMonth / refIncome) * 100)}% da renda`, delta: -pen }); }
+    }
+
     score = Math.round(Math.max(0, Math.min(100, score)));
     const label = score >= 75 ? "Excelente" : score >= 55 ? "Saudável" : score >= 35 ? "Atenção" : "Crítico";
     const tone: "success" | "teal" | "yellow" | "danger" =
       score >= 75 ? "success" : score >= 55 ? "teal" : score >= 35 ? "yellow" : "danger";
     return { score, label, tone, breakdown };
-  }, [month, totalLimit, totalUsed, totalSaved, totalLifetimeIncome]);
+  }, [month, totalLimit, totalUsed, totalSaved, totalLifetimeIncome, debts, receivables, manualInvoices]);
 
   const series = useMemo(() => {
     const out: Array<{ month: string; receitas: number; despesas: number; forecast?: boolean }> = [];
@@ -866,7 +887,7 @@ function DashboardPage() {
           </GlassCard>
         </section>
       )}
-      <ForecastBlock transactions={transactions} categories={categories} cards={cards} />
+      <ForecastBlock transactions={transactions} categories={categories} cards={cards} debts={debts} receivables={receivables} invoices={manualInvoices} />
       </div>
     </AppShell>
   );
@@ -992,32 +1013,40 @@ function HealthRing({
   );
 }
 
-function ForecastBlock({ transactions, categories, cards }: { transactions: any[]; categories: any[]; cards: any[] }) {
+function ForecastBlock({ transactions, categories, cards, debts, receivables, invoices }: { transactions: any[]; categories: any[]; cards: any[]; debts: Debt[]; receivables: Receivable[]; invoices: ManualInvoice[] }) {
   const cc = useChartColors();
   const analysis = useMemo(() => analyzeHealth(transactions, categories, cards), [transactions, categories, cards]);
   const forecast = useMemo(() => {
     const { avgIncome, avgExpense, paceExpense, current, expenseVsAvg } = analysis;
-    const baseIncome = current.income || avgIncome;
-    const baseExpense = Math.max(paceExpense, avgExpense);
-    // trend damped: if above average, assume partial regression; if below, hold
-    const trend = expenseVsAvg === null ? 0 : Math.max(-0.1, Math.min(0.08, expenseVsAvg * 0.4));
     const now = new Date();
+    const inMonth = (iso: string, d: Date) => iso.slice(0, 7) === monthKey(d);
+    const debtDue = (d: Date) => debts.filter(x => !x.archived).reduce((s, x) => s + x.installments.filter(i => inMonth(i.dueDate, d) && (!i.paid || d <= now)).reduce((a, i) => a + i.amount, 0), 0);
+    const recvDue = (d: Date) => receivables.filter(x => !x.archived).reduce((s, x) => s + x.installments.filter(i => inMonth(i.dueDate, d) && (!i.received || d <= now)).reduce((a, i) => a + i.amount, 0), 0);
+    const creditIn = (d: Date) => transactions.filter(t => isCreditPurchase(t) && isSameMonth(t.date, d)).reduce((s, t) => s + t.amount, 0);
+    // remove do histórico o que já é parcela de dívida/devedor para não contar duas vezes
+    const baseIncome = Math.max(0, (current.income || avgIncome) - recvDue(now));
+    const baseExpense = Math.max(0, Math.max(paceExpense, avgExpense) - debtDue(now));
+    const trend = expenseVsAvg === null ? 0 : Math.max(-0.1, Math.min(0.08, expenseVsAvg * 0.4));
     return Array.from({ length: 3 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
-      const income = baseIncome;
-      const expense = baseExpense * (1 + trend * (i + 1) * 0.5);
+      const debt = debtDue(d);
+      const recv = recvDue(d);
+      const credit = creditIn(d);
+      const manualInv = manualInvoiceTotal(invoices, monthKey(d));
+      const invoiceExtra = Math.max(0, manualInv - credit);
+      const income = baseIncome + recv;
+      const expense = baseExpense * (1 + trend * (i + 1) * 0.5) + debt + invoiceExtra;
       const net = income - expense;
       const rate = income > 0 ? net / income : 0;
-      // extrapolate score roughly from savings rate and expense trend
       const scoreShift = Math.round((rate - analysis.savingsRate) * 60 - trend * 40);
       const score = Math.max(0, Math.min(100, analysis.score + scoreShift * (i + 1) * 0.5));
       return {
         key: `${d.getFullYear()}-${d.getMonth()}`,
         label: d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
-        income, expense, net, score,
+        income, expense, net, score, debt, recv, invoice: Math.max(manualInv, credit),
       };
     });
-  }, [analysis]);
+  }, [analysis, debts, receivables, invoices, transactions]);
 
   const tips = useMemo(() => {
     const t: { title: string; body: string; tone: "critical" | "warn" | "good" | "info" }[] = [];
@@ -1027,6 +1056,18 @@ function ForecastBlock({ transactions, categories, cards }: { transactions: any[
       const gap = paceExpense - income;
       t.push({ tone: "critical", title: "Freie o ritmo este mês", body: `No ritmo atual você gasta ${formatBRL(gap)} a mais do que ganha. Suspenda compras não essenciais pelas próximas duas semanas até fechar essa diferença.` });
     }
+    const curInv = Math.max(manualInvoiceTotal(invoices, monthKey(new Date())), transactions.filter(x => isCreditPurchase(x) && isSameMonth(x.date, new Date())).reduce((a, x) => a + x.amount, 0));
+    const nextInv = forecast[0]?.invoice ?? 0;
+    const worstInv = Math.max(curInv, nextInv);
+    if (income > 0 && worstInv >= income * 0.8) {
+      t.push({ tone: "critical", title: "Fatura perto do seu salário", body: `A fatura chega a ${formatBRL(worstInv)} (${Math.round((worstInv / income) * 100)}% da renda). Congele novas compras no crédito, corte não essenciais e, se o banco oferecer, avalie parcelar a fatura em poucas vezes — compare os juros com outras opções antes de aceitar.` });
+    } else if (income > 0 && worstInv >= income * 0.5) {
+      t.push({ tone: "warn", title: "Fatura pesando na renda", body: `Faturas de ${formatBRL(worstInv)} comprometem ${Math.round((worstInv / income) * 100)}% da renda. Prefira débito/Pix até ela voltar abaixo de 30%.` });
+    }
+    const debtNext = forecast.reduce((s2, m) => s2 + m.debt, 0);
+    if (debtNext > 0) t.push({ tone: income > 0 && debtNext / 3 > income * 0.3 ? "warn" : "info", title: "Parcelas de dívidas à frente", body: `${formatBRL(debtNext)} em parcelas de dívidas nos próximos 3 meses. Já reserve esse valor ao receber e evite novas dívidas até quitar.` });
+    const recvNext = forecast.reduce((s2, m) => s2 + m.recv, 0);
+    if (recvNext > 0) t.push({ tone: "good", title: "Dinheiro a receber de devedores", body: `${formatBRL(recvNext)} previstos nos próximos 3 meses. Use para quitar dívidas ou reforçar a reserva, não para novos gastos.` });
     const top = catChanges.find(c => c.diff > 100);
     if (top) t.push({ tone: "warn", title: `Reveja "${top.name}"`, body: `Subiu ${formatBRL(top.diff)} vs. a sua média. Defina um teto para a categoria neste mês — voltar ao padrão já libera essa sobra.` });
     if (current.nonEssential > 0 && current.expense > 0 && current.nonEssential / current.expense > 0.3) {
@@ -1044,8 +1085,8 @@ function ForecastBlock({ transactions, categories, cards }: { transactions: any[
     if (t.length === 0) {
       t.push({ tone: "info", title: "Mantenha o controle semanal", body: "Reserve 10 min por semana para conferir lançamentos e categorizar o que ficou solto — isso sustenta sua projeção." });
     }
-    return t.slice(0, 4);
-  }, [analysis]);
+    return t.slice(0, 6);
+  }, [analysis, forecast, invoices, transactions]);
 
   const toneClasses: Record<string, string> = {
     critical: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -1077,6 +1118,13 @@ function ForecastBlock({ transactions, categories, cards }: { transactions: any[
                   <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingDown className="size-3.5" style={{ color: cc.c2 }} /> Gastos</span>
                   <span className="font-mono" style={{ color: cc.c2 }}>{formatBRL(m.expense)}</span>
                 </div>
+                {(m.debt > 0 || m.recv > 0 || m.invoice > 0) && (
+                  <div className="space-y-0.5 text-[11px] font-mono text-muted-foreground">
+                    {m.invoice > 0 && <div className="flex justify-between"><span>· fatura cartão</span><span>{formatBRL(m.invoice)}</span></div>}
+                    {m.debt > 0 && <div className="flex justify-between"><span>· parcelas de dívidas</span><span>{formatBRL(m.debt)}</span></div>}
+                    {m.recv > 0 && <div className="flex justify-between"><span>· a receber de devedores</span><span>{formatBRL(m.recv)}</span></div>}
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
                   <span className="font-semibold">Sobra prevista</span>
                   <span className={`font-mono font-semibold ${m.net >= 0 ? "text-emerald-300" : "text-destructive"}`}>{formatBRL(m.net)}</span>
@@ -1102,7 +1150,7 @@ function ForecastBlock({ transactions, categories, cards }: { transactions: any[
               </p>
             </div>
             <p className="max-w-md text-xs text-muted-foreground">
-              Projeção calculada a partir dos últimos meses, aplicando uma tendência suavizada. Siga as dicas abaixo para melhorar o resultado.
+              Projeção calculada a partir dos últimos meses com tendência suavizada, somando parcelas de dívidas, valores de devedores, compras no crédito e as faturas definidas em Cartões. Siga as dicas abaixo para melhorar o resultado.
             </p>
           </div>
         </div>
