@@ -1,5 +1,6 @@
 import { AppDatePicker } from "@/components/AppDatePicker";
-import { appConfirm } from "@/lib/app-dialog";
+import { appConfirm, appPrompt } from "@/lib/app-dialog";
+import { Pencil } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { ColorPicker } from "@/components/ColorPicker";
@@ -948,6 +949,17 @@ function ManualInvoicesBlock() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="font-mono">{formatBRL(i.amount)}</span>
+                                <button onClick={async () => {
+                                  const v = await appPrompt("Novo valor da fatura (R$)", i.amount.toFixed(2).replace(".", ","), { title: "Editar fatura", confirmLabel: "Salvar" });
+                                  if (v === null) return;
+                                  const n = Number(v.replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, ""));
+                                  if (!Number.isFinite(n) || n <= 0) { notify("Informe um valor válido."); return; }
+                                  persist(items.map(x => x.id === i.id ? { ...x, amount: Math.round(n * 100) / 100 } : x));
+                                  notify("Fatura atualizada.");
+                                }}
+                                  className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-white/10" aria-label="Editar valor da fatura">
+                                  <Pencil className="size-4" />
+                                </button>
                                 <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { persist(items.filter(x => x.id !== i.id)); notify("Fatura removida."); } }}
                                   className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover fatura">
                                   <Trash2 className="size-4" />
