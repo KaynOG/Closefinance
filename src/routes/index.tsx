@@ -1098,6 +1098,24 @@ function ForecastBlock({ transactions, categories, cards, debts, receivables, in
   const projectedScore = Math.round(forecast[2]?.score ?? analysis.score);
   const scoreDelta = projectedScore - analysis.score;
 
+  // Cenário "seguindo as dicas": economia mensal estimada, aplicada gradualmente (1/3, 2/3, 100%)
+  const tipSaving = useMemo(() => {
+    const raw = analysis.insights.filter(x => x.severity !== "good").reduce((s, x) => s + (x.monthlySaving || 0), 0);
+    const base = forecast[0]?.expense ?? 0;
+    return Math.max(0, Math.min(raw, base * 0.3));
+  }, [analysis, forecast]);
+  const improved = useMemo(() => forecast.map((m, i) => {
+    const saving = tipSaving * ((i + 1) / 3);
+    const expense = Math.max(0, m.expense - saving);
+    const net = m.income - expense;
+    const rate = m.income > 0 ? net / m.income : 0;
+    const baseRate = m.income > 0 ? m.net / m.income : 0;
+    const habitBonus = (i + 1) * 2; // controle semanal, reserva, menos crédito
+    const score = Math.max(0, Math.min(100, m.score + Math.max(0, (rate - baseRate) * 80) + habitBonus));
+    return { ...m, expense, net, score, saving };
+  }), [forecast, tipSaving]);
+  const improvedScore = Math.round(improved[2]?.score ?? analysis.score);
+
   return (
     <section className="mb-8">
       <GlassCard hideKey="index-forecast" hideLabel="Projeção 3 meses">
@@ -1152,6 +1170,39 @@ function ForecastBlock({ transactions, categories, cards, debts, receivables, in
             <p className="max-w-md text-xs text-muted-foreground">
               Projeção calculada a partir dos últimos meses com tendência suavizada, somando parcelas de dívidas, valores de devedores, compras no crédito e as faturas definidas em Cartões. Siga as dicas abaixo para melhorar o resultado.
             </p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Se você seguir as dicas</p>
+              <p className="text-lg font-bold mt-0.5">
+                {analysis.score} <span className="text-muted-foreground">→</span> <span className="text-emerald-300">{improvedScore}</span>
+                <span className="ml-2 text-sm font-mono text-emerald-300">+{Math.max(0, improvedScore - projectedScore)} vs. sem mudanças</span>
+              </p>
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Simulação aplicando as dicas aos poucos: cerca de {formatBRL(tipSaving)}/mês de economia ao final de 3 meses, com novos hábitos de controle.
+            </p>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {improved.map((m, i) => (
+              <div key={m.key} className="rounded-xl border border-border bg-white/5 p-3">
+                <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+                  <span className="capitalize">{m.label}</span>
+                  <span>economia {formatBRL(m.saving)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Sobra</span>
+                  <span className={`font-mono ${m.net >= 0 ? "text-emerald-300" : "text-destructive"}`}>{formatBRL(m.net)}</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-muted-foreground"><HeartPulse className="size-3.5" /> Saúde</span>
+                  <span className="font-mono font-semibold">{Math.round(forecast[i].score)} → <span className="text-emerald-300">{Math.round(m.score)}</span></span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
