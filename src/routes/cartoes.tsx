@@ -913,28 +913,54 @@ function ManualInvoicesBlock() {
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma fatura definida ainda.</p>
           ) : (
-            <div className="space-y-2">
-              {items.map(i => {
-                const card = cards.find(c => c.id === i.cardId);
-                return (
-                  <div key={i.id} className="rounded-2xl border border-border p-3 flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="size-2.5 rounded-full shrink-0" style={{ background: card?.color ?? "var(--primary)" }} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm">{card?.name ?? "cartão removido"}</p>
-                        <p className="text-[11px] font-mono text-muted-foreground capitalize">{monthLabel(i.month)}{i.month === curMonth ? " · mês atual" : ""}</p>
+            <div className="space-y-5">
+              <div>
+                <p className="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-muted-foreground"><BarChart3 className="size-3.5 shrink-0" /> fatura mês a mês</p>
+                <div className="grid h-32 items-end gap-2" style={{ gridTemplateColumns: `repeat(${chartMonths.length}, minmax(0, 1fr))` }}
+                  role="img" aria-label={chartMonths.map(m => `${monthLabel(m.key)}: ${formatBRL(m.total)}`).join("; ")}>
+                  {chartMonths.map(m => <div key={m.key} className="grid h-full min-w-0 grid-rows-[1.1rem_minmax(0,1fr)_1.1rem] justify-items-center gap-1">
+                    <span title={formatBRL(m.total)} className="w-full truncate text-center text-[9px] font-mono whitespace-nowrap text-muted-foreground">{m.total ? `R$ ${Math.round(m.total).toLocaleString("pt-BR")}` : "—"}</span>
+                    <div className="flex size-full items-end justify-center">
+                      <div className="subscription-chart-bar w-full max-w-14 rounded-md bg-primary motion-safe:transition-[height] motion-safe:duration-700" style={{ height: `${(m.total / m.max) * 100}%`, minHeight: 2 }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground">{m.label}</span>
+                  </div>)}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {byMonth.map(([month, list]) => {
+                  const total = list.reduce((s, i) => s + i.amount, 0);
+                  return (
+                    <div key={month}>
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-1.5">
+                        <p className="flex min-w-0 items-center gap-2 text-sm font-semibold capitalize"><CalendarDays className="size-3.5 shrink-0 text-muted-foreground" /> {monthLabel(month)}{month === curMonth ? " · mês atual" : ""}</p>
+                        <p className="shrink-0 font-mono text-[11px] text-muted-foreground">{formatBRL(total)} · {list.length} {list.length === 1 ? "fatura" : "faturas"}</p>
+                      </div>
+                      <div className="space-y-2">
+                        {list.map(i => {
+                          const card = cards.find(c => c.id === i.cardId);
+                          return (
+                            <div key={i.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-3">
+                              <div className="flex min-w-0 items-center gap-2.5">
+                                <span className="size-2.5 shrink-0 rounded-full" style={{ background: card?.color ?? "var(--primary)" }} />
+                                <p className="min-w-0 truncate font-semibold text-sm">{card?.name ?? "cartão removido"}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono">{formatBRL(i.amount)}</span>
+                                <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { persist(items.filter(x => x.id !== i.id)); notify("Fatura removida."); } }}
+                                  className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover fatura">
+                                  <Trash2 className="size-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono">{formatBRL(i.amount)}</span>
-                      <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { persist(items.filter(x => x.id !== i.id)); notify("Fatura removida."); } }}
-                        className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover fatura">
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
