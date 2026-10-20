@@ -6,7 +6,7 @@ import { ColorPicker } from "@/components/ColorPicker";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, parseBRL, INVOICE_PAYMENT_TAG_PREFIX, CARD_PURCHASE_TAG, CARD_PURCHASE_PAID_TAG, isCardPurchaseTx, type Transaction } from "@/lib/store";
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp, Check, ShoppingBag } from "lucide-react";
+import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp, Check, ShoppingBag, CalendarDays, BarChart3 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
 import { AppSelect } from "@/components/AppSelect";
@@ -811,6 +811,8 @@ function ExternalPurchases() {
   );
 }
 
+const MONTH_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
 // ---------------- FATURAS (valores definidos pelo usuário, só controle) ----------------
 function ManualInvoicesBlock() {
   const [{ cards, currentUserId, transactions }] = useStore();
@@ -829,6 +831,20 @@ function ManualInvoicesBlock() {
     return prev.length ? prev.reduce((a, b) => a + b, 0) / prev.length : 0;
   }, [transactions]);
   const ratio = income > 0 ? curTotal / income : 0;
+  const chartMonths = useMemo(() => {
+    const keys = [...new Set(items.map(i => i.month))].sort().slice(-6);
+    const max = Math.max(1, ...keys.map(k => manualInvoiceTotal(items, k)));
+    return keys.map(k => ({ key: k, label: MONTH_SHORT[new Date(`${k}-01T00:00:00`).getMonth()], total: manualInvoiceTotal(items, k), max }));
+  }, [items]);
+  const byMonth = useMemo(() => {
+    const map = new Map<string, typeof items>();
+    for (const i of items) {
+      const list = map.get(i.month);
+      if (list) list.push(i);
+      else map.set(i.month, [i]);
+    }
+    return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  }, [items]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
