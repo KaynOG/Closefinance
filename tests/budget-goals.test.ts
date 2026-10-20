@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { monthBudget, projectBudget, readBudgetPlan, DEFAULT_PERCENTAGES } from "../src/lib/budget-goals";
 import type { Transaction, Category } from "../src/lib/store";
 
