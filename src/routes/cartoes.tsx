@@ -9,6 +9,8 @@ import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, CreditCard as CC, AlertTriangle, CheckCircle2, ShieldAlert, TrendingUp, HeartPulse, ChevronDown, ChevronUp, Check, ShoppingBag } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { TutorialBox } from "@/components/TutorialBox";
+import { AppSelect } from "@/components/AppSelect";
+import { useManualInvoices, monthKey, manualInvoiceTotal } from "@/lib/manual-invoices";
 
 export const Route = createFileRoute("/cartoes")({
   head: () => ({ meta: [
@@ -297,6 +299,7 @@ function CardsPage() {
       </div>
 
       <ExternalPurchases />
+      <ManualInvoicesBlock />
     </AppShell>
   );
 }
@@ -801,6 +804,122 @@ function ExternalPurchases() {
                 })}
               </div>
             </>
+          )}
+        </div>
+      )}
+    </GlassCard>
+  );
+}
+
+// ---------------- FATURAS (valores definidos pelo usuário, só controle) ----------------
+function ManualInvoicesBlock() {
+  const [{ cards, currentUserId, transactions }] = useStore();
+  const [items, persist] = useManualInvoices(currentUserId);
+  const [open, setOpen] = useState(true);
+  const [form, setForm] = useState({ cardId: "", month: monthKey(new Date()), amount: "", note: "" });
+  useEffect(() => { if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id })); }, [cards, form.cardId]);
+
+  const curMonth = monthKey(new Date());
+  const curTotal = manualInvoiceTotal(items, curMonth);
+  const income = useMemo(() => {
+    const now = new Date();
+    const cur = transactions.filter(t => t.type === "income" && isSameMonth(t.date, now)).reduce((s, t) => s + t.amount, 0);
+    if (cur > 0) return cur;
+    const prev = [1, 2, 3].map(i => transactions.filter(t => t.type === "income" && isSameMonth(t.date, new Date(now.getFullYear(), now.getMonth() - i, 1))).reduce((s, t) => s + t.amount, 0)).filter(v => v > 0);
+    return prev.length ? prev.reduce((a, b) => a + b, 0) / prev.length : 0;
+  }, [transactions]);
+  const ratio = income > 0 ? curTotal / income : 0;
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const amount = parseBRL(form.amount) || 0;
+    if (!form.cardId) return notify("Escolha um cartão.");
+    if (amount <= 0) return notify("Informe o valor da fatura.");
+    const existing = items.find(i => i.cardId === form.cardId && i.month === form.month);
+    const next = existing
+      ? items.map(i => i === existing ? { ...i, amount, note: form.note.trim() || undefined } : i)
+      : [...items, { id: crypto.randomUUID(), cardId: form.cardId, month: form.month, amount, note: form.note.trim() || undefined }];
+    persist(next.sort((a, b) => b.month.localeCompare(a.month)));
+    notify(existing ? "Fatura atualizada — não entra nos gastos." : "Fatura registrada — não entra nos gastos.");
+    setForm(f => ({ ...f, amount: "", note: "" }));
+  }
+
+  const monthLabel = (m: string) => new Date(m + "-01T00:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  return (
+    <GlassCard className="mb-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="size-9 rounded-lg grid place-items-center bg-primary/15 text-primary shrink-0"><CC className="size-4" /></div>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold">Faturas</h3>
+            <p className="text-[11px] font-mono text-muted-foreground">defina o valor das faturas · só controle, não entra em gastos</p>
+          </div>
+        </div>
+        <button onClick={() => setOpen(o => !o)} data-no-sound aria-expanded={open} aria-label={open ? "Recolher faturas" : "Expandir faturas"}
+          className="rounded-lg border border-border p-1.5 hover:bg-white/5 transition active:scale-95">
+          {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-4 space-y-4">
+          {cards.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Cadastre um cartão para definir faturas.</p>
+          ) : (
+            <form onSubmit={submit} className="rounded-2xl border border-border bg-white/5 p-3 grid md:grid-cols-4 gap-3">
+              <Field label="Cartão">
+                <AppSelect aria-label="Cartão da fatura" value={form.cardId} onChange={e => setForm({ ...form, cardId: e.target.value })} className={inputCls}>
+                  {cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </AppSelect>
+              </Field>
+              <Field label="Mês da fatura">
+                <AppDatePicker aria-label="Mês da fatura" type="month" value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className={inputCls} />
+              </Field>
+              <Field label="Valor da fatura (R$)">
+                <input value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} inputMode="decimal" placeholder="0,00" className={inputCls} />
+              </Field>
+              <div className="flex items-end">
+                <button type="submit" data-sound="success" className="w-full rounded-xl bg-primary text-primary-foreground font-semibold py-2.5 text-sm active:scale-[0.98] transition">Salvar fatura</button>
+              </div>
+            </form>
+          )}
+
+          {curTotal > 0 && income > 0 && ratio >= 0.7 && (
+            <div className={`rounded-2xl border p-3 text-sm ${ratio >= 0.9 ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-secondary/10"}`}>
+              <p className="font-semibold flex items-center gap-2"><AlertTriangle className="size-4" /> Fatura do mês em {Math.round(ratio * 100)}% da sua renda</p>
+              <p className="text-muted-foreground mt-1">
+                {formatBRL(curTotal)} de faturas para {formatBRL(income)} de renda. Corte gastos não essenciais no cartão
+                {ratio >= 0.9 ? " e, se o banco permitir, avalie parcelar a fatura — compare os juros antes, e prefira pagar à vista o que conseguir." : " pelas próximas semanas para não comprometer o próximo mês."}
+              </p>
+            </div>
+          )}
+
+          {items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma fatura definida ainda.</p>
+          ) : (
+            <div className="space-y-2">
+              {items.map(i => {
+                const card = cards.find(c => c.id === i.cardId);
+                return (
+                  <div key={i.id} className="rounded-2xl border border-border p-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="size-2.5 rounded-full shrink-0" style={{ background: card?.color ?? "var(--primary)" }} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm">{card?.name ?? "cartão removido"}</p>
+                        <p className="text-[11px] font-mono text-muted-foreground capitalize">{monthLabel(i.month)}{i.month === curMonth ? " · mês atual" : ""}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono">{formatBRL(i.amount)}</span>
+                      <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { persist(items.filter(x => x.id !== i.id)); notify("Fatura removida."); } }}
+                        className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover fatura">
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
