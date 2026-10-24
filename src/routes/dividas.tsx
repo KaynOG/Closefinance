@@ -144,7 +144,7 @@ function DividasPage() {
             const created = await api.addDebt(payload);
             if (created) {
               playExpense();
-              notify(`Dívida "${payload.name}" criada — ${payload.installments.length} parcela(s) lançadas nos gastos.`);
+              notify(`Dívida "${payload.name}" criada — marque cada parcela como paga para lançar o gasto.`);
               setShowForm(false);
             } else {
               notify("Não foi possível criar a dívida.");
