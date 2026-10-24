@@ -1426,51 +1426,17 @@ export function useStore() {
       }).select("*").single();
       if (error || !recvRow) { console.error(error); return null; }
       const recvId = String((recvRow as Record<string, unknown>).id);
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const total = input.installments.length;
-
-      const txRows = input.installments.map(p => ({
-        user_id: uid, type: "income", amount: p.amount,
-        description: `${input.name} (${p.number}/${total})`,
-        date: p.dueDate,
-        category_id: input.categoryId ?? null,
-        bank_id: input.bankId ?? null,
-        card_id: null,
-        essential: null,
-        payment_method: input.bankId ? null : "cash",
-        installment_no: p.number, installment_total: total,
-        installment_group_id: null,
-        tag: `${RECEIVABLE_TAG_PREFIX}${recvId}`,
-        applied_to_balance: Boolean(input.bankId) && p.dueDate <= todayStr,
-      }));
-      const { data: txData, error: txErr } = await supabase.from("transactions").insert(txRows as never).select("*");
-      if (txErr) console.error(txErr);
-      const insertedTx = (txData ?? []).map(r => mapTx(r as Record<string, unknown>));
-
-      const instRows = input.installments.map((p, i) => ({
+      // Parcelas não geram ganho automaticamente: o lançamento só é criado
+      // quando o usuário marca a caixinha da parcela como recebida.
+      const instRows = input.installments.map(p => ({
         user_id: uid, receivable_id: recvId, number: p.number, amount: p.amount,
-        due_date: p.dueDate, received: p.dueDate <= todayStr,
-        transaction_id: insertedTx[i]?.id ?? null,
+        due_date: p.dueDate, received: false, transaction_id: null,
       }));
       const { data: instData } = await supabase.from("receivable_installments").insert(instRows as never).select("*");
       const installments = (instData ?? []).map(r => mapReceivableInstallment(r as Record<string, unknown>));
 
-      // Credita no banco as parcelas cuja data já chegou
-      if (input.bankId) {
-        const dueNow = insertedTx.filter(t => t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
-        const bank = memory.banks.find(b => b.id === input.bankId);
-        if (bank && dueNow > 0) {
-          const newBalance = bank.accountBalance + dueNow;
-          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
-          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
-        }
-      }
-
       const receivable = mapReceivable(recvRow as Record<string, unknown>, installments);
-      set({
-        receivables: [...memory.receivables, receivable],
-        transactions: [...insertedTx, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
-      });
+      set({ receivables: [...memory.receivables, receivable] });
       return receivable;
     },
     reorderReceivables: async (ids: string[]) => {
