@@ -33,6 +33,7 @@ const OnboardingModal = lazy(() => import("./OnboardingModal").then((m) => ({ de
 import { ThemeToggle } from "./ThemeToggle";
 import { SoundToggle } from "./SoundToggle";
 import { RouteLoader } from "./RouteLoader";
+const OverdueInstallmentsPrompt = lazy(() => import("./OverdueInstallmentsPrompt").then((m) => ({ default: m.OverdueInstallmentsPrompt })));
 const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
 
 
@@ -257,6 +258,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           <SavingsMonitor />
           <OnboardingModal />
           <LicenseNotice />
+          <OverdueInstallmentsPrompt />
         </Suspense>
       )}
     </div>
