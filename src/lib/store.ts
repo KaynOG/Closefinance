@@ -482,37 +482,53 @@ async function loadAllInner(supaUser: SupaUser) {
     for (const t of pendingExpense) t.appliedToBalance = true;
   }
 
-  // Dívidas + parcelas (marca como paga toda parcela cujo gasto já foi debitado)
+  // Parcelas de dívidas/devedores só geram lançamento quando o usuário marca a
+  // caixinha. Limpeza de dados antigos: remove o gasto/ganho pré-criado de
+  // parcelas ainda não pagas/recebidas e estorna o saldo já aplicado.
   const instRows = (debtInstR.data ?? []).map(r => mapDebtInstallment(r as Record<string, unknown>));
-  const autoPaidIds: string[] = [];
-  for (const inst of instRows) {
-    if (inst.paid) continue;
-    const tx = inst.transactionId ? loadedTx.find(t => t.id === inst.transactionId) : undefined;
-    if (tx && tx.appliedToBalance && tx.date <= today) { inst.paid = true; autoPaidIds.push(inst.id); }
-  }
-  if (autoPaidIds.length) {
-    await supabase.from("debt_installments").update({ paid: true }).in("id", autoPaidIds);
-  }
-  const debts = (debtsR.data ?? []).map(r => {
-    const row = r as Record<string, unknown>;
-    return mapDebt(row, instRows.filter(i => i.debtId === String(row.id)));
-  });
-
-  // Devedores + parcelas (marca como recebida toda parcela cujo ganho já foi creditado)
   const recvInstRows = (recvInstR.data ?? []).map(r => mapReceivableInstallment(r as Record<string, unknown>));
-  const autoReceivedIds: string[] = [];
-  for (const inst of recvInstRows) {
-    if (inst.received) continue;
-    const tx = inst.transactionId ? loadedTx.find(t => t.id === inst.transactionId) : undefined;
-    if (tx && tx.appliedToBalance && tx.date <= today) { inst.received = true; autoReceivedIds.push(inst.id); }
+  const debtRowsRaw = (debtsR.data ?? []) as Record<string, unknown>[];
+  const recvRowsRaw = (recvR.data ?? []) as Record<string, unknown>[];
+  const orphanTxIds: string[] = [];
+  const orphanAdjust = new Map<string, number>(); // bankId → delta no saldo (+ estorna débito, − remove crédito)
+  const collectOrphans = (
+    insts: { paid?: boolean; received?: boolean; transactionId?: string; amount: number; debtId?: string; receivableId?: string }[],
+    rows: Record<string, unknown>[],
+    ownerKey: "debtId" | "receivableId",
+    isSettled: (inst: { paid?: boolean; received?: boolean }) => boolean,
+  ) => {
+    for (const inst of insts) {
+      if (isSettled(inst) || !inst.transactionId) continue;
+      const tx = loadedTx.find(t => t.id === inst.transactionId);
+      if (!tx) continue;
+      orphanTxIds.push(tx.id);
+      if (tx.appliedToBalance) {
+        const owner = rows.find(r => String(r.id) === inst[ownerKey]);
+        const bId = owner ? String((owner as Record<string, unknown>).bank_id ?? "") : "";
+        if (bId) orphanAdjust.set(bId, (orphanAdjust.get(bId) ?? 0) + (ownerKey === "debtId" ? tx.amount : -tx.amount));
+      }
+    }
+  };
+  collectOrphans(instRows, debtRowsRaw, "debtId", i => Boolean(i.paid));
+  collectOrphans(recvInstRows, recvRowsRaw, "receivableId", i => Boolean(i.received));
+  if (orphanTxIds.length) {
+    await supabase.from("transactions").delete().in("id", orphanTxIds);
+    await supabase.from("debt_installments").update({ transaction_id: null }).in("id", instRows.filter(i => !i.paid && i.transactionId && orphanTxIds.includes(i.transactionId)).map(i => i.id));
+    await supabase.from("receivable_installments").update({ transaction_id: null }).in("id", recvInstRows.filter(i => !i.received && i.transactionId && orphanTxIds.includes(i.transactionId)).map(i => i.id));
+    for (const inst of [...instRows, ...recvInstRows]) {
+      if (inst.transactionId && orphanTxIds.includes(inst.transactionId)) inst.transactionId = undefined;
+    }
+    loadedTx = loadedTx.filter(t => !orphanTxIds.includes(t.id));
   }
-  if (autoReceivedIds.length) {
-    await supabase.from("receivable_installments").update({ received: true }).in("id", autoReceivedIds);
+  for (const [bankId, delta] of orphanAdjust) {
+    const bank = loadedBanks.find(b => b.id === bankId);
+    if (!bank) continue;
+    const newBalance = bank.accountBalance + delta;
+    await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bankId);
+    loadedBanks = loadedBanks.map(b => b.id === bankId ? { ...b, accountBalance: newBalance } : b);
   }
-  const receivables = (recvR.data ?? []).map(r => {
-    const row = r as Record<string, unknown>;
-    return mapReceivable(row, recvInstRows.filter(i => i.receivableId === String(row.id)));
-  });
+  const debts = debtRowsRaw.map(r => mapDebt(r, instRows.filter(i => i.debtId === String(r.id))));
+  const receivables = recvRowsRaw.map(r => mapReceivable(r, recvInstRows.filter(i => i.receivableId === String(r.id))));
 
   // Assinaturas: mantém somente cobranças do mês atual e do próximo. Remove
   // excesso herdado (geração antiga de 24 meses) e cria o próximo mês quando a
