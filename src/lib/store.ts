@@ -435,12 +435,16 @@ async function loadAllInner(supaUser: SupaUser) {
     cats = [...cats, ...(added ?? []).map(row => mapCat(row as Record<string, unknown>))];
   }
 
-  const loadedTx = (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>));
+  let loadedTx = (txR.data ?? []).map(r => mapTx(r as Record<string, unknown>));
   let loadedBanks = (banksR.data ?? []).map(r => mapBank(r as Record<string, unknown>));
+  // Lançamentos de parcelas de dívida/devedores nunca entram no débito/crédito
+  // automático: só saem do saldo quando o usuário marca a caixinha da parcela.
+  const isInstallmentTagged = (t: { tag?: string }) =>
+    (t.tag ?? "").startsWith(DEBT_TAG_PREFIX) || (t.tag ?? "").startsWith(RECEIVABLE_TAG_PREFIX);
 
   // Auto-crédito: ganhos com banco que já venceram (data <= hoje) e ainda não foram aplicados
   const pendingIncome = loadedTx.filter(
-    t => t.type === "income" && t.bankId && t.date <= today && t.appliedToBalance === false,
+    t => t.type === "income" && t.bankId && t.date <= today && t.appliedToBalance === false && !isInstallmentTagged(t),
   );
   if (pendingIncome.length) {
     const perBank = new Map<string, number>();
@@ -461,7 +465,7 @@ async function loadAllInner(supaUser: SupaUser) {
   // foram descontados — cobre as parcelas de dívidas com débito automático.
   const pendingExpense = loadedTx.filter(
     t => t.type === "expense" && t.bankId && (t.paymentMethod === "debit" || t.paymentMethod === "pix")
-      && t.date <= today && t.appliedToBalance === false,
+      && t.date <= today && t.appliedToBalance === false && !isInstallmentTagged(t),
   );
   if (pendingExpense.length) {
     const perBank = new Map<string, number>();
