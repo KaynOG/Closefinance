@@ -1209,51 +1209,17 @@ export function useStore() {
       }).select("*").single();
       if (error || !debtRow) { console.error(error); return null; }
       const debtId = String((debtRow as Record<string, unknown>).id);
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const total = input.installments.length;
-
-      const txRows = input.installments.map(p => ({
-        user_id: uid, type: "expense", amount: p.amount,
-        description: `${input.name} (${p.number}/${total})`,
-        date: p.dueDate,
-        category_id: input.categoryId ?? null,
-        bank_id: input.bankId ?? null,
-        card_id: null,
-        essential: "essential",
-        payment_method: input.bankId ? "debit" : null,
-        installment_no: p.number, installment_total: total,
-        installment_group_id: null,
-        tag: `${DEBT_TAG_PREFIX}${debtId}`,
-        applied_to_balance: p.dueDate <= todayStr,
-      }));
-      const { data: txData, error: txErr } = await supabase.from("transactions").insert(txRows as never).select("*");
-      if (txErr) console.error(txErr);
-      const insertedTx = (txData ?? []).map(r => mapTx(r as Record<string, unknown>));
-
-      const instRows = input.installments.map((p, i) => ({
+      // Parcelas não geram gasto automaticamente: o lançamento só é criado
+      // quando o usuário marca a caixinha da parcela como paga.
+      const instRows = input.installments.map(p => ({
         user_id: uid, debt_id: debtId, number: p.number, amount: p.amount,
-        due_date: p.dueDate, paid: p.dueDate <= todayStr,
-        transaction_id: insertedTx[i]?.id ?? null,
+        due_date: p.dueDate, paid: false, transaction_id: null,
       }));
       const { data: instData } = await supabase.from("debt_installments").insert(instRows as never).select("*");
       const installments = (instData ?? []).map(r => mapDebtInstallment(r as Record<string, unknown>));
 
-      // Debita do banco as parcelas que já venceram
-      if (input.bankId) {
-        const dueNow = insertedTx.filter(t => t.date <= todayStr).reduce((s, t) => s + t.amount, 0);
-        const bank = memory.banks.find(b => b.id === input.bankId);
-        if (bank && dueNow > 0) {
-          const newBalance = bank.accountBalance - dueNow;
-          await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
-          set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
-        }
-      }
-
       const debt = mapDebt(debtRow as Record<string, unknown>, installments);
-      set({
-        debts: [...memory.debts, debt],
-        transactions: [...insertedTx, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
-      });
+      set({ debts: [...memory.debts, debt] });
       try { await api.awardMission("add_expense"); } catch {}
       return debt;
     },
