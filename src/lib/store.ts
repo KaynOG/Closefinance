@@ -1498,10 +1498,13 @@ export function useStore() {
         transactions: memory.transactions.filter(t => !txIds.includes(t.id)),
       });
     },
+    // Marca/desmarca uma parcela como recebida. O ganho vinculado só existe
+    // enquanto a parcela está marcada: marcar cria o ganho; desmarcar apaga.
     setReceivableInstallmentReceived: async (recvId: string, instId: string, received: boolean) => {
       const recv = memory.receivables.find(d => d.id === recvId);
       const inst = recv?.installments.find(i => i.id === instId);
-      if (!recv || !inst) return;
+      const uid = memory.currentUserId;
+      if (!recv || !inst || !uid) return false;
       // Ao marcar como recebida, a data da parcela passa a ser o dia da marcação
       const today = new Date().toISOString().slice(0, 10);
       const newDue = received ? today : inst.dueDate;
@@ -1512,13 +1515,22 @@ export function useStore() {
           ...d, installments: d.installments.map(i => i.id === instId ? { ...i, received, dueDate: newDue } : i),
         }),
       });
-      const tx = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
-      if (!tx) return true;
-      if (received && tx.date !== today) {
-        await supabase.from("transactions").update({ date: today }).eq("id", tx.id);
-        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, date: today } : t) });
-      }
-      if (received && !tx.appliedToBalance) {
+      const total = recv.installments.length;
+      const existing = inst.transactionId ? memory.transactions.find(t => t.id === inst.transactionId) : undefined;
+
+      if (received && !existing) {
+        // Cria o ganho da parcela e credita no banco selecionado
+        const { data: txRow, error } = await supabase.from("transactions").insert({
+          user_id: uid, type: "income", amount: inst.amount,
+          description: `${recv.name} (${inst.number}/${total})`,
+          date: today, category_id: recv.categoryId ?? null, bank_id: recv.bankId ?? null, card_id: null,
+          essential: null, payment_method: recv.bankId ? null : "cash",
+          installment_no: inst.number, installment_total: total, installment_group_id: null,
+          tag: `${RECEIVABLE_TAG_PREFIX}${recvId}`, applied_to_balance: true,
+        } as never).select("*").single();
+        if (error || !txRow) { console.error(error); notifyToast("Não foi possível criar o ganho da parcela."); return false; }
+        const tx = mapTx(txRow as Record<string, unknown>);
+        await supabase.from("receivable_installments").update({ transaction_id: tx.id }).eq("id", instId);
         if (recv.bankId) {
           const bank = memory.banks.find(b => b.id === recv.bankId);
           if (bank) {
@@ -1527,19 +1539,51 @@ export function useStore() {
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
-        await supabase.from("transactions").update({ applied_to_balance: true }).eq("id", tx.id);
-        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: true } : t) });
-      } else if (!received && tx.appliedToBalance) {
-        if (recv.bankId) {
+        set({
+          transactions: [tx, ...memory.transactions].sort((a, b) => b.date.localeCompare(a.date)),
+          receivables: memory.receivables.map(d => d.id !== recvId ? d : {
+            ...d, installments: d.installments.map(i => i.id === instId ? { ...i, transactionId: tx.id } : i),
+          }),
+        });
+        return true;
+      }
+      if (!received && existing) {
+        // Desmarcar apaga o ganho vinculado e estorna o crédito do banco
+        if (existing.appliedToBalance && recv.bankId) {
           const bank = memory.banks.find(b => b.id === recv.bankId);
           if (bank) {
-            const newBalance = bank.accountBalance - tx.amount;
+            const newBalance = bank.accountBalance - existing.amount;
             await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
-        await supabase.from("transactions").update({ applied_to_balance: false }).eq("id", tx.id);
-        set({ transactions: memory.transactions.map(t => t.id === tx.id ? { ...t, appliedToBalance: false } : t) });
+        await supabase.from("transactions").delete().eq("id", existing.id);
+        await supabase.from("receivable_installments").update({ transaction_id: null }).eq("id", instId);
+        set({
+          transactions: memory.transactions.filter(t => t.id !== existing.id),
+          receivables: memory.receivables.map(d => d.id !== recvId ? d : {
+            ...d, installments: d.installments.map(i => i.id === instId ? { ...i, transactionId: undefined } : i),
+          }),
+        });
+        return true;
+      }
+      if (!existing) return true;
+      // Dados antigos com ganho pré-criado: antecipa o crédito quando marcado manualmente
+      if (received && existing.date !== today) {
+        await supabase.from("transactions").update({ date: today }).eq("id", existing.id);
+        set({ transactions: memory.transactions.map(t => t.id === existing.id ? { ...t, date: today } : t) });
+      }
+      if (received && !existing.appliedToBalance) {
+        if (recv.bankId) {
+          const bank = memory.banks.find(b => b.id === recv.bankId);
+          if (bank) {
+            const newBalance = bank.accountBalance + existing.amount;
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
+            set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
+          }
+        }
+        await supabase.from("transactions").update({ applied_to_balance: true }).eq("id", existing.id);
+        set({ transactions: memory.transactions.map(t => t.id === existing.id ? { ...t, appliedToBalance: true } : t) });
       }
       return true;
     },
