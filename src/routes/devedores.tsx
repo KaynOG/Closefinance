@@ -136,7 +136,7 @@ function DevedoresPage() {
             const created = await api.addReceivable(payload);
             if (created) {
               playCashRegister();
-              notify(`"${payload.name}" criado — ${payload.installments.length} parcela(s) lançadas nos ganhos.`);
+              notify(`"${payload.name}" criado — marque cada parcela como recebida para lançar o ganho.`);
               setShowForm(false);
             } else {
               notify("Não foi possível criar o valor a receber.");
