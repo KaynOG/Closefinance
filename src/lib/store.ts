@@ -5,6 +5,7 @@ import { playCheck, playMissionComplete } from "@/lib/sound";
 import { isTabHidden } from "@/lib/prefs";
 import { notify as notifyToast } from "@/lib/notify";
 import { isBudgetGroup, readBudgetPlan, type BudgetGroup, type BudgetPlan } from "@/lib/budget-goals";
+import { projectPartialInstallment, type PartialInstallment } from "@/lib/partial-installment";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
@@ -753,6 +754,26 @@ export function useStore() {
   }, []);
 
   const api = {
+    confirmPartialInstallment: async (kind: "debt" | "receivable", recordId: string, installmentId: string, amount: number, snapshot: PartialInstallment[]) => {
+      if (!memory.currentUserId) throw new Error("Entre novamente para confirmar.");
+      projectPartialInstallment(snapshot, installmentId, amount);
+      const date = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      const { data, error } = await supabase.rpc("confirm_partial_installment", {
+        p_kind: kind, p_record: recordId, p_installment: installmentId, p_amount: amount, p_date: date,
+        p_expected: snapshot.map(row => ({ ...row })),
+      });
+      if (error || !data || typeof data !== "object" || Array.isArray(data)) throw error ?? new Error("Confirmação não concluída.");
+      const result = data as Record<string, unknown>;
+      const record = result.record as Record<string, unknown>;
+      const rows = result.installments as Record<string, unknown>[];
+      const tx = mapTx(result.transaction as Record<string, unknown>);
+      const bank = result.bank as Record<string, unknown> | null;
+      set({
+        ...(kind === "debt" ? { debts: memory.debts.map(item => item.id === recordId ? mapDebt(record, rows.map(mapDebtInstallment)) : item) } : { receivables: memory.receivables.map(item => item.id === recordId ? mapReceivable(record, rows.map(mapReceivableInstallment)) : item) }),
+        transactions: [tx, ...memory.transactions.filter(item => item.id !== tx.id)].sort((a, b) => b.date.localeCompare(a.date)),
+        banks: bank ? memory.banks.map(item => item.id === bank.id ? { ...item, accountBalance: Number(bank.account_balance) } : item) : memory.banks,
+      });
+    },
     // ---------- TRANSACTIONS ----------
     addTransaction: async (t: Omit<Transaction, "id">) => {
       const uid = memory.currentUserId; if (!uid) return;
