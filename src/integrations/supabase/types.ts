@@ -914,6 +914,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_partial_installment: {
+        Args: {
+          p_amount: number
+          p_date: string
+          p_expected: Json
+          p_installment: string
+          p_kind: string
+          p_record: string
+        }
+        Returns: Json
+      }
       find_profile_by_friend_code: {
         Args: { _code: string }
         Returns: {
