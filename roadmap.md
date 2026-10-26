@@ -1,5 +1,9 @@
 # Ajustes solicitados
 
+- [ ] Adicionar pagamento/recebimento parcial com valor e prévia das parcelas reajustadas em janelas temáticas.
+- [ ] Persistir confirmação e redistribuição sem alterar o total, sincronizando lançamentos e bancos.
+- [ ] Testar cálculos e verificar os dois fluxos completos.
+
 - [x] Corrigir a projeção de Sua meta para distribuir a receita mensal entre os seis pilares e verificar os cálculos e o gráfico.
 
 - [x] Adicionar logos C6 e BV ao catálogo de bancos.
