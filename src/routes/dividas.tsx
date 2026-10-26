@@ -1,4 +1,5 @@
 import { AppSelect } from "@/components/AppSelect";
+import { PartialInstallmentPayment } from "@/components/PartialInstallmentPayment";
 import { AppDatePicker } from "@/components/AppDatePicker";
 import { IconPicker } from "@/components/IconPicker";
 import { Button } from "@/components/ui/button";
@@ -592,6 +593,7 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpda
                     <p className={`mt-1.5 text-[10px] font-mono ${inst.paid ? "text-[#2BD9A1]" : late ? "text-[#FF4D6D]" : "text-muted-foreground"}`}>
                       {inst.paid ? "Paga" : late ? "Atrasada" : "Agendada"}
                     </p>
+                    {!inst.paid && <PartialInstallmentPayment kind="debt" recordId={debt.id} name={debt.name} installmentId={inst.id} installments={debt.installments.map(row => ({ id: row.id, number: row.number, amount: row.amount, dueDate: row.dueDate, settled: row.paid }))} />}
                   </div>
                 </li>
               );

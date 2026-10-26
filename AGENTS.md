@@ -27,5 +27,6 @@
 - Keep saved/invested balances separate from monthly contributions in budget comparisons, because cumulative assets are not a month's income allocation; exclude invoice settlements and future transactions to prevent double counting and forecasts.
 
 - Use AppDatePicker for all day and month fields, preserving local ISO values and callbacks, because date selection must stay themed and accessible inside app dialogs.
-- Never auto-mark debt/receivable installments when their due date arrives and never pre-create their linked transactions: the transaction is created only when the user checks the installment box (and deleted when unchecked), because users must keep manual control over when expenses/incomes happen.
+- Never auto-mark debt/receivable installments or pre-create their transactions: explicit checkbox or partial-payment confirmation creates a transaction (unchecking removes it), because users control when expenses/incomes happen.
+- Confirm partial installments through the owner-scoped atomic database RPC using the shared cent-based projection and two-step themed dialog; store the confirmed portion on the selected row and redistribute its remainder to subsequent pending rows (or a new next-month row), so totals, bank balances, transaction links and existing backups stay consistent.
 - Exclude installment-tagged transactions (`__dv__:`/`__rc__:`) from the load-time auto-debit/auto-credit pass, because those transactions only exist while the installment is checked and must not re-apply to bank balances.

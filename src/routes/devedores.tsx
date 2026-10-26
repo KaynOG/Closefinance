@@ -1,4 +1,5 @@
 import { AppSelect } from "@/components/AppSelect";
+import { PartialInstallmentPayment } from "@/components/PartialInstallmentPayment";
 import { AppDatePicker } from "@/components/AppDatePicker";
 import { IconPicker } from "@/components/IconPicker";
 import { InstallmentRecordEditor } from "@/components/InstallmentRecordEditor";
@@ -573,6 +574,7 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAp
                     <p className={`mt-1.5 text-[10px] font-mono ${inst.received ? "text-[#2BD9A1]" : late ? "text-[#FF4D6D]" : "text-muted-foreground"}`}>
                       {inst.received ? "Recebida" : late ? "Atrasada" : "Agendada"}
                     </p>
+                    {!inst.received && <PartialInstallmentPayment kind="receivable" recordId={receivable.id} name={receivable.name} installmentId={inst.id} installments={receivable.installments.map(row => ({ id: row.id, number: row.number, amount: row.amount, dueDate: row.dueDate, settled: row.received }))} />}
                   </div>
                 </li>
               );
