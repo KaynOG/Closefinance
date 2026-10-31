@@ -687,6 +687,11 @@ let initialized = false;
 function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
+  window.addEventListener('cf:records-restored', () => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) void loadAll(data.session.user);
+    });
+  });
   supabase.auth.getSession().then(({ data }) => {
     if (data.session?.user) loadAll(data.session.user); else set({ loading: false });
   });
@@ -751,10 +756,8 @@ export function useStore() {
   const [, force] = useState(0);
   useEffect(() => {
     const l = () => force(n => n + 1);
-    const restored = () => { void api.refresh(); };
-    window.addEventListener('cf:records-restored', restored);
     listeners.add(l);
-    return () => { listeners.delete(l); window.removeEventListener('cf:records-restored', restored); };
+    return () => { listeners.delete(l); };
   }, []);
 
   const api = {
@@ -899,7 +902,7 @@ export function useStore() {
       if (error) { console.error(error); return; }
       set({ transactions: memory.transactions.map(x => x.id === i ? { ...x, ...p } : x) });
     },
-    removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
+    removeTransaction: async (i: string, opts?: { wholeGroup?: boolean; skipHistory?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
       const todayStr2 = new Date().toISOString().slice(0, 10);
       const reverseSideEffects = (transaction: Transaction) => {
@@ -2112,7 +2115,10 @@ export function useStore() {
   };
   for (const key of Object.keys(deletionLabels) as (keyof typeof deletionLabels)[]) {
     const original = api[key] as (...args: unknown[]) => Promise<unknown>;
-    Object.assign(api, { [key]: (...args: unknown[]) => withUndo(deletionLabels[key], () => original(...args)) });
+    Object.assign(api, { [key]: (...args: unknown[]) => {
+      if (key === 'removeTransaction' && (args[1] as { skipHistory?: boolean } | undefined)?.skipHistory) return original(...args);
+      return withUndo(deletionLabels[key], () => original(...args));
+    } });
   }
 
   const currentUser = memory.users.find(u => u.id === memory.currentUserId) ?? null;

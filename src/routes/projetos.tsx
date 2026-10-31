@@ -1,4 +1,5 @@
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { withUndo, useActionHistory } from '@/lib/action-history';
 import { IconPicker } from "@/components/IconPicker";
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute } from "@tanstack/react-router";
@@ -94,6 +95,7 @@ async function fileToCover(file: File): Promise<string> {
 }
 
 function ProjectsPage() {
+  const { revision } = useActionHistory();
   const [, , user] = useStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [expenses, setExpenses] = useState<PExpense[]>([]);
@@ -115,7 +117,7 @@ function ProjectsPage() {
       setGoals((g.data ?? []) as PGoal[]);
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [user?.id, revision]);
 
   async function move(idx: number, dir: -1 | 1) {
     const j = idx + dir;
@@ -256,7 +258,7 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   }
   async function unlinkTx(expId: string) {
     const txs = state.transactions.filter(t => t.tag === PROJECT_TAG + expId);
-    for (const t of txs) await api.removeTransaction(t.id);
+    for (const t of txs) await api.removeTransaction(t.id, { skipHistory: true });
   }
 
   async function addExpense(ev: React.FormEvent) {
@@ -282,9 +284,12 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   }
 
   async function removeExpense(e: PExpense) {
-    if (e.include_in_expenses) await unlinkTx(e.id);
-    await supabase.from("project_expenses").delete().eq("id", e.id);
-    setExpenses(xs => xs.filter(x => x.id !== e.id));
+    await withUndo('Gasto do projeto excluído', async () => {
+      if (e.include_in_expenses) await unlinkTx(e.id);
+      const { error } = await supabase.from("project_expenses").delete().eq("id", e.id);
+      if (error) throw error;
+      setExpenses(xs => xs.filter(x => x.id !== e.id));
+    });
   }
 
   async function addGoal(ev: React.FormEvent) {
@@ -307,8 +312,11 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
   }
 
   async function removeGoal(g: PGoal) {
-    await supabase.from("project_goals").delete().eq("id", g.id);
-    setGoals(gs => gs.filter(x => x.id !== g.id));
+    await withUndo('Objetivo excluído', async () => {
+      const { error } = await supabase.from("project_goals").delete().eq("id", g.id);
+      if (error) throw error;
+      setGoals(gs => gs.filter(x => x.id !== g.id));
+    });
   }
 
   function startEditGoal(g: PGoal) {
@@ -332,11 +340,14 @@ function ProjectBlock({ project, expenses, goals, setProjects, setExpenses, setG
 
   async function removeProject() {
     if (!await appConfirm(`Apagar o projeto "${project.name}"? Os gastos incluídos na aba de gastos também serão removidos.`)) return;
-    for (const e of expenses) if (e.include_in_expenses) await unlinkTx(e.id);
-    await supabase.from("projects").delete().eq("id", project.id);
-    setProjects(ps => ps.filter(p => p.id !== project.id));
-    setExpenses(xs => xs.filter(x => x.project_id !== project.id));
-    setGoals(gs => gs.filter(x => x.project_id !== project.id));
+    await withUndo('Projeto excluído', async () => {
+      for (const e of expenses) if (e.include_in_expenses) await unlinkTx(e.id);
+      const { error } = await supabase.from("projects").delete().eq("id", project.id);
+      if (error) throw error;
+      setProjects(ps => ps.filter(p => p.id !== project.id));
+      setExpenses(xs => xs.filter(x => x.project_id !== project.id));
+      setGoals(gs => gs.filter(x => x.project_id !== project.id));
+    });
   }
 
   async function changeCover(cover: string | null) {
