@@ -39,8 +39,8 @@ export function PartialInstallmentPayment({ kind, recordId, name, installmentId,
       setSnapshot(installments.map(row => ({ ...row })).sort((a, b) => a.number - b.number));
       setValue(""); setError(""); setStep("value");
     }}><HandCoins className="size-3.5" />{debt ? "Pagar parcialmente" : "Receber parcialmente"}</Button>
-    <Dialog open={step !== null} onOpenChange={open => { if (!open && !busy) setStep(null); }}>
-      <DialogContent onEscapeKeyDown={event => { if (busy) event.preventDefault(); }} onPointerDownOutside={event => { if (busy) event.preventDefault(); }}>
+    <Dialog open={step !== null} onOpenChange={open => { if (!open) setStep(null); }}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{step === "preview" ? "Projeção das parcelas reajustadas" : debt ? "Pagar parcialmente a parcela" : "Receber parcialmente a parcela"}</DialogTitle>
           <DialogDescription>{name} · Parcela {selected?.number}</DialogDescription>

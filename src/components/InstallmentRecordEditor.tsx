@@ -57,7 +57,7 @@ export function InstallmentRecordEditor({ name, kind, installments, onRename, on
   const field = "mt-1 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary";
   return <>
     <Button variant="outline" size="sm" title={`Editar ${label}`} aria-label={`Editar ${label}`} onClick={start}><Pencil className="size-4" /> Editar</Button>
-    <Dialog open={open} onOpenChange={value => { if (!busy) setOpen(value); }}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="w-[calc(100%-2rem)] max-h-[85dvh] overflow-y-auto rounded-lg bg-background text-foreground">
         <DialogHeader><DialogTitle>Editar {label}</DialogTitle><DialogDescription>{name}</DialogDescription></DialogHeader>
         <form onSubmit={save} className="space-y-4">
