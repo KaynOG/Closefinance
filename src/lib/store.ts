@@ -905,7 +905,7 @@ export function useStore() {
     removeTransaction: async (i: string, opts?: { wholeGroup?: boolean; skipHistory?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
       const todayStr2 = new Date().toISOString().slice(0, 10);
-      const reverseSideEffects = (transaction: Transaction) => {
+      const reverseSideEffects = async (transaction: Transaction) => {
         // Lançamentos futuros não impactaram o saldo, então não revertem
         if (transaction.date > todayStr2) return;
         // expense via débito/pix → devolve ao banco
@@ -913,7 +913,7 @@ export function useStore() {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
           if (bank) {
             const newBalance = bank.accountBalance + transaction.amount;
-            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
@@ -922,7 +922,7 @@ export function useStore() {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
           if (bank) {
             const newBalance = bank.accountBalance - transaction.amount;
-            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
@@ -932,7 +932,7 @@ export function useStore() {
           const user = memory.users.find(u => u.id === uid);
           if (user) {
             const newCash = Math.max(0, (user.cashAmount ?? 0) - transaction.amount);
-            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
         }
@@ -942,7 +942,7 @@ export function useStore() {
           const user = memory.users.find(u => u.id === uid);
           if (user) {
             const newCash = (user.cashAmount ?? 0) + transaction.amount;
-            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
         }
@@ -1030,14 +1030,14 @@ export function useStore() {
         const { error } = await supabase.from("transactions").delete().eq("installment_group_id", gid);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.installmentGroupId !== gid) });
-        groupTxs.forEach(reverseSideEffects);
+        for (const gtx of groupTxs) await reverseSideEffects(gtx);
         for (const gtx of groupTxs) await dropInstallmentForTx(gtx);
       } else {
         const { error } = await supabase.from("transactions").delete().eq("id", i);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.id !== i) });
         if (tx) {
-          reverseSideEffects(tx);
+          await reverseSideEffects(tx);
           await dropInstallmentForTx(tx);
         }
       }
