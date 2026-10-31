@@ -32,6 +32,7 @@ const SavingsMonitor = lazy(() => import("./SavingsMonitor").then((m) => ({ defa
 const OnboardingModal = lazy(() => import("./OnboardingModal").then((m) => ({ default: m.OnboardingModal })));
 import { ThemeToggle } from "./ThemeToggle";
 import { SoundToggle } from "./SoundToggle";
+import { ActionHistoryControls } from "./ActionHistoryControls";
 import { RouteLoader } from "./RouteLoader";
 const OverdueInstallmentsPrompt = lazy(() => import("./OverdueInstallmentsPrompt").then((m) => ({ default: m.OverdueInstallmentsPrompt })));
 const LicenseNotice = lazy(() => import("./LicenseNotice").then((m) => ({ default: m.LicenseNotice })));
@@ -246,6 +247,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
       >
         <div className="glass-strong flex items-center gap-1.5 rounded-2xl p-1 shadow-lg">
+          <ActionHistoryControls />
           <SoundToggle />
           <ThemeToggle />
         </div>

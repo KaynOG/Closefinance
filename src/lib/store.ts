@@ -6,6 +6,7 @@ import { isTabHidden } from "@/lib/prefs";
 import { notify as notifyToast } from "@/lib/notify";
 import { isBudgetGroup, readBudgetPlan, type BudgetGroup, type BudgetPlan } from "@/lib/budget-goals";
 import { projectPartialInstallment, type PartialInstallment } from "@/lib/partial-installment";
+import { withUndo, clearActionHistory } from "@/lib/action-history";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
@@ -675,6 +676,7 @@ export function monthExpenseTotal(transactions: Transaction[], cards: Card[], re
 }
 
 function clearAll() {
+  clearActionHistory();
   memory = { ...EMPTY_STATE, loading: false };
   try { localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
   notify();
@@ -749,8 +751,10 @@ export function useStore() {
   const [, force] = useState(0);
   useEffect(() => {
     const l = () => force(n => n + 1);
+    const restored = () => { void api.refresh(); };
+    window.addEventListener('cf:records-restored', restored);
     listeners.add(l);
-    return () => { listeners.delete(l); };
+    return () => { listeners.delete(l); window.removeEventListener('cf:records-restored', restored); };
   }, []);
 
   const api = {
@@ -2100,6 +2104,16 @@ export function useStore() {
 
     reset: () => { clearAll(); },
   };
+
+  const deletionLabels = {
+    removeTransaction: 'Lançamento excluído', removeCategory: 'Categoria excluída',
+    removeCard: 'Cartão excluído', removeBank: 'Banco excluído', removeSubscription: 'Assinatura excluída',
+    removeDebt: 'Dívida excluída', removeReceivable: 'Devedor excluído', wipeData: 'Dados apagados',
+  };
+  for (const key of Object.keys(deletionLabels) as (keyof typeof deletionLabels)[]) {
+    const original = api[key] as (...args: unknown[]) => Promise<unknown>;
+    Object.assign(api, { [key]: (...args: unknown[]) => withUndo(deletionLabels[key], () => original(...args)) });
+  }
 
   const currentUser = memory.users.find(u => u.id === memory.currentUserId) ?? null;
   return [memory, api, currentUser] as const;
