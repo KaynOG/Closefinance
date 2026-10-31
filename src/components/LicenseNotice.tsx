@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CalendarClock, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { fetchLicense, dueDate, daysLeft, licenseLabel, type LicenseInfo, DAY, TRIAL_CYCLE_DAYS } from "@/lib/license";
 
 const KEY = "closefinance:licenseNotice";
@@ -42,17 +43,14 @@ export function LicenseNotice() {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="glass-strong relative w-full max-w-md rounded-lg p-6 sm:p-8 text-center animate-in zoom-in-95 duration-200">
-        <button onClick={dismiss} className="absolute right-3 top-3 rounded-md p-1.5 hover:bg-white/10" aria-label="Fechar">
-          <X className="size-4" />
-        </button>
+    <Dialog open={show} onOpenChange={next => { if (!next) dismiss(); }}>
+      <DialogContent aria-describedby={undefined} className="glass-strong relative w-full max-w-md rounded-lg p-6 sm:p-8 text-center animate-in zoom-in-95 duration-200">
         <div className="mx-auto grid size-14 place-items-center rounded-full bg-primary/15 border border-primary/30">
           <CalendarClock className="size-6 text-primary" />
         </div>
-        <h2 className="mt-4 text-xl font-bold">
+        <DialogTitle className="mt-4 text-xl font-bold">
           {left !== null && left <= 0 ? "Seu acesso expirou" : "Renovação do plano"}
-        </h2>
+        </DialogTitle>
         <p className="mt-2 text-sm text-muted-foreground">
           {left !== null && left <= 0
             ? "Insira uma chave de acesso para continuar aproveitando todos os recursos do CloseFinance."
@@ -70,7 +68,7 @@ export function LicenseNotice() {
             Depois
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

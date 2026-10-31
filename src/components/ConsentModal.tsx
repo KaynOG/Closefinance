@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const KEY = "closefinance:consent:v1";
 
@@ -20,13 +22,13 @@ export function ConsentModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm grid place-items-center p-4 animate-in fade-in duration-200">
-      <div className="glass-strong w-full max-w-lg rounded-3xl p-6 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent aria-describedby={undefined} className="glass-strong w-full max-w-lg rounded-3xl p-6 max-h-[85dvh] flex flex-col animate-in zoom-in-95 duration-200">
         <div className="flex items-center gap-3 mb-4">
           <div className="size-10 rounded-2xl bg-[image:var(--gradient-primary)] grid place-items-center">
             <ShieldCheck className="size-5 text-primary-foreground" />
           </div>
-          <h2 className="font-display font-bold text-lg leading-tight">Termo de Consentimento e Privacidade</h2>
+          <DialogTitle className="font-display font-bold text-lg leading-tight pr-6">Termo de Consentimento e Privacidade</DialogTitle>
         </div>
 
         <div className="overflow-y-auto pr-2 text-sm text-foreground/85 space-y-3 leading-relaxed flex-1">
@@ -64,10 +66,10 @@ export function ConsentModal() {
           <p className="text-xs text-muted-foreground">Ao prosseguir com o cadastro e utilizar a plataforma, o usuário declara estar ciente e de acordo com os termos descritos neste documento.</p>
         </div>
 
-        <button onClick={accept} className="mt-5 w-full rounded-2xl bg-[image:var(--gradient-primary)] text-primary-foreground font-semibold py-3 shadow-[var(--shadow-glow-violet)] hover:opacity-95 active:scale-[0.98] transition">
+        <Button onClick={accept} className="mt-5 w-full shrink-0 rounded-2xl bg-[image:var(--gradient-primary)] text-primary-foreground font-semibold py-3 shadow-[var(--shadow-glow-violet)] hover:opacity-95 active:scale-[0.98] transition">
           Li e aceito todos os termos de uso
-        </button>
-      </div>
-    </div>
+        </Button>
+      </DialogContent>
+    </Dialog>
   );
 }

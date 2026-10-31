@@ -3,6 +3,7 @@ import { useState } from "react";
 import { parseBRL } from "@/lib/store";
 import type { Transaction, Category, Card, Bank, PaymentMethod, TxType, Essential } from "@/lib/store";
 import { X, Save } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export interface TxEditModalProps {
   tx: Transaction;
@@ -49,12 +50,12 @@ export function TxEditModal({ tx, categories, cards, banks, onSave, onClose }: T
   const cats = categories.filter(c => tx.type === "income" ? c.kind !== "expense" : c.kind !== "income");
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150" onClick={onClose}>
+    <Dialog open onOpenChange={next => { if (!next) onClose(); }}>
+      <DialogContent aria-describedby={undefined} className="max-w-md glass-strong rounded-3xl">
       <form onSubmit={save} onClick={e => e.stopPropagation()}
-        className="w-full max-w-md glass-strong rounded-3xl p-6 space-y-3 animate-in zoom-in-95 slide-in-from-bottom-2 duration-200">
+        className="w-full space-y-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-lg">Editar {tx.type === "income" ? "ganho" : "gasto"}{tx.installmentTotal ? ` (parcela ${tx.installmentNo}/${tx.installmentTotal})` : ""}</h3>
-          <button type="button" data-no-sound onClick={onClose} className="rounded-lg p-1.5 hover:bg-white/10"><X className="size-4" /></button>
+          <DialogTitle className="font-bold text-lg pr-6">Editar {tx.type === "income" ? "ganho" : "gasto"}{tx.installmentTotal ? ` (parcela ${tx.installmentNo}/${tx.installmentTotal})` : ""}</DialogTitle>
         </div>
 
         <Row label="Data"><AppDatePicker aria-label="Data" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={inp} /></Row>
@@ -119,7 +120,8 @@ export function TxEditModal({ tx, categories, cards, banks, onSave, onClose }: T
           <Save className="size-4" /> Salvar alterações
         </button>
       </form>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
