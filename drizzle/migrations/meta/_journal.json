@@ -99,6 +99,13 @@
       "when": 1793479301994,
       "tag": "0013_financial_action_recovery",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793479322145,
+      "tag": "0014_complete_atomic_action_recovery",
+      "breakpoints": true
     }
   ]
 }
