@@ -156,7 +156,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <Dialog open onOpenChange={next => { if (!next) onClose(); }}>
       <DialogContent aria-describedby={undefined}
-        className="relative w-full max-w-md glass-strong rounded-3xl p-8 md:p-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 shadow-2xl"
+        className="w-full max-w-md glass-strong rounded-3xl p-8 md:p-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <DialogTitle className="sr-only">Aviso de poupança</DialogTitle>

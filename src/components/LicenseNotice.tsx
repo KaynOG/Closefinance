@@ -44,7 +44,7 @@ export function LicenseNotice() {
 
   return (
     <Dialog open={show} onOpenChange={next => { if (!next) dismiss(); }}>
-      <DialogContent aria-describedby={undefined} className="glass-strong relative w-full max-w-md rounded-lg p-6 sm:p-8 text-center animate-in zoom-in-95 duration-200">
+      <DialogContent aria-describedby={undefined} className="glass-strong w-full max-w-md rounded-lg p-6 sm:p-8 text-center animate-in zoom-in-95 duration-200">
         <div className="mx-auto grid size-14 place-items-center rounded-full bg-primary/15 border border-primary/30">
           <CalendarClock className="size-6 text-primary" />
         </div>

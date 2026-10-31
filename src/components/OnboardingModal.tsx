@@ -65,7 +65,7 @@ export function OnboardingModal() {
   return (
     <Dialog open={open} onOpenChange={next => { if (!next) finish(); }}>
       <DialogContent aria-describedby={undefined}
-        className="glass-strong rounded-3xl max-w-lg w-full p-6 sm:p-7 relative animate-in zoom-in-95 duration-300"
+        className="glass-strong rounded-3xl max-w-lg w-full p-6 sm:p-7 animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
         style={{ borderColor: S.color + "55" }}
       >
