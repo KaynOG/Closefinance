@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { DialogLayer } from "./dialog-layer";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
@@ -31,6 +32,7 @@ const AlertDialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <AlertDialogPortal>
+    <DialogLayer>
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
@@ -45,6 +47,7 @@ const AlertDialogContent = React.forwardRef<
         <X className="size-4" />
       </AlertDialogPrimitive.Close>
     </AlertDialogPrimitive.Content>
+    </DialogLayer>
   </AlertDialogPortal>
 ));
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
