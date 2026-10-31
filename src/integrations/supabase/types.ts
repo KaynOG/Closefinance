@@ -925,6 +925,7 @@ export type Database = {
         }
         Returns: Json
       }
+      financial_recovery_snapshot: { Args: never; Returns: Json }
       find_profile_by_friend_code: {
         Args: { _code: string }
         Returns: {
@@ -960,6 +961,10 @@ export type Database = {
           license_expires_at: string
           license_kind: string
         }[]
+      }
+      restore_financial_action: {
+        Args: { p_changes: Json }
+        Returns: undefined
       }
     }
     Enums: {
