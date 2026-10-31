@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { DialogLayer } from "./dialog-layer";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -34,6 +35,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal>
+    <DialogLayer>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -49,6 +51,7 @@ const DialogContent = React.forwardRef<
         <span className="sr-only">Fechar</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
+    </DialogLayer>
   </DialogPortal>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;

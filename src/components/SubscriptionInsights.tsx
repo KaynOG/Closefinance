@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, useStore } from "@/lib/store";
 import { GlassCard, SectionTitle } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -38,6 +39,10 @@ export function SubscriptionInsights() {
 
   const pending = active.filter(s => !logs.some(l => l.subscription_id === s.id && l.week_start === week));
   const showAsk = loaded && !dismissed && pending.length > 0;
+  function dismiss() {
+    if (user) localStorage.setItem(`cf_subweek_${user.id}`, week);
+    setDismissed(true);
+  }
 
   async function saveAnswers() {
     if (!user) return;
@@ -102,9 +107,9 @@ export function SubscriptionInsights() {
       </>}
     </GlassCard>
 
-    {showAsk && <div className="fixed inset-0 z-50 grid place-items-center bg-background/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg max-h-[85vh] overflow-auto rounded-2xl border border-border bg-card p-5 shadow-xl">
-        <h2 className="text-lg font-bold">Como foi seu uso nesta semana?</h2>
+    <Dialog open={showAsk} onOpenChange={next => { if (!next) dismiss(); }}>
+      <DialogContent aria-describedby={undefined} className="w-full max-w-lg max-h-[85dvh] overflow-auto rounded-2xl border border-border bg-card p-5 shadow-xl">
+        <DialogTitle className="text-lg font-bold pr-6">Como foi seu uso nesta semana?</DialogTitle>
         <p className="text-sm text-muted-foreground mb-4">Conte com que frequência usou cada serviço.</p>
         <div className="space-y-4">
           {pending.map(s => <div key={s.id}>
@@ -116,10 +121,10 @@ export function SubscriptionInsights() {
           </div>)}
         </div>
         <div className="flex justify-end gap-2 mt-5">
-          <Button variant="ghost" onClick={saveAnswers}>Depois</Button>
+          <Button variant="ghost" onClick={dismiss}>Depois</Button>
           <Button onClick={saveAnswers} disabled={!Object.keys(answers).length}>Salvar respostas</Button>
         </div>
-      </div>
-    </div>}
+      </DialogContent>
+    </Dialog>
   </>;
 }

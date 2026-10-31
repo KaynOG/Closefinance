@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Tags, Landmark, CreditCard, X, Sparkles, ArrowRight, ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const STORAGE_PREFIX = "cf_onboarding_seen_";
 
@@ -62,23 +63,12 @@ export function OnboardingModal() {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div
-      className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm grid place-items-center p-4 animate-in fade-in duration-200"
-      onClick={finish}
-    >
-      <div
-        className="glass-strong rounded-3xl max-w-lg w-full p-6 sm:p-7 relative animate-in zoom-in-95 duration-300"
+    <Dialog open={open} onOpenChange={next => { if (!next) finish(); }}>
+      <DialogContent aria-describedby={undefined}
+        className="glass-strong rounded-3xl max-w-lg w-full p-6 sm:p-7 animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
         style={{ borderColor: S.color + "55" }}
       >
-        <button
-          onClick={finish}
-          aria-label="Fechar"
-          className="absolute top-3 right-3 rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5"
-        >
-          <X className="size-4" />
-        </button>
-
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="size-4 text-secondary" />
           <p className="font-mono text-[10px] uppercase tracking-widest text-secondary">
@@ -94,7 +84,7 @@ export function OnboardingModal() {
             <Icon className="size-6" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-xl font-bold leading-tight">{S.title}</h2>
+            <DialogTitle className="text-xl font-bold leading-tight">{S.title}</DialogTitle>
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{S.desc}</p>
           </div>
         </div>
@@ -161,7 +151,7 @@ export function OnboardingModal() {
         >
           pular tutorial
         </button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

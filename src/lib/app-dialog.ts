@@ -6,6 +6,7 @@ type DialogOptions = {
   secret?: boolean;
 };
 export type AppDialogRequest = DialogOptions & {
+  id: number;
   kind: "confirm" | "alert" | "prompt";
   message: string;
   defaultValue?: string;
@@ -13,6 +14,7 @@ export type AppDialogRequest = DialogOptions & {
 };
 
 let active: AppDialogRequest | null = null;
+let nextId = 0;
 const queue: AppDialogRequest[] = [];
 const listeners = new Set<() => void>();
 export const getDialogSnapshot = () => active;
@@ -23,12 +25,13 @@ export function subscribeDialogs(listener: () => void) {
 function emit() { listeners.forEach(listener => listener()); }
 function requestDialog(kind: AppDialogRequest["kind"], message: string, options: DialogOptions, defaultValue?: string) {
   return new Promise<boolean | string | null>(resolve => {
-    queue.push({ kind, message, ...options, defaultValue, resolve });
+    queue.push({ kind, message, ...options, id: ++nextId, defaultValue, resolve });
     if (!active) active = queue.shift() ?? null;
     emit();
   });
 }
-export function finishDialog(value: boolean | string | null) {
+export function finishDialog(value: boolean | string | null, expectedId = active?.id) {
+  if (!active || active.id !== expectedId) return;
   const current = active;
   active = queue.shift() ?? null;
   emit();

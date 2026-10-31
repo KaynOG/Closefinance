@@ -13,6 +13,7 @@
 - Persist debt/receivable custom positions and archive status on their own rows and include them in backup restoration, so organization follows the account and survives remapped IDs.
 - Share chronological/custom record ordering through `record-order` and `RecordOrderControls`, so debts and receivables keep identical sorting behavior.
 - Use the asynchronous app-dialog service and root AppDialogHost for confirmations, alerts and prompts, so actions await accessible themed dialogs instead of browser dialogs.
+- Render modal windows through the shared Radix Dialog portal and DialogLayer opening-order stacking contexts rather than custom fixed overlays; queued requests have stable IDs and dismiss as cancellation, so stacking, focus and pointer cleanup remain consistent.
 - Edit debt and receivable installment dates and amounts through the existing store update APIs, so linked transactions and bank balances stay synchronized.
 - Share audio preference changes through the sound module subscription API so floating and settings controls stay synchronized and muting stops active audio.
 - Keep glass treatments and chart glow in shared semantic CSS tokens so every accent and light/dark mode inherits the same visual treatment.

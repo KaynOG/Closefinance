@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useStore, formatBRL } from "@/lib/store";
 import { PiggyBank, Sparkles, Bell, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const MOTIVATIONAL = [
   "Cada real guardado é um tijolo da sua liberdade financeira. 🧱",
@@ -153,23 +154,14 @@ export function SavingsMonitor() {
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-md glass-strong rounded-3xl p-8 md:p-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 shadow-2xl"
+    <Dialog open onOpenChange={next => { if (!next) onClose(); }}>
+      <DialogContent aria-describedby={undefined}
+        className="w-full max-w-md glass-strong rounded-3xl p-8 md:p-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 rounded-xl p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition"
-          aria-label="Fechar"
-        >
-          <X className="size-4" />
-        </button>
+        <DialogTitle className="sr-only">Aviso de poupança</DialogTitle>
         {children}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
