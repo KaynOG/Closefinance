@@ -425,13 +425,6 @@ function CardPurchases() {
     if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id }));
   }, [cards, form.cardId]);
 
-  useEffect(() => {
-    const sync = () => { try { setItems(JSON.parse(localStorage.getItem(storageKey) || '[]')); } catch { /* malformed storage */ } };
-    sync();
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, [storageKey]);
-
   const groups = useMemo(() => {
     const map = new Map<string, { key: string; card?: typeof cards[number]; description: string; items: Transaction[] }>();
     for (const t of transactions) {
@@ -641,6 +634,13 @@ function ExternalPurchases() {
   useEffect(() => {
     if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id }));
   }, [cards, form.cardId]);
+
+  useEffect(() => {
+    const sync = () => { try { setItems(JSON.parse(localStorage.getItem(storageKey) || '[]')); } catch { /* malformed storage */ } };
+    sync();
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, [storageKey]);
 
   function persist(next: ExtPurchase[]) {
     setItems(next);
