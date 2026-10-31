@@ -1,4 +1,5 @@
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { withUndo, useActionHistory } from '@/lib/action-history';
 import { appConfirm } from "@/lib/app-dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -44,6 +45,7 @@ const soft = (c: string, p = 18) => `color-mix(in oklab, ${c} ${p}%, transparent
 const today = () => new Date().toISOString().slice(0, 10);
 
 function BebePage() {
+  const { revision } = useActionHistory();
   const [state, , user] = useStore();
   const { babyMode } = usePrefs();
   const [items, setItems] = useState<BabyExpense[]>([]);
@@ -55,7 +57,7 @@ function BebePage() {
     if (!user) return;
     supabase.from("baby_expenses").select("*").eq("user_id", user.id).order("date", { ascending: false })
       .then(({ data }) => { setItems((data ?? []).map(d => ({ ...d, amount: Number(d.amount) }))); setLoading(false); });
-  }, [user?.id]);
+  }, [user?.id, revision]);
 
   const totals = useMemo(() => {
     const ess = items.filter(i => i.essential === "essential").reduce((s, i) => s + i.amount, 0);
@@ -102,8 +104,11 @@ function BebePage() {
 
   async function remove(id: string) {
     if (!await appConfirm("Apagar este registro?")) return;
-    const { error } = await supabase.from("baby_expenses").delete().eq("id", id);
-    if (!error) setItems(prev => prev.filter(i => i.id !== id));
+    await withUndo('Registro do bebê excluído', async () => {
+      const { error } = await supabase.from("baby_expenses").delete().eq("id", id);
+      if (error) throw error;
+      setItems(prev => prev.filter(i => i.id !== id));
+    });
   }
 
   const field = "w-full rounded-2xl border-2 bg-background/60 px-4 py-2.5 text-sm outline-none transition focus:border-[var(--baby-sky)]";

@@ -1,4 +1,5 @@
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { rememberLocalDeletion } from '@/lib/action-history';
 import { appConfirm, appPrompt } from "@/lib/app-dialog";
 import { Pencil } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -634,6 +635,13 @@ function ExternalPurchases() {
     if (!form.cardId && cards.length) setForm(f => ({ ...f, cardId: cards[0].id }));
   }, [cards, form.cardId]);
 
+  useEffect(() => {
+    const sync = () => { try { setItems(JSON.parse(localStorage.getItem(storageKey) || '[]')); } catch { /* malformed storage */ } };
+    sync();
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, [storageKey]);
+
   function persist(next: ExtPurchase[]) {
     setItems(next);
     try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ignore */ }
@@ -767,7 +775,7 @@ function ExternalPurchases() {
                           </p>
                         </div>
                         <button
-                          onClick={async () => { if (await appConfirm(`Remover o registro de "${p.description}"?`)) { persist(items.filter(i => i.id !== p.id)); notify("Registro removido."); } }}
+                          onClick={async () => { if (await appConfirm(`Remover o registro de "${p.description}"?`)) { const before = localStorage.getItem(storageKey); persist(items.filter(i => i.id !== p.id)); rememberLocalDeletion('Compra parcelada excluída', storageKey, before, localStorage.getItem(storageKey)); } }}
                           className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover registro">
                           <Trash2 className="size-4" />
                         </button>
@@ -960,7 +968,7 @@ function ManualInvoicesBlock() {
                                   className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-white/10" aria-label="Editar valor da fatura">
                                   <Pencil className="size-4" />
                                 </button>
-                                <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { persist(items.filter(x => x.id !== i.id)); notify("Fatura removida."); } }}
+                                <button onClick={async () => { if (await appConfirm("Remover esta fatura?")) { const key = `cf_manual_invoices_${currentUserId ?? 'anon'}`; const before = localStorage.getItem(key); persist(items.filter(x => x.id !== i.id)); rememberLocalDeletion('Fatura excluída', key, before, localStorage.getItem(key)); } }}
                                   className="rounded-lg border border-border p-2 text-[#FF4D6D] hover:bg-[#FF4D6D]/15" aria-label="Remover fatura">
                                   <Trash2 className="size-4" />
                                 </button>

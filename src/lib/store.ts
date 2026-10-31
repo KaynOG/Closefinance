@@ -6,6 +6,7 @@ import { isTabHidden } from "@/lib/prefs";
 import { notify as notifyToast } from "@/lib/notify";
 import { isBudgetGroup, readBudgetPlan, type BudgetGroup, type BudgetPlan } from "@/lib/budget-goals";
 import { projectPartialInstallment, type PartialInstallment } from "@/lib/partial-installment";
+import { withUndo, clearActionHistory } from "@/lib/action-history";
 
 export type TxType = "income" | "expense";
 export type Essential = "essential" | "non_essential";
@@ -675,6 +676,7 @@ export function monthExpenseTotal(transactions: Transaction[], cards: Card[], re
 }
 
 function clearAll() {
+  clearActionHistory();
   memory = { ...EMPTY_STATE, loading: false };
   try { localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
   notify();
@@ -685,6 +687,11 @@ let initialized = false;
 function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
+  window.addEventListener('cf:records-restored', () => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) void loadAll(data.session.user);
+    });
+  });
   supabase.auth.getSession().then(({ data }) => {
     if (data.session?.user) loadAll(data.session.user); else set({ loading: false });
   });
@@ -895,10 +902,10 @@ export function useStore() {
       if (error) { console.error(error); return; }
       set({ transactions: memory.transactions.map(x => x.id === i ? { ...x, ...p } : x) });
     },
-    removeTransaction: async (i: string, opts?: { wholeGroup?: boolean }) => {
+    removeTransaction: async (i: string, opts?: { wholeGroup?: boolean; skipHistory?: boolean }) => {
       const tx = memory.transactions.find(x => x.id === i);
       const todayStr2 = new Date().toISOString().slice(0, 10);
-      const reverseSideEffects = (transaction: Transaction) => {
+      const reverseSideEffects = async (transaction: Transaction) => {
         // Lançamentos futuros não impactaram o saldo, então não revertem
         if (transaction.date > todayStr2) return;
         // expense via débito/pix → devolve ao banco
@@ -906,7 +913,7 @@ export function useStore() {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
           if (bank) {
             const newBalance = bank.accountBalance + transaction.amount;
-            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
@@ -915,7 +922,7 @@ export function useStore() {
           const bank = memory.banks.find(b => b.id === transaction.bankId);
           if (bank) {
             const newBalance = bank.accountBalance - transaction.amount;
-            supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id).then(() => {});
+            await supabase.from("banks").update({ account_balance: newBalance }).eq("id", bank.id);
             set({ banks: memory.banks.map(b => b.id === bank.id ? { ...b, accountBalance: newBalance } : b) });
           }
         }
@@ -925,7 +932,7 @@ export function useStore() {
           const user = memory.users.find(u => u.id === uid);
           if (user) {
             const newCash = Math.max(0, (user.cashAmount ?? 0) - transaction.amount);
-            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
         }
@@ -935,7 +942,7 @@ export function useStore() {
           const user = memory.users.find(u => u.id === uid);
           if (user) {
             const newCash = (user.cashAmount ?? 0) + transaction.amount;
-            supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid).then(() => {});
+            await supabase.from("profiles").update({ cash_amount: newCash }).eq("id", uid);
             set({ users: memory.users.map(u => u.id === uid ? { ...u, cashAmount: newCash } : u) });
           }
         }
@@ -1023,14 +1030,14 @@ export function useStore() {
         const { error } = await supabase.from("transactions").delete().eq("installment_group_id", gid);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.installmentGroupId !== gid) });
-        groupTxs.forEach(reverseSideEffects);
+        for (const gtx of groupTxs) await reverseSideEffects(gtx);
         for (const gtx of groupTxs) await dropInstallmentForTx(gtx);
       } else {
         const { error } = await supabase.from("transactions").delete().eq("id", i);
         if (error) return console.error(error);
         set({ transactions: memory.transactions.filter(x => x.id !== i) });
         if (tx) {
-          reverseSideEffects(tx);
+          await reverseSideEffects(tx);
           await dropInstallmentForTx(tx);
         }
       }
@@ -2100,6 +2107,19 @@ export function useStore() {
 
     reset: () => { clearAll(); },
   };
+
+  const deletionLabels = {
+    removeTransaction: 'Lançamento excluído', removeCategory: 'Categoria excluída',
+    removeCard: 'Cartão excluído', removeBank: 'Banco excluído', removeSubscription: 'Assinatura excluída',
+    removeDebt: 'Dívida excluída', removeReceivable: 'Devedor excluído', wipeData: 'Dados apagados',
+  };
+  for (const key of Object.keys(deletionLabels) as (keyof typeof deletionLabels)[]) {
+    const original = api[key] as (...args: unknown[]) => Promise<unknown>;
+    Object.assign(api, { [key]: (...args: unknown[]) => {
+      if (key === 'removeTransaction' && (args[1] as { skipHistory?: boolean } | undefined)?.skipHistory) return original(...args);
+      return withUndo(deletionLabels[key], () => original(...args));
+    } });
+  }
 
   const currentUser = memory.users.find(u => u.id === memory.currentUserId) ?? null;
   return [memory, api, currentUser] as const;

@@ -1,4 +1,5 @@
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { withUndo, useActionHistory } from '@/lib/action-history';
 import { appConfirm } from "@/lib/app-dialog";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ const curMonth = () => new Date().toISOString().slice(0, 7);
 const fmtMonth = (m: string) => { const [y, mo] = m.split("-"); return `${mo}/${y}`; };
 
 export function BabyFund({ userId }: { userId: string }) {
+  const { revision } = useActionHistory();
   const [rows, setRows] = useState<Saving[]>([]);
   const [month, setMonth] = useState(curMonth());
   const [amount, setAmount] = useState("");
@@ -20,7 +22,7 @@ export function BabyFund({ userId }: { userId: string }) {
   useEffect(() => {
     supabase.from("baby_savings").select("id,month,amount,note").eq("user_id", userId).order("month", { ascending: false })
       .then(({ data }) => setRows((data ?? []).map(d => ({ ...d, amount: Number(d.amount) }))));
-  }, [userId]);
+  }, [userId, revision]);
 
   const total = rows.reduce((s, r) => s + r.amount, 0);
   const thisMonth = rows.filter(r => r.month === curMonth()).reduce((s, r) => s + r.amount, 0);
@@ -37,8 +39,11 @@ export function BabyFund({ userId }: { userId: string }) {
   }
   async function remove(id: string) {
     if (!await appConfirm("Apagar este registro do fundo?")) return;
-    const { error } = await supabase.from("baby_savings").delete().eq("id", id);
-    if (!error) setRows(p => p.filter(r => r.id !== id));
+    await withUndo('Registro do fundo excluído', async () => {
+      const { error } = await supabase.from("baby_savings").delete().eq("id", id);
+      if (error) throw error;
+      setRows(p => p.filter(r => r.id !== id));
+    });
   }
 
   const field = "w-full rounded-2xl border-2 bg-background/60 px-4 py-2.5 text-sm outline-none";
