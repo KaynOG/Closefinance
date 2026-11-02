@@ -32,7 +32,7 @@ function GastosPage() {
   const today = new Date();
   const expenseCats = categories.filter(c => c.kind !== "income");
   const [editing, setEditing] = useState<Transaction | null>(null);
-  const [fMonth, setFMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [fMonth, setFMonth] = useState(() => monthKey(new Date()));
   const [fCategory, setFCategory] = useState("all");
   const [fMin, setFMin] = useState("");
   const [fMax, setFMax] = useState("");
@@ -311,7 +311,7 @@ function GastosPage() {
         <GlassCard hideKey="gastos-4" hideLabel="Planilha de gastos">
           <SectionTitle title="Planilha de gastos" subtitle={`${expenses.length} lançamentos`} />
           {(() => {
-            const monthsSet = Array.from(new Set(expenses.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+            const monthsSet = Array.from(new Set([monthKey(today), ...expenses.map(t => t.date.slice(0, 7))])).sort((a, b) => b.localeCompare(a));
             const minN = parseBRL(fMin);
             const maxN = parseBRL(fMax);
             const q = fSearch.trim().toLowerCase();
