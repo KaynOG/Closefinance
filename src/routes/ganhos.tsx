@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, parseBRL, parseReceivableTag, type Transaction } from "@/lib/store";
+import { monthKey } from "@/lib/manual-invoices";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
@@ -29,7 +30,7 @@ const CYAN_DARK = "#006F77";
 function GanhosPage() {
   const [{ transactions, categories, cards, banks, receivables }, api] = useStore();
   const [editing, setEditing] = useState<Transaction | null>(null);
-  const [fMonth, setFMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [fMonth, setFMonth] = useState(() => monthKey(new Date()));
   const [fCategory, setFCategory] = useState("all");
   const [fMin, setFMin] = useState("");
   const [fMax, setFMax] = useState("");
@@ -161,7 +162,7 @@ function GanhosPage() {
         <GlassCard hideKey="ganhos-4" hideLabel="Planilha de ganhos">
           <SectionTitle title="Planilha de ganhos" subtitle={`${incomes.length} lançamentos`} />
           {(() => {
-            const monthsSet = Array.from(new Set(incomes.map(t => t.date.slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+            const monthsSet = Array.from(new Set([monthKey(today), ...incomes.map(t => t.date.slice(0, 7))])).sort((a, b) => b.localeCompare(a));
             const minN = parseBRL(fMin);
             const maxN = parseBRL(fMax);
             const q = fSearch.trim().toLowerCase();
