@@ -1,7 +1,7 @@
 # Ajustes solicitados
 
-- [ ] Adicionar desfazer exclusões com recuperação dos registros vinculados e saldos.
-- [ ] Verificar recuperação de gasto, cartão e parcelas, inclusive após recarregar.
+- [x] Adicionar desfazer/refazer exclusões financeiras com recuperação dos registros vinculados e saldos durante a sessão.
+- [x] Verificar gasto e cartão na interface, persistência após recarregar e cálculos de recuperação de parcelas nos testes.
 
 - [x] Adicionar pagamento/recebimento parcial com valor e prévia das parcelas reajustadas em janelas temáticas.
 - [x] Persistir confirmação e redistribuição sem alterar o total, sincronizando lançamentos e bancos.
