@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { GlassCard, SectionTitle, Stat } from "@/components/ui-kit";
 import { useStore, formatBRL, isSameMonth, parseBRL, parseReceivableTag, type Transaction } from "@/lib/store";
+import { monthKey } from "@/lib/manual-invoices";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, TrendingUp } from "lucide-react";
 import { TutorialBox } from "@/components/TutorialBox";
