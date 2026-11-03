@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 /** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 import { FlowAreaChart, CatStackBarChart, CatPieChart } from "@/components/charts/lazy";
+import { ChartTypeSwitch, useChartType, FLOW_OPTIONS, CAT_OPTIONS, PIE_OPTIONS } from "@/components/charts/ChartTypeSwitch";
 import {
   TrendingUp,
   TrendingDown,
@@ -79,6 +80,10 @@ const DAILY_TIPS = [
 
 function DashboardPage() {
   const cc = useChartColors();
+  const [flowType, setFlowType] = useChartType("flow", "area" as const, ["area", "line", "bar"] as const);
+  const [catType, setCatType] = useChartType("catSeries", "stacked" as const, ["stacked", "grouped", "line", "area"] as const);
+  const [pieType, setPieType] = useChartType("catPie", "donut" as const, ["donut", "pie", "bar"] as const);
+  const [subPieType, setSubPieType] = useChartType("subPie", "donut" as const, ["donut", "pie", "bar"] as const);
   const CYAN = cc.c1;
   const ORANGE = cc.c2;
   const [{ transactions, categories, cards, banks, missions, subscriptions, debts, receivables, currentUserId }, api, user] = useStore();
@@ -619,11 +624,11 @@ function DashboardPage() {
                 />
               </div>
               <div className="min-w-0 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
-                <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
+                <div className="mb-2 flex items-center justify-between gap-2"><p className="font-mono text-xs text-muted-foreground">Assinaturas do mês</p><ChartTypeSwitch value={subPieType} options={PIE_OPTIONS} onChange={setSubPieType} /></div>
                 {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-56 w-full max-w-sm"><CatPieChart data={[
                   { name: "Essenciais", value: subscriptionSplit.essential, color: "var(--chart-1)" },
                   { name: "Não essenciais", value: subscriptionSplit.nonEssential, color: "var(--chart-4)" },
-                ]} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
+                ]} variant={subPieType} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
               </div>
             </div>
           </GlassCard>
@@ -660,6 +665,8 @@ function DashboardPage() {
             title={`Fluxo dos últimos ${periodMonths} meses`}
             subtitle="ganhos em ciano · gastos em laranja"
             action={
+              <div className="flex flex-wrap items-center gap-2">
+              <ChartTypeSwitch value={flowType} options={FLOW_OPTIONS} onChange={setFlowType} />
               <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
                 {([3, 6, 12] as const).map((n) => (
                   <button
@@ -671,6 +678,7 @@ function DashboardPage() {
                   </button>
                 ))}
               </div>
+              </div>
             }
           />
 
@@ -681,7 +689,7 @@ function DashboardPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <FlowAreaChart data={series} incomeColor={CYAN} expenseColor={ORANGE} />
+            <FlowAreaChart data={series} incomeColor={CYAN} expenseColor={ORANGE} variant={flowType} />
           </motion.div>
         </GlassCard>)}
       </section>
@@ -758,7 +766,7 @@ function DashboardPage() {
             }
             action={
               <div className="flex items-center gap-2">
-                <BarChart3 className="size-4 text-secondary" />
+                <ChartTypeSwitch value={catType} options={CAT_OPTIONS} onChange={setCatType} />
                 <div className="inline-flex rounded-xl border border-border overflow-hidden text-[11px] font-mono">
                   {([3, 6, 12] as const).map((n) => (
                     <button
@@ -816,7 +824,7 @@ function DashboardPage() {
                       Sem gastos no período.
                     </div>
                   ) : (
-                    <CatStackBarChart data={catSeries} cats={activeCats} />
+                    <CatStackBarChart data={catSeries} cats={activeCats} variant={catType} />
                   )}
                 </motion.div>
 
@@ -876,12 +884,12 @@ function DashboardPage() {
       {!hidden.catPie && (
         <section className="mb-8">
           <GlassCard hideKey="index-9" hideLabel="Gastos por categoria">
-            <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" />
+            <SectionTitle title="Gastos por categoria" subtitle="distribuição do mês atual" action={<ChartTypeSwitch value={pieType} options={PIE_OPTIONS} onChange={setPieType} />} />
             <motion.div className="h-64" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5, ease: "easeOut" }}>
               {byCat.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
               ) : (
-                <CatPieChart data={byCat} />
+                <CatPieChart data={byCat} variant={pieType} />
               )}
             </motion.div>
           </GlassCard>
