@@ -15,7 +15,8 @@ import { motion } from "framer-motion";
 
 /** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
-import { FlowAreaChart, CatStackBarChart, CatPieChart } from "@/components/charts/lazy";
+import { DashboardChart } from "@/components/charts/DashboardChart";
+import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
   TrendingDown,
@@ -620,7 +621,7 @@ function DashboardPage() {
               </div>
               <div className="min-w-0 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
                 <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
-                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-56 w-full max-w-sm"><CatPieChart data={[
+                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-72 w-full max-w-sm"><DashboardChart label="Assinaturas do mês" data={[]} slices={[
                   { name: "Essenciais", value: subscriptionSplit.essential, color: "var(--chart-1)" },
                   { name: "Não essenciais", value: subscriptionSplit.nonEssential, color: "var(--chart-4)" },
                 ]} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
@@ -681,7 +682,7 @@ function DashboardPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <FlowAreaChart data={series} incomeColor={CYAN} expenseColor={ORANGE} />
+            <DashboardChart label="Fluxo de caixa" data={series} series={[{ key: "receitas", name: "Ganhos", color: CYAN }, { key: "despesas", name: "Gastos", color: ORANGE }]} />
           </motion.div>
         </GlassCard>)}
       </section>
@@ -816,7 +817,7 @@ function DashboardPage() {
                       Sem gastos no período.
                     </div>
                   ) : (
-                    <CatStackBarChart data={catSeries} cats={activeCats} />
+                    <DashboardChart label="Histórico por categoria" data={catSeries} initial="stacked" series={activeCats.map(c => ({ key: c.name, name: c.name, color: c.color }))} />
                   )}
                 </motion.div>
 
@@ -881,7 +882,7 @@ function DashboardPage() {
               {byCat.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
               ) : (
-                <CatPieChart data={byCat} />
+                <DashboardChart label="Gastos por categoria" data={[]} slices={byCat} />
               )}
             </motion.div>
           </GlassCard>
@@ -965,6 +966,7 @@ function HealthRing({
   score: number;
   tone: "violet" | "yellow" | "teal" | "crimson" | "success" | "danger";
 }) {
+  const [barView, setBarView] = useState(false);
   const radius = 60;
   const c = 2 * Math.PI * radius;
   const offset = c - (score / 100) * c;
@@ -978,7 +980,12 @@ function HealthRing({
     danger: "#FF4D6D",
   };
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col items-center gap-3">
+      <Button variant="outline" size="sm" aria-label="Mudar gráfico: Saúde financeira" onClick={() => setBarView(value => !value)}><BarChart3 /> Mudar gráfico</Button>
+      {barView ? <div className="flex h-40 w-full flex-col justify-center gap-3">
+        <p className="text-center text-3xl font-semibold">{score}<span className="text-sm text-muted-foreground">/100</span></p>
+        <div role="meter" aria-label="Saúde financeira" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100} className="h-4 overflow-hidden rounded-md bg-muted"><div className="h-full bg-primary transition-all duration-500 motion-reduce:transition-none" style={{ width: `${score}%` }} /></div>
+      </div> : <>
       <svg width="160" height="160" viewBox="0 0 160 160" className="-rotate-90">
         <circle cx="80" cy="80" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="none" />
         <circle
@@ -1009,6 +1016,7 @@ function HealthRing({
           {score}
         </text>
       </svg>
+      </>}
     </div>
   );
 }
