@@ -1,7 +1,23 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis } from "recharts";
+
+export type PieVariant = "donut" | "pie" | "bar";
 import { ChartTooltip } from "@/components/ChartTooltip";
 
-export default function CatPieChart({ data }: { data: Array<{ name: string; value: number; color: string }> }) {
+export default function CatPieChart({ data, variant = "donut" }: { data: Array<{ name: string; value: number; color: string }>; variant?: PieVariant }) {
+  if (variant === "bar") {
+    return (
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" width={110} fontSize={11} tick={{ fill: "currentColor" }} className="text-muted-foreground" />
+          <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} content={<ChartTooltip showTotal={false} />} />
+          <Bar dataKey="value" name="Valor" radius={[0, 6, 6, 0]} animationDuration={800}>
+            {data.map((e, i) => <Cell key={i} fill={e.color} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col items-center gap-3">
     <div className="min-h-0 w-full flex-1">
@@ -13,7 +29,7 @@ export default function CatPieChart({ data }: { data: Array<{ name: string; valu
           nameKey="name"
           cx="50%"
           cy="50%"
-          innerRadius="55%"
+          innerRadius={variant === "pie" ? 0 : "55%"}
           outerRadius="85%"
           cornerRadius={5}
           paddingAngle={2}
