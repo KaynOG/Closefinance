@@ -603,21 +603,11 @@ function DashboardPage() {
           <GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
             <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo este mês" />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-              <div className="space-y-5">
-                <Bar
-                  label="Essenciais"
-                  value={month.essential}
-                  total={month.expense || 1}
-                  color="var(--chart-1)"
-                  icon={<TrendingDown className="size-4" />}
-                />
-                <Bar
-                  label="Não essenciais"
-                  value={month.nonEssential}
-                  total={month.expense || 1}
-                  color="var(--chart-4)"
-                  icon={<TrendingUp className="size-4" />}
-                />
+              <div className="h-72 min-w-0">
+                <DashboardChart label="Essenciais vs. Não essenciais" data={[]} initial="bar" slices={[
+                  { name: "Essenciais", value: month.essential, color: "var(--chart-1)" },
+                  { name: "Não essenciais", value: month.nonEssential, color: "var(--chart-4)" },
+                ]} />
               </div>
               <div className="min-w-0 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
                 <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
