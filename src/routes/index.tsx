@@ -15,8 +15,7 @@ import { motion } from "framer-motion";
 
 /** Fonte mono (JetBrains Mono) usada nos eixos/labels dos gráficos. */
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
-import { DashboardChart } from "@/components/charts/DashboardChart";
-import { Button } from "@/components/ui/button";
+import { FlowAreaChart, CatStackBarChart, CatPieChart } from "@/components/charts/lazy";
 import {
   TrendingUp,
   TrendingDown,
@@ -603,15 +602,25 @@ function DashboardPage() {
           <GlassCard hideKey="index-10" hideLabel="Essenciais vs. Não essenciais">
             <SectionTitle title="Essenciais vs. Não essenciais" subtitle="onde seu dinheiro está indo este mês" />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-              <div className="h-72 min-w-0">
-                <DashboardChart label="Essenciais vs. Não essenciais" data={[]} initial="bar" slices={[
-                  { name: "Essenciais", value: month.essential, color: "var(--chart-1)" },
-                  { name: "Não essenciais", value: month.nonEssential, color: "var(--chart-4)" },
-                ]} />
+              <div className="space-y-5">
+                <Bar
+                  label="Essenciais"
+                  value={month.essential}
+                  total={month.expense || 1}
+                  color="var(--chart-1)"
+                  icon={<TrendingDown className="size-4" />}
+                />
+                <Bar
+                  label="Não essenciais"
+                  value={month.nonEssential}
+                  total={month.expense || 1}
+                  color="var(--chart-4)"
+                  icon={<TrendingUp className="size-4" />}
+                />
               </div>
               <div className="min-w-0 border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
                 <p className="font-mono text-xs text-muted-foreground mb-2">Assinaturas do mês</p>
-                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-72 w-full max-w-sm"><DashboardChart label="Assinaturas do mês" data={[]} slices={[
+                {subscriptionSplit.essential + subscriptionSplit.nonEssential > 0 ? <div className="mx-auto h-56 w-full max-w-sm"><CatPieChart data={[
                   { name: "Essenciais", value: subscriptionSplit.essential, color: "var(--chart-1)" },
                   { name: "Não essenciais", value: subscriptionSplit.nonEssential, color: "var(--chart-4)" },
                 ]} /></div> : <p className="text-sm text-muted-foreground">Sem assinaturas neste mês.</p>}
@@ -672,7 +681,7 @@ function DashboardPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <DashboardChart label="Fluxo de caixa" data={series.map(({ month, receitas, despesas }) => ({ month, receitas, despesas }))} series={[{ key: "receitas", name: "Ganhos", color: CYAN }, { key: "despesas", name: "Gastos", color: ORANGE }]} />
+            <FlowAreaChart data={series} incomeColor={CYAN} expenseColor={ORANGE} />
           </motion.div>
         </GlassCard>)}
       </section>
@@ -807,7 +816,7 @@ function DashboardPage() {
                       Sem gastos no período.
                     </div>
                   ) : (
-                    <DashboardChart label="Histórico por categoria" data={catSeries} initial="stacked" series={activeCats.map(c => ({ key: c.name, name: c.name, color: c.color }))} />
+                    <CatStackBarChart data={catSeries} cats={activeCats} />
                   )}
                 </motion.div>
 
@@ -872,7 +881,7 @@ function DashboardPage() {
               {byCat.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Sem gastos categorizados este mês.</p>
               ) : (
-                <DashboardChart label="Gastos por categoria" data={[]} slices={byCat} />
+                <CatPieChart data={byCat} />
               )}
             </motion.div>
           </GlassCard>
@@ -956,7 +965,6 @@ function HealthRing({
   score: number;
   tone: "violet" | "yellow" | "teal" | "crimson" | "success" | "danger";
 }) {
-  const [barView, setBarView] = useState(false);
   const radius = 60;
   const c = 2 * Math.PI * radius;
   const offset = c - (score / 100) * c;
@@ -970,12 +978,7 @@ function HealthRing({
     danger: "#FF4D6D",
   };
   return (
-    <div className="flex flex-col items-center gap-3">
-      <Button variant="outline" size="sm" aria-label="Mudar gráfico: Saúde financeira" onClick={() => setBarView(value => !value)}><BarChart3 /> Mudar gráfico</Button>
-      {barView ? <div className="flex h-40 w-full flex-col justify-center gap-3">
-        <p className="text-center text-3xl font-semibold">{score}<span className="text-sm text-muted-foreground">/100</span></p>
-        <div role="meter" aria-label="Saúde financeira" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100} className="h-4 overflow-hidden rounded-md bg-muted"><div className="h-full bg-primary transition-all duration-500 motion-reduce:transition-none" style={{ width: `${score}%` }} /></div>
-      </div> : <>
+    <div className="flex justify-center">
       <svg width="160" height="160" viewBox="0 0 160 160" className="-rotate-90">
         <circle cx="80" cy="80" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="none" />
         <circle
@@ -1006,7 +1009,6 @@ function HealthRing({
           {score}
         </text>
       </svg>
-      </>}
     </div>
   );
 }
