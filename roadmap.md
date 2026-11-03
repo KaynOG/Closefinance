@@ -1,7 +1,7 @@
 # Ajustes solicitados
 
-- [ ] Oferecer mudança de visualização em todos os gráficos do Dashboard sem alterar os dados ou filtros.
-- [ ] Verificar a alternância dos gráficos com dados do usuário.
+- [x] Oferecer mudança de visualização em todos os gráficos do Dashboard sem alterar os dados ou filtros.
+- [x] Verificar a alternância dos gráficos com dados do usuário.
 
 - [x] Adicionar desfazer/refazer exclusões financeiras com recuperação dos registros vinculados e saldos durante a sessão.
 - [x] Verificar gasto e cartão na interface, persistência após recarregar e cálculos de recuperação de parcelas nos testes.

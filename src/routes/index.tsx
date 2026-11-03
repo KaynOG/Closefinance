@@ -682,7 +682,7 @@ function DashboardPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <DashboardChart label="Fluxo de caixa" data={series} series={[{ key: "receitas", name: "Ganhos", color: CYAN }, { key: "despesas", name: "Gastos", color: ORANGE }]} />
+            <DashboardChart label="Fluxo de caixa" data={series.map(({ month, receitas, despesas }) => ({ month, receitas, despesas }))} series={[{ key: "receitas", name: "Ganhos", color: CYAN }, { key: "despesas", name: "Gastos", color: ORANGE }]} />
           </motion.div>
         </GlassCard>)}
       </section>
