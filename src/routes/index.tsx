@@ -10,6 +10,7 @@ import { analyzeHealth } from "@/lib/financial-health";
 import { isCreditPurchase, type Debt, type Receivable } from "@/lib/store";
 import { useManualInvoices, monthKey, manualInvoiceTotal, type ManualInvoice } from "@/lib/manual-invoices";
 import { pickGreeting } from "@/lib/greetings";
+import { CategoryComparisonAlert } from "@/components/CategoryComparisonAlert";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -392,6 +393,8 @@ function DashboardPage() {
           <span className="text-gradient">{greeting}</span>
         </h1>
       </header>
+
+      <CategoryComparisonAlert transactions={transactions} categories={categories} />
 
       {rankUp && (
         <div className="mb-4 rounded-2xl border p-4 flex items-center gap-3 flex-wrap animate-in fade-in slide-in-from-top-2"
