@@ -46,7 +46,7 @@ export function CategoryComparisonAlert({ transactions, categories }: Props) {
   const pct = (c: number, p: number) => (p > 0 ? Math.round(((c - p) / p) * 100) : null);
 
   return (
-    <GlassCard className="mb-6">
+    <GlassCard hideKey="index-cat-compare" hideLabel="Gastos acima do mês anterior" className="mb-8">
       <div className="flex items-center gap-2 mb-3">
         <AlertTriangle className="size-4 text-warning" />
         <h3 className="font-semibold">Gastos acima do mês anterior</h3>
@@ -58,7 +58,10 @@ export function CategoryComparisonAlert({ transactions, categories }: Props) {
           {increases.map(x => (
             <li key={x.id} className="flex items-center justify-between gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-sm">
               <span className="flex items-center gap-2 font-medium"><TrendingUp className="size-4 text-warning" />{name(x.id)}</span>
-              <span className="font-mono text-xs">+{formatBRL(x.diff)} ({pct(x.cur, x.prev)}%) · {formatBRL(x.prev)} → {formatBRL(x.cur)}</span>
+              <span className="font-mono text-xs flex items-center gap-2 flex-wrap justify-end">
+                <span className="rounded-md bg-destructive/15 px-2 py-0.5 text-sm font-bold text-destructive">+{formatBRL(x.diff)} ({pct(x.cur, x.prev)}%)</span>
+                <span className="text-muted-foreground">{formatBRL(x.prev)} → {formatBRL(x.cur)}</span>
+              </span>
             </li>
           ))}
         </ul>

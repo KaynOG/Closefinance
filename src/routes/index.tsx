@@ -394,8 +394,6 @@ function DashboardPage() {
         </h1>
       </header>
 
-      <CategoryComparisonAlert transactions={transactions} categories={categories} />
-
       {rankUp && (
         <div className="mb-4 rounded-2xl border p-4 flex items-center gap-3 flex-wrap animate-in fade-in slide-in-from-top-2"
           style={{ borderColor: rankUp.color + "66", background: rankUp.color + "12" }}>
@@ -696,6 +694,8 @@ function DashboardPage() {
           </motion.div>
         </GlassCard>)}
       </section>
+
+      <CategoryComparisonAlert transactions={transactions} categories={categories} />
 
       {!hidden.cards && (<section className="mb-8">
         <SectionTitle title="Limite dos cartões" subtitle="usado e disponível por cartão neste mês" />
