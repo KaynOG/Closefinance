@@ -8,6 +8,7 @@ import { isBudgetGroup, readBudgetPlan, type BudgetGroup, type BudgetPlan } from
 import { projectPartialInstallment, type PartialInstallment } from "@/lib/partial-installment";
 import { withUndo, clearActionHistory } from "@/lib/action-history";
 import { receivableInstallmentDeletion } from "@/lib/receivable-installment-deletion";
+import { debtInstallmentDeletion } from "@/lib/debt-installment-deletion";
 import type { Snapshot } from "@/lib/action-history-core";
 
 export type TxType = "income" | "expense";
@@ -1515,6 +1516,16 @@ export function useStore() {
       if (session.session?.user) await loadAll(session.session.user);
       return true;
     },
+    removeDebtInstallment: async (debtId: string, instId: string) => {
+      const { data, error } = await supabase.rpc('financial_recovery_snapshot');
+      if (error) throw error;
+      const changes = debtInstallmentDeletion(data as unknown as Snapshot, debtId, instId);
+      const { error: deletionError } = await supabase.rpc('restore_financial_action', { p_changes: changes as never });
+      if (deletionError) throw deletionError;
+      const { data: session } = await supabase.auth.getSession();
+      if (session.session?.user) await loadAll(session.session.user);
+      return true;
+    },
     removeReceivable: async (recvId: string) => {
       const recv = memory.receivables.find(d => d.id === recvId);
       if (!recv) return;
@@ -2125,6 +2136,7 @@ export function useStore() {
     removeCard: 'Cartão excluído', removeBank: 'Banco excluído', removeSubscription: 'Assinatura excluída',
     removeDebt: 'Dívida excluída', removeReceivable: 'Devedor excluído', wipeData: 'Dados apagados',
     removeReceivableInstallment: 'Parcela de devedor excluída',
+    removeDebtInstallment: 'Parcela de dívida excluída',
   };
   for (const key of Object.keys(deletionLabels) as (keyof typeof deletionLabels)[]) {
     const original = api[key] as (...args: unknown[]) => Promise<unknown>;
