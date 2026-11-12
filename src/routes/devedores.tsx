@@ -172,6 +172,12 @@ function DevedoresPage() {
               onRename={async (name) => { if (!await api.updateReceivable(r.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome atualizado nos ganhos."); }}
               onAppearance={async (patch) => { if (!await api.updateReceivable(r.id, patch)) throw new Error("Não foi possível salvar a aparência"); }}
               onUpdateInstallment={(inst, patch) => api.updateReceivableInstallment(r.id, inst.id, patch)}
+              onRemoveInstallment={async inst => {
+                const details = inst.received ? ' O ganho vinculado também será apagado e o crédito aplicado ao banco será estornado.' : '';
+                const last = r.installments.length === 1 ? ' Como é a última parcela, o devedor também será removido.' : '';
+                if (!await appConfirm(`Apagar a parcela ${inst.number} de "${r.name}"? O total será reduzido em ${formatBRL(inst.amount)}.${details}${last}`)) return;
+                await api.removeReceivableInstallment(r.id, inst.id);
+              }}
 
               onRemove={async () => {
                 if (!await appConfirm(`Apagar "${r.name}" e todos os ganhos das parcelas?`)) return;
@@ -456,13 +462,14 @@ function ReceivableForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAppearance, onUpdateInstallment, onRemove }: {
+function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAppearance, onUpdateInstallment, onRemoveInstallment, onRemove }: {
   receivable: Receivable;
   bankName?: string;
   onToggleReceived: (i: ReceivableInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
   onAppearance: (patch: { color: string; icon: string }) => void | Promise<void>;
   onUpdateInstallment: (i: ReceivableInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
+  onRemoveInstallment: (i: ReceivableInstallment) => void | Promise<void>;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -575,6 +582,9 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAp
                       {inst.received ? "Recebida" : late ? "Atrasada" : "Agendada"}
                     </p>
                     {!inst.received && <PartialInstallmentPayment kind="receivable" recordId={receivable.id} name={receivable.name} installmentId={inst.id} installments={receivable.installments.map(row => ({ id: row.id, number: row.number, amount: row.amount, dueDate: row.dueDate, settled: row.received }))} />}
+                    <Button variant="ghost" size="sm" className="mt-2 w-full text-danger hover:text-danger" aria-label={`Apagar parcela ${inst.number} de ${receivable.name}`} title="Apagar parcela" onClick={() => onRemoveInstallment(inst)}>
+                      <Trash2 className="size-3.5" /> Apagar parcela
+                    </Button>
                   </div>
                 </li>
               );
