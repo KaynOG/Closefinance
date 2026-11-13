@@ -185,7 +185,12 @@ function DividasPage() {
               onRename={async (name) => { if (!await api.updateDebt(d.id, { name })) throw new Error("Não foi possível salvar o nome"); notify("Nome da dívida atualizado nos gastos."); }}
               onAppearance={async (patch) => { if (!await api.updateDebt(d.id, patch)) throw new Error("Não foi possível salvar a aparência"); }}
               onUpdateInstallment={(inst, patch) => api.updateInstallment(d.id, inst.id, patch)}
-
+              onRemoveInstallment={async inst => {
+                const details = inst.paid ? ' O gasto vinculado também será apagado e o débito aplicado ao banco será estornado.' : '';
+                const last = d.installments.length === 1 ? ' Como é a última parcela, a dívida também será removida.' : '';
+                if (!await appConfirm(`Apagar a parcela ${inst.number} de "${d.name}"? O total será reduzido em ${formatBRL(inst.amount)}.${details}${last}`)) return;
+                await api.removeDebtInstallment(d.id, inst.id);
+              }}
               onRemove={async () => {
                 if (!await appConfirm(`Apagar a dívida "${d.name}" e todos os gastos das parcelas?`)) return;
                 await api.removeDebt(d.id);
@@ -474,13 +479,14 @@ function DebtForm({ banks, categories, onCreate, onCancel }: {
 }
 
 // ---------------- ROADMAP CARD ----------------
-function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpdateInstallment, onRemove }: {
+function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpdateInstallment, onRemoveInstallment, onRemove }: {
   debt: Debt;
   bankName?: string;
   onTogglePaid: (i: DebtInstallment) => void;
   onRename: (name: string) => void | Promise<void>;
   onAppearance: (patch: { color: string; icon: string }) => void | Promise<void>;
   onUpdateInstallment: (i: DebtInstallment, patch: { amount?: number; dueDate?: string }) => void | Promise<void>;
+  onRemoveInstallment: (i: DebtInstallment) => void | Promise<void>;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -594,6 +600,14 @@ function DebtCard({ debt, bankName, onTogglePaid, onRename, onAppearance, onUpda
                       {inst.paid ? "Paga" : late ? "Atrasada" : "Agendada"}
                     </p>
                     {!inst.paid && <PartialInstallmentPayment kind="debt" recordId={debt.id} name={debt.name} installmentId={inst.id} installments={debt.installments.map(row => ({ id: row.id, number: row.number, amount: row.amount, dueDate: row.dueDate, settled: row.paid }))} />}
+                    <button
+                      onClick={() => onRemoveInstallment(inst)}
+                      aria-label={`Apagar parcela ${inst.number} de ${debt.name}`}
+                      title="Apagar parcela"
+                      className="mt-2 ml-auto grid size-7 place-items-center rounded-lg text-[#FF6B1A] transition hover:bg-[#FF6B1A]/15 active:scale-95"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
                 </li>
               );
