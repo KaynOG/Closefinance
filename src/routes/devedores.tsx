@@ -582,9 +582,14 @@ function ReceivableCard({ receivable, bankName, onToggleReceived, onRename, onAp
                       {inst.received ? "Recebida" : late ? "Atrasada" : "Agendada"}
                     </p>
                     {!inst.received && <PartialInstallmentPayment kind="receivable" recordId={receivable.id} name={receivable.name} installmentId={inst.id} installments={receivable.installments.map(row => ({ id: row.id, number: row.number, amount: row.amount, dueDate: row.dueDate, settled: row.received }))} />}
-                    <Button variant="ghost" size="sm" className="mt-2 w-full text-danger hover:text-danger" aria-label={`Apagar parcela ${inst.number} de ${receivable.name}`} title="Apagar parcela" onClick={() => onRemoveInstallment(inst)}>
-                      <Trash2 className="size-3.5" /> Apagar parcela
-                    </Button>
+                    <button
+                      onClick={() => onRemoveInstallment(inst)}
+                      aria-label={`Apagar parcela ${inst.number} de ${receivable.name}`}
+                      title="Apagar parcela"
+                      className="mt-2 ml-auto grid size-7 place-items-center rounded-lg text-[#FF6B1A] transition hover:bg-[#FF6B1A]/15 active:scale-95"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </div>
                 </li>
               );
